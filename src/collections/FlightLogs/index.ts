@@ -73,9 +73,9 @@ export const FlightLogs: CollectionConfig = {
   timestamps: true,
   hooks: {
     beforeValidate: [
-      ({ data }) => {
+      ({ data }: { data: any }) => {
         // Ensure year is set to current year if not provided
-        if (!data.year) {
+        if (data && !data.year) {
           data.year = new Date().getFullYear()
         }
         return data
