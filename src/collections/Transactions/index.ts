@@ -63,7 +63,7 @@ export const Transactions: CollectionConfig = {
     {
       name: 'category',
       type: 'relationship',
-      relationTo: 'transaction-categories',
+      relationTo: 'transaction-categories' as any,
       label: 'Kategorie',
       admin: {
         description: 'Optional: Kategorie für diese Bewegung',
