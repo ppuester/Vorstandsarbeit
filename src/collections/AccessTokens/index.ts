@@ -43,7 +43,7 @@ export const AccessTokens: CollectionConfig = {
         beforeValidate: [
           async ({ data, operation }) => {
             // Generiere Token nur bei Erstellung, wenn noch keiner vorhanden ist
-            if (operation === 'create' && !data.token) {
+            if (operation === 'create' && data && !data.token) {
               // Generiere einen sicheren, zufälligen Token
               const randomBytes = crypto.randomBytes(32)
               data.token = randomBytes.toString('hex')
