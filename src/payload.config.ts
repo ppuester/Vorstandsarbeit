@@ -5,17 +5,12 @@ import path from 'path'
 import { buildConfig, PayloadRequest } from 'payload'
 import { fileURLToPath } from 'url'
 
-import { Categories } from './collections/Categories'
-import { DrivingSchools } from './collections/DrivingSchools'
-import { Inquiries } from './collections/Inquiries'
-import { InquiryResponses } from './collections/InquiryResponses'
+import { Aircraft } from './collections/Aircraft'
+import { FlightLogs } from './collections/FlightLogs'
 import { Media } from './collections/Media'
-import { Pages } from './collections/Pages'
-import { Posts } from './collections/Posts'
-import { Reviews } from './collections/Reviews'
+import { Transactions } from './collections/Transactions'
+import { TransactionCategories } from './collections/TransactionCategories'
 import { Users } from './collections/Users'
-import { Footer } from './Footer/config'
-import { Header } from './Header/config'
 import { plugins } from './plugins'
 import { defaultLexical } from '@/fields/defaultLexical'
 import { getServerSideURL } from './utilities/getURL'
@@ -43,7 +38,6 @@ if (!isGeneratingTypes) {
 export default buildConfig({
   admin: {
     components: {
-      beforeLogin: ['@/components/BeforeLogin'],
       beforeDashboard: ['@/components/BeforeDashboard'],
     },
     importMap: {
@@ -96,9 +90,8 @@ export default buildConfig({
       }
     },
   }),
-  collections: [Pages, Posts, DrivingSchools, Reviews, Inquiries, InquiryResponses, Media, Categories, Users],
+  collections: [Users, Media, Transactions, TransactionCategories, Aircraft, FlightLogs],
   cors: [getServerSideURL()].filter(Boolean),
-  globals: [Header, Footer],
   plugins,
   secret: process.env.PAYLOAD_SECRET,
   sharp,

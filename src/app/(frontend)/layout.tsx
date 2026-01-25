@@ -6,9 +6,6 @@ import { GeistSans } from 'geist/font/sans'
 import React from 'react'
 
 import { AdminBar } from '@/components/AdminBar'
-import { CookieBanner } from '@/components/CookieBanner'
-import { Footer } from '@/Footer/Component'
-import { Header } from '@/Header/Component'
 import { Providers } from '@/providers'
 import { mergeOpenGraph } from '@/utilities/mergeOpenGraph'
 import { draftMode } from 'next/headers'
@@ -39,10 +36,7 @@ export default async function RootLayout({ children }: { children: React.ReactNo
               preview: isEnabled,
             }}
           />
-          <Header />
           <main className="flex-1">{children}</main>
-          <Footer />
-          <CookieBanner />
         </Providers>
       </body>
     </html>
@@ -59,28 +53,14 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   metadataBase: new URL(getServerSideURL()),
   title: {
-    default: 'FahrschulFinder - Finde die beste Fahrschule in deiner Nähe',
-    template: '%s | FahrschulFinder',
+    default: 'Vorstandsarbeit - Verwaltungsdashboard',
+    template: '%s | Vorstandsarbeit',
   },
-  description:
-    'Die #1 Plattform für die Fahrschulsuche in Deutschland. Vergleiche über 3.000 Fahrschulen, lies echte Bewertungen und finde die perfekte Fahrschule für deinen Führerschein.',
-  keywords: [
-    'Fahrschule',
-    'Fahrschule finden',
-    'Fahrschule vergleichen',
-    'Führerschein',
-    'Fahrschule Bewertungen',
-    'Fahrschule in der Nähe',
-    'PKW Führerschein',
-    'Motorrad Führerschein',
-    'Führerschein Klasse B',
-    'Fahrschulpreise',
-    'Fahrausbildung',
-    'Intensivkurs Fahrschule',
-  ],
-  authors: [{ name: 'FahrschulFinder' }],
-  creator: 'FahrschulFinder',
-  publisher: 'FahrschulFinder',
+  description: 'Verwaltungsdashboard für Vorstandsarbeit und Kassierer-Aufgaben',
+  keywords: ['Vorstand', 'Kassierer', 'Verwaltung', 'Finanzen', 'Mitglieder'],
+  authors: [{ name: 'Vorstandsarbeit' }],
+  creator: 'Vorstandsarbeit',
+  publisher: 'Vorstandsarbeit',
   robots: {
     index: true,
     follow: true,
@@ -93,19 +73,19 @@ export const metadata: Metadata = {
     },
   },
   openGraph: mergeOpenGraph({
-    title: 'FahrschulFinder - Finde die beste Fahrschule in deiner Nähe',
-    description: 'Vergleiche Fahrschulen, lies echte Bewertungen und finde die perfekte Fahrschule für deinen Führerschein.',
+    title: 'Vorstandsarbeit - Verwaltungsdashboard',
+    description: 'Verwaltungsdashboard für Vorstandsarbeit und Kassierer-Aufgaben',
     type: 'website',
     locale: 'de_DE',
-    siteName: 'FahrschulFinder',
+    siteName: 'Vorstandsarbeit',
   }),
   twitter: {
     card: 'summary_large_image',
-    title: 'FahrschulFinder - Finde die beste Fahrschule in deiner Nähe',
-    description: 'Vergleiche Fahrschulen, lies echte Bewertungen und finde die perfekte Fahrschule für deinen Führerschein.',
+    title: 'Vorstandsarbeit - Verwaltungsdashboard',
+    description: 'Verwaltungsdashboard für Vorstandsarbeit und Kassierer-Aufgaben',
   },
   alternates: {
     canonical: getServerSideURL(),
   },
-  category: 'automotive',
+  category: 'business',
 }
