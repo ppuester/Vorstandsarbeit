@@ -96,33 +96,40 @@ export default function KontobewegungenPage() {
         const amountStr = values[amountIndex] || '0'
         const reference = referenceIndex !== -1 ? values[referenceIndex] : undefined
 
-        // Überspringe Abschlusszeilen
-        if (buchungstext.toLowerCase().includes('abschluss') || 
-            dateStr.toLowerCase().includes('abschluss') ||
-            !dateStr) {
+        // Überspringe leere Datumszeilen
+        if (!dateStr || dateStr.trim() === '') {
           continue
         }
 
-        // Kombiniere Beschreibung aus Name und Verwendungszweck
-        let description = ''
-        if (name && verwendungszweck) {
-          description = `${name} - ${verwendungszweck}`
-        } else if (name) {
-          description = name
-        } else if (verwendungszweck) {
-          description = verwendungszweck
-        } else if (buchungstext) {
-          description = buchungstext
+        // Überspringe explizite Abschlusszeilen (nur wenn "Abschluss" im Buchungstext steht)
+        if (buchungstext && buchungstext.toLowerCase().includes('abschluss per')) {
+          continue
         }
+
+        // Kombiniere Beschreibung aus verfügbaren Feldern
+        let description = ''
+        const parts: string[] = []
+        
+        if (name && name.trim()) {
+          parts.push(name.trim())
+        }
+        if (buchungstext && buchungstext.trim() && !buchungstext.toLowerCase().includes('abschluss')) {
+          parts.push(buchungstext.trim())
+        }
+        if (verwendungszweck && verwendungszweck.trim()) {
+          parts.push(verwendungszweck.trim())
+        }
+        
+        description = parts.join(' - ') || buchungstext || 'Unbekannte Transaktion'
 
         // Parse Datum (deutsches Format DD.MM.YYYY)
         let date: string
         try {
-          const parts = dateStr.split('.')
-          if (parts.length === 3) {
-            const day = parts[0].padStart(2, '0')
-            const month = parts[1].padStart(2, '0')
-            const year = parts[2]
+          const dateParts = dateStr.split('.')
+          if (dateParts.length === 3) {
+            const day = dateParts[0].padStart(2, '0')
+            const month = dateParts[1].padStart(2, '0')
+            const year = dateParts[2]
             date = `${year}-${month}-${day}`
           } else {
             // Fallback: Versuche ISO-Format
@@ -152,11 +159,11 @@ export default function KontobewegungenPage() {
           continue // Überspringe ungültige Beträge
         }
 
-        // Nur hinzufügen wenn Beschreibung vorhanden
-        if (description.trim()) {
+        // Nur hinzufügen wenn Betrag gültig ist (auch 0 ist erlaubt)
+        if (!isNaN(amount)) {
           transactions.push({
             date,
-            description: description.trim(),
+            description: description.trim() || 'Unbekannte Transaktion',
             amount,
             reference: reference?.trim() || undefined,
           })
@@ -164,7 +171,11 @@ export default function KontobewegungenPage() {
       }
 
       if (transactions.length === 0) {
-        setError('Keine gültigen Transaktionen in der CSV-Datei gefunden.')
+        setError(
+          'Keine gültigen Transaktionen in der CSV-Datei gefunden. ' +
+          `Gefundene Spalten: ${headers.join(', ')}. ` +
+          `Bitte überprüfen Sie, ob die Datei das erwartete Format hat.`
+        )
         return
       }
 
