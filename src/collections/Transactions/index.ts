@@ -106,7 +106,7 @@ export const Transactions: CollectionConfig = {
         {
           name: 'aircraft',
           type: 'relationship',
-          relationTo: 'aircraft',
+          relationTo: 'aircraft' as any,
           required: true,
           label: 'Flugzeug',
           admin: {
