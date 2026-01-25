@@ -32,10 +32,10 @@ export const FlightLogs: CollectionConfig = {
       type: 'number',
       required: true,
       label: 'Jahr',
+      min: 2000,
+      max: 2100,
       admin: {
         description: 'Jahr für das diese Daten gelten',
-        min: 2000,
-        max: 2100,
       },
     },
     {
@@ -44,9 +44,9 @@ export const FlightLogs: CollectionConfig = {
       required: true,
       label: 'Anzahl Starts',
       defaultValue: 0,
+      min: 0,
       admin: {
         description: 'Anzahl der Starts in diesem Jahr',
-        min: 0,
       },
     },
     {
@@ -55,10 +55,10 @@ export const FlightLogs: CollectionConfig = {
       required: true,
       label: 'Flugstunden',
       defaultValue: 0,
+      step: 0.01,
+      min: 0,
       admin: {
         description: 'Gesamte Flugstunden in diesem Jahr',
-        step: 0.01,
-        min: 0,
       },
     },
     {
