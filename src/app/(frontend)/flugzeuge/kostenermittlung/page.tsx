@@ -27,6 +27,19 @@ interface FlightLog {
   flightHours: number
 }
 
+interface Transaction {
+  id: string
+  date: string
+  amount: number
+  type: 'income' | 'expense'
+  description?: string
+  reference?: string
+  costAllocations?: Array<{
+    aircraft: string | Aircraft
+    weight: number
+  }>
+}
+
 interface AircraftCosts {
   aircraft: Aircraft
   year: number
