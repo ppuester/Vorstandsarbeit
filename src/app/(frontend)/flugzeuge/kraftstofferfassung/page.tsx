@@ -119,9 +119,17 @@ export default function KraftstofferfassungPage() {
   }
 
   const updateRow = (id: string, field: keyof FuelEntryRow, value: any) => {
+    const currentIndex = rows.findIndex((r) => r.id === id)
+    
     setRows(
-      rows.map((row) => {
-        if (row.id !== id) return row
+      rows.map((row, index) => {
+        if (row.id !== id) {
+          // Wenn "Zählerstand neu" in der vorherigen Zeile geändert wurde, übernehme den Wert als "Zählerstand alt"
+          if (field === 'meterReadingNew' && index === currentIndex + 1 && value > 0) {
+            return { ...row, meterReadingOld: value }
+          }
+          return row
+        }
 
         const updated = { ...row, [field]: value }
 
@@ -129,11 +137,6 @@ export default function KraftstofferfassungPage() {
         if (field === 'meterReadingOld' || field === 'meterReadingNew') {
           const liters = Math.max(0, updated.meterReadingNew - updated.meterReadingOld)
           updated.liters = Number(liters.toFixed(2))
-        }
-
-        // Berechne Gesamtpreis automatisch
-        if (field === 'liters' || field === 'pricePerLiter') {
-          updated.totalPrice = Number((updated.liters * updated.pricePerLiter).toFixed(2))
         }
 
         return updated
@@ -189,8 +192,7 @@ export default function KraftstofferfassungPage() {
         row.name.trim() &&
         row.aircraft &&
         row.meterReadingNew > row.meterReadingOld &&
-        row.liters > 0 &&
-        row.pricePerLiter > 0
+        row.liters > 0
     )
 
     if (validRows.length === 0) {
@@ -220,8 +222,8 @@ export default function KraftstofferfassungPage() {
         submitData.append('meterReadingOld', row.meterReadingOld.toString())
         submitData.append('meterReadingNew', row.meterReadingNew.toString())
         submitData.append('liters', row.liters.toString())
-        submitData.append('pricePerLiter', row.pricePerLiter.toString())
-        submitData.append('totalPrice', row.totalPrice.toString())
+        submitData.append('pricePerLiter', '0')
+        submitData.append('totalPrice', '0')
         submitData.append('gasStation', row.gasStation || '')
         submitData.append('invoiceNumber', row.invoiceNumber || '')
         submitData.append('notes', row.notes || '')
@@ -353,12 +355,6 @@ export default function KraftstofferfassungPage() {
                     <th className="text-right py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                       Liter
                     </th>
-                    <th className="text-right py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                      Preis/L
-                    </th>
-                    <th className="text-right py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                      Gesamt
-                    </th>
                     <th className="text-left py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                       Tankstelle
                     </th>
@@ -442,9 +438,46 @@ export default function KraftstofferfassungPage() {
                             step="0.01"
                             min="0"
                             value={row.meterReadingNew || ''}
-                            onChange={(e) =>
-                              updateRow(row.id, 'meterReadingNew', parseFloat(e.target.value) || 0)
-                            }
+                            onChange={(e) => {
+                              const newValue = parseFloat(e.target.value) || 0
+                              updateRow(row.id, 'meterReadingNew', newValue)
+                              
+                              // Übernehme den Wert in die nächste Zeile als "Zählerstand alt"
+                              if (newValue > 0 && index < rows.length - 1) {
+                                const nextRow = rows[index + 1]
+                                if (nextRow) {
+                                  setRows((prevRows) =>
+                                    prevRows.map((r) =>
+                                      r.id === nextRow.id ? { ...r, meterReadingOld: newValue } : r
+                                    )
+                                  )
+                                }
+                              }
+                            }}
+                            onBlur={(e) => {
+                              const newValue = parseFloat(e.target.value) || 0
+                              // Wenn eine neue Zeile hinzugefügt werden soll, füge sie hinzu
+                              if (newValue > 0 && index === rows.length - 1) {
+                                const newRowId = (rowIdCounter.current + 1).toString()
+                                rowIdCounter.current += 1
+                                const newRow: FuelEntryRow = {
+                                  id: newRowId,
+                                  date: row.date,
+                                  name: '',
+                                  aircraft: row.aircraft, // Gleiches Flugzeug übernehmen
+                                  fuelType: row.fuelType, // Gleicher Kraftstoff übernehmen
+                                  meterReadingOld: newValue, // Zählerstand neu wird zu alt
+                                  meterReadingNew: 0,
+                                  liters: 0,
+                                  pricePerLiter: 0,
+                                  totalPrice: 0,
+                                  gasStation: '',
+                                  invoiceNumber: '',
+                                  notes: '',
+                                }
+                                setRows([...rows, newRow])
+                              }
+                            }}
                             className="w-full px-2 py-1.5 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded text-sm text-right text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400"
                           />
                         </td>
@@ -453,27 +486,6 @@ export default function KraftstofferfassungPage() {
                             type="number"
                             step="0.01"
                             value={row.liters.toFixed(2)}
-                            readOnly
-                            className="w-full px-2 py-1.5 bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded text-sm text-right text-slate-600 dark:text-slate-400 cursor-not-allowed"
-                          />
-                        </td>
-                        <td className="py-2 px-4">
-                          <input
-                            type="number"
-                            step="0.01"
-                            min="0"
-                            value={row.pricePerLiter || ''}
-                            onChange={(e) =>
-                              updateRow(row.id, 'pricePerLiter', parseFloat(e.target.value) || 0)
-                            }
-                            className="w-full px-2 py-1.5 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded text-sm text-right text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400"
-                          />
-                        </td>
-                        <td className="py-2 px-4">
-                          <input
-                            type="number"
-                            step="0.01"
-                            value={row.totalPrice.toFixed(2)}
                             readOnly
                             className="w-full px-2 py-1.5 bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded text-sm text-right text-slate-600 dark:text-slate-400 cursor-not-allowed"
                           />
@@ -561,7 +573,8 @@ export default function KraftstofferfassungPage() {
               <div className="text-sm text-blue-800 dark:text-blue-300">
                 <p className="font-semibold mb-1">Hinweise zur Schnellerfassung:</p>
                 <ul className="list-disc list-inside space-y-1 text-blue-700 dark:text-blue-400">
-                  <li>Liter und Gesamtpreis werden automatisch berechnet</li>
+                  <li>Liter werden automatisch aus Zählerständen berechnet</li>
+                  <li>Wenn Sie "Zählerstand neu" eingeben, wird dieser Wert automatisch in die nächste Zeile als "Zählerstand alt" übernommen</li>
                   <li>Verwenden Sie die Tab-Taste für schnelle Navigation zwischen Feldern</li>
                   <li>Duplikate werden automatisch erkannt und übersprungen</li>
                   <li>Mehrere Einträge können auf einmal gespeichert werden</li>

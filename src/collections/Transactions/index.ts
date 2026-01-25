@@ -108,18 +108,42 @@ export const Transactions: CollectionConfig = {
       type: 'array',
       label: 'Kostenstellen-Zuordnung',
       admin: {
-        description: 'Ordnen Sie diese Kosten mehreren Stellen zu (z.B. Flugzeugen) mit Gewichtung',
+        description: 'Ordnen Sie diese Kosten mehreren Stellen zu (Flugzeugen oder allgemeinen Kosten) mit Gewichtung',
         initCollapsed: true,
       },
       fields: [
         {
+          name: 'allocationType',
+          type: 'select',
+          required: true,
+          label: 'Zuordnungstyp',
+          options: [
+            { label: 'Flugzeug', value: 'aircraft' },
+            { label: 'Allgemeine Kosten', value: 'generalCost' },
+          ],
+          defaultValue: 'aircraft',
+          admin: {
+            description: 'Wählen Sie, ob Sie einem Flugzeug oder allgemeinen Kosten zuordnen möchten',
+          },
+        },
+        {
           name: 'aircraft',
           type: 'relationship',
           relationTo: 'aircraft' as any,
-          required: true,
           label: 'Flugzeug',
           admin: {
             description: 'Flugzeug, dem diese Kosten zugeordnet werden',
+            condition: (data) => data.allocationType === 'aircraft',
+          },
+        },
+        {
+          name: 'generalCost',
+          type: 'relationship',
+          relationTo: 'general-costs' as any,
+          label: 'Allgemeine Kosten',
+          admin: {
+            description: 'Allgemeine Kostenstelle, der diese Kosten zugeordnet werden',
+            condition: (data) => data.allocationType === 'generalCost',
           },
         },
         {

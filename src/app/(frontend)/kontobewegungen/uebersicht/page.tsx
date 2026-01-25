@@ -16,6 +16,8 @@ import {
   ExternalLink,
   Calendar,
   Euro,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react'
 import Link from 'next/link'
 import { useOrganization } from '@/providers/Organization'
@@ -41,10 +43,15 @@ interface Transaction {
   processed: boolean
   notes?: string
   costAllocations?: Array<{
-    aircraft: string | {
+    allocationType?: 'aircraft' | 'generalCost'
+    aircraft?: string | {
       id: string
       registration: string
       name?: string
+    }
+    generalCost?: string | {
+      id: string
+      name: string
     }
     weight: number
   }>
@@ -65,11 +72,20 @@ interface CostCenter {
   active: boolean
 }
 
+interface GeneralCost {
+  id: string
+  name: string
+  availableForIncome: boolean
+  availableForExpense: boolean
+  active: boolean
+}
+
 export default function KontobewegungenUebersichtPage() {
   const { isFeatureEnabled } = useOrganization()
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [aircraft, setAircraft] = useState<Aircraft[]>([])
   const [costCenters, setCostCenters] = useState<CostCenter[]>([])
+  const [generalCosts, setGeneralCosts] = useState<GeneralCost[]>([])
   const [loading, setLoading] = useState(true)
   const [editingCostCenter, setEditingCostCenter] = useState<{ transactionId: string; costCenterId: string | null } | null>(null)
   const [activeTab, setActiveTab] = useState<'all' | 'income' | 'expense'>('all')
@@ -82,26 +98,34 @@ export default function KontobewegungenUebersichtPage() {
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
   const [allocationForm, setAllocationForm] = useState<
-    Array<{ aircraft: string; weight: number }>
+    Array<{ 
+      allocationType: 'aircraft' | 'generalCost'
+      aircraft?: string
+      generalCost?: string
+      weight: number 
+    }>
   >([])
+  const [currentPage, setCurrentPage] = useState(1)
+  const [totalPages, setTotalPages] = useState(1)
+  const [totalDocs, setTotalDocs] = useState(0)
+  const [limit] = useState(50)
 
   useEffect(() => {
-    fetchData()
+    fetchAircraftAndCostCenters()
   }, [])
 
-  const fetchData = async () => {
+  useEffect(() => {
+    setCurrentPage(1) // Reset to first page when filters change
+    fetchTransactions(1)
+  }, [activeTab, searchTerm, filterProcessed, dateFrom, dateTo, amountMin, amountMax])
+
+  const fetchAircraftAndCostCenters = async () => {
     try {
-      setLoading(true)
-      const [transactionsRes, aircraftRes, costCentersRes] = await Promise.all([
-        fetch('/api/transactions'),
+      const [aircraftRes, costCentersRes, generalCostsRes] = await Promise.all([
         fetch('/api/aircraft'),
         fetch('/api/cost-centers'),
+        fetch('/api/general-costs?activeOnly=true'),
       ])
-
-      if (transactionsRes.ok) {
-        const data = await transactionsRes.json()
-        setTransactions(data.docs || [])
-      }
 
       if (aircraftRes.ok) {
         const data = await aircraftRes.json()
@@ -112,8 +136,65 @@ export default function KontobewegungenUebersichtPage() {
         const data = await costCentersRes.json()
         setCostCenters(data.docs || [])
       }
+
+      if (generalCostsRes.ok) {
+        const data = await generalCostsRes.json()
+        setGeneralCosts(data.docs || [])
+      }
     } catch (error) {
       console.error('Fehler beim Laden der Daten:', error)
+    }
+  }
+
+  const fetchTransactions = async (page: number = currentPage) => {
+    try {
+      setLoading(true)
+      const params = new URLSearchParams({
+        page: page.toString(),
+        limit: limit.toString(),
+      })
+
+      if (activeTab !== 'all') {
+        params.append('type', activeTab)
+      }
+
+      if (searchTerm) {
+        params.append('search', searchTerm)
+      }
+
+      if (filterProcessed === 'processed') {
+        params.append('processed', 'true')
+      } else if (filterProcessed === 'unprocessed') {
+        params.append('processed', 'false')
+      }
+
+      if (dateFrom) {
+        params.append('dateFrom', dateFrom)
+      }
+
+      if (dateTo) {
+        params.append('dateTo', dateTo)
+      }
+
+      if (amountMin) {
+        params.append('amountMin', amountMin)
+      }
+
+      if (amountMax) {
+        params.append('amountMax', amountMax)
+      }
+
+      const response = await fetch(`/api/transactions?${params.toString()}`)
+
+      if (response.ok) {
+        const data = await response.json()
+        setTransactions(data.docs || [])
+        setTotalPages(data.totalPages || 1)
+        setTotalDocs(data.totalDocs || 0)
+        setCurrentPage(page)
+      }
+    } catch (error) {
+      console.error('Fehler beim Laden der Transaktionen:', error)
     } finally {
       setLoading(false)
     }
@@ -144,14 +225,22 @@ export default function KontobewegungenUebersichtPage() {
     // Initialize form with existing allocations or empty
     if (transaction.costAllocations && transaction.costAllocations.length > 0) {
       setAllocationForm(
-        transaction.costAllocations.map((alloc) => ({
-          aircraft:
-            typeof alloc.aircraft === 'object' ? alloc.aircraft.id : alloc.aircraft,
-          weight: alloc.weight,
-        }))
+        transaction.costAllocations.map((alloc) => {
+          const allocationType = alloc.allocationType || (alloc.aircraft ? 'aircraft' : 'generalCost')
+          return {
+            allocationType,
+            aircraft: allocationType === 'aircraft' 
+              ? (typeof alloc.aircraft === 'object' ? alloc.aircraft.id : alloc.aircraft || '')
+              : undefined,
+            generalCost: allocationType === 'generalCost'
+              ? (typeof alloc.generalCost === 'object' ? alloc.generalCost.id : alloc.generalCost || '')
+              : undefined,
+            weight: alloc.weight,
+          }
+        })
       )
     } else {
-      setAllocationForm([{ aircraft: '', weight: 100 }])
+      setAllocationForm([{ allocationType: 'aircraft', aircraft: '', weight: 100 }])
     }
   }
 
@@ -176,7 +265,9 @@ export default function KontobewegungenUebersichtPage() {
         },
         body: JSON.stringify({
           costAllocations: allocationForm.map((alloc) => ({
-            aircraft: alloc.aircraft,
+            allocationType: alloc.allocationType,
+            aircraft: alloc.allocationType === 'aircraft' ? alloc.aircraft : undefined,
+            generalCost: alloc.allocationType === 'generalCost' ? alloc.generalCost : undefined,
             weight: alloc.weight,
           })),
         }),
@@ -197,7 +288,7 @@ export default function KontobewegungenUebersichtPage() {
   }
 
   const handleAddAllocation = () => {
-    setAllocationForm([...allocationForm, { aircraft: '', weight: 0 }])
+    setAllocationForm([...allocationForm, { allocationType: 'aircraft', aircraft: '', weight: 0 }])
   }
 
   const handleRemoveAllocation = (index: number) => {
@@ -231,13 +322,21 @@ export default function KontobewegungenUebersichtPage() {
 
   const handleAllocationChange = (
     index: number,
-    field: 'aircraft' | 'weight',
+    field: 'allocationType' | 'aircraft' | 'generalCost' | 'weight',
     value: string | number
   ) => {
     const newForm = [...allocationForm]
-    newForm[index] = {
-      ...newForm[index],
-      [field]: field === 'weight' ? Number(value) : value,
+    if (field === 'allocationType') {
+      // Reset selection when type changes
+      newForm[index] = {
+        allocationType: value as 'aircraft' | 'generalCost',
+        weight: newForm[index].weight,
+      }
+    } else {
+      newForm[index] = {
+        ...newForm[index],
+        [field]: field === 'weight' ? Number(value) : value,
+      }
     }
     setAllocationForm(newForm)
   }
@@ -245,67 +344,17 @@ export default function KontobewegungenUebersichtPage() {
   // Calculate total weight
   const totalWeight = allocationForm.reduce((sum, alloc) => sum + alloc.weight, 0)
 
-  // Filter transactions
-  const filteredTransactions = transactions.filter((transaction) => {
-    // Tab filter
-    if (activeTab === 'income' && transaction.type !== 'income') return false
-    if (activeTab === 'expense' && transaction.type !== 'expense') return false
-
-    // Search filter
-    if (searchTerm) {
-      const searchLower = searchTerm.toLowerCase()
-      if (
-        !transaction.description.toLowerCase().includes(searchLower) &&
-        !transaction.reference?.toLowerCase().includes(searchLower) &&
-        !transaction.category?.name.toLowerCase().includes(searchLower)
-      ) {
-        return false
-      }
-    }
-
-    // Processed filter
-    if (filterProcessed === 'processed' && !transaction.processed) return false
-    if (filterProcessed === 'unprocessed' && transaction.processed) return false
-
-    // Date range filter
-    if (dateFrom) {
-      const transactionDate = new Date(transaction.date)
-      const fromDate = new Date(dateFrom)
-      if (transactionDate < fromDate) return false
-    }
-    if (dateTo) {
-      const transactionDate = new Date(transaction.date)
-      const toDate = new Date(dateTo)
-      toDate.setHours(23, 59, 59, 999) // Include entire day
-      if (transactionDate > toDate) return false
-    }
-
-    // Amount range filter
-    if (amountMin) {
-      const min = parseFloat(amountMin)
-      if (!isNaN(min) && transaction.amount < min) return false
-    }
-    if (amountMax) {
-      const max = parseFloat(amountMax)
-      if (!isNaN(max) && transaction.amount > max) return false
-    }
-
-    return true
-  })
-
-  // Calculate totals
-  const totalIncome = filteredTransactions
+  // Calculate totals from current page (note: these are only for the current page, not all data)
+  const totalIncome = transactions
     .filter((t) => t.type === 'income')
     .reduce((sum, t) => sum + t.amount, 0)
-  const totalExpenses = filteredTransactions
+  const totalExpenses = transactions
     .filter((t) => t.type === 'expense')
     .reduce((sum, t) => sum + t.amount, 0)
   const balance = totalIncome - totalExpenses
 
-  // Sort by date (newest first)
-  const sortedTransactions = [...filteredTransactions].sort(
-    (a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()
-  )
+  // Transactions are already sorted by the API
+  const sortedTransactions = transactions
 
   if (loading) {
     return (
@@ -395,7 +444,7 @@ export default function KontobewegungenUebersichtPage() {
                     : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
                 }`}
               >
-                Alle ({transactions.length})
+                Alle ({totalDocs})
               </button>
               <button
                 onClick={() => setActiveTab('income')}
@@ -406,7 +455,7 @@ export default function KontobewegungenUebersichtPage() {
                 }`}
               >
                 <ArrowUp className="w-4 h-4" />
-                Einnahmen ({transactions.filter((t) => t.type === 'income').length})
+                Einnahmen
               </button>
               <button
                 onClick={() => setActiveTab('expense')}
@@ -417,7 +466,7 @@ export default function KontobewegungenUebersichtPage() {
                 }`}
               >
                 <ArrowDown className="w-4 h-4" />
-                Ausgaben ({transactions.filter((t) => t.type === 'expense').length})
+                Ausgaben
               </button>
             </div>
 
@@ -694,24 +743,40 @@ export default function KontobewegungenUebersichtPage() {
                             <div className="flex flex-wrap gap-2">
                               {transaction.costAllocations && transaction.costAllocations.length > 0 ? (
                                 transaction.costAllocations.map((allocation, idx) => {
+                                  const allocationType = allocation.allocationType || (allocation.aircraft ? 'aircraft' : 'generalCost')
                                   const aircraft =
-                                    typeof allocation.aircraft === 'object'
+                                    allocationType === 'aircraft' && typeof allocation.aircraft === 'object'
                                       ? allocation.aircraft
+                                      : null
+                                  const generalCost =
+                                    allocationType === 'generalCost' && typeof allocation.generalCost === 'object'
+                                      ? allocation.generalCost
                                       : null
                                   return (
                                     <span
                                       key={idx}
                                       className="inline-flex items-center gap-1 px-2 py-1 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 rounded text-xs font-medium"
                                     >
-                                      {aircraft ? (
+                                      {allocationType === 'aircraft' ? (
+                                        aircraft ? (
+                                          <>
+                                            {aircraft.registration}
+                                            <span className="text-violet-500 dark:text-violet-400">
+                                              ({allocation.weight.toFixed(0)}%)
+                                            </span>
+                                          </>
+                                        ) : (
+                                          <span className="text-slate-400 dark:text-slate-500">Flugzeug gelöscht</span>
+                                        )
+                                      ) : generalCost ? (
                                         <>
-                                          {aircraft.registration}
+                                          {generalCost.name}
                                           <span className="text-violet-500 dark:text-violet-400">
                                             ({allocation.weight.toFixed(0)}%)
                                           </span>
                                         </>
                                       ) : (
-                                        <span className="text-slate-400 dark:text-slate-500">Flugzeug gelöscht</span>
+                                        <span className="text-slate-400 dark:text-slate-500">Allgemeine Kosten gelöscht</span>
                                       )}
                                     </span>
                                   )
@@ -764,6 +829,58 @@ export default function KontobewegungenUebersichtPage() {
                 </tbody>
               </table>
             </div>
+            
+            {/* Pagination */}
+            {totalPages > 1 && (
+              <div className="bg-slate-50 dark:bg-slate-700 border-t border-slate-200 dark:border-slate-600 px-6 py-4 flex items-center justify-between">
+                <div className="text-sm text-slate-600 dark:text-slate-400">
+                  Zeige {((currentPage - 1) * limit) + 1} bis {Math.min(currentPage * limit, totalDocs)} von {totalDocs} Einträgen
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => fetchTransactions(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronLeft className="w-4 h-4" />
+                  </button>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum: number
+                      if (totalPages <= 5) {
+                        pageNum = i + 1
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i
+                      } else {
+                        pageNum = currentPage - 2 + i
+                      }
+                      return (
+                        <button
+                          key={pageNum}
+                          onClick={() => fetchTransactions(pageNum)}
+                          className={`px-3 py-2 text-sm font-medium rounded-lg transition-colors ${
+                            currentPage === pageNum
+                              ? 'bg-violet-600 text-white dark:bg-violet-500'
+                              : 'text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 hover:bg-slate-50 dark:hover:bg-slate-700'
+                          }`}
+                        >
+                          {pageNum}
+                        </button>
+                      )
+                    })}
+                  </div>
+                  <button
+                    onClick={() => fetchTransactions(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="px-3 py-2 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  >
+                    <ChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -880,80 +997,119 @@ export default function KontobewegungenUebersichtPage() {
             <div className="p-6 space-y-4">
               <div>
                 <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">
-                  Zuordnung zu Flugzeugen
+                  Zuordnung zu Flugzeugen oder Allgemeinen Kosten
                 </h3>
                 <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
                   <p className="text-sm text-blue-800 dark:text-blue-300">
-                    <strong>Hinweis:</strong> Die Gesamtgewichtung muss 100% betragen. Die Zuordnung
-                    wird basierend auf dem Datum der Transaktion in der Kostenermittlung verwendet.
+                    <strong>Hinweis:</strong> Die Gesamtgewichtung muss 100% betragen. Sie können zwischen Flugzeugen und Allgemeinen Kosten (z.B. Pacht) wählen.
                     {editingTransaction.type === 'income' && (
                       <span className="block mt-2">
-                        <strong>Einnahmen:</strong> Sie können Einnahmen ebenfalls Flugzeugen zuordnen,
-                        um Erlöse pro Flugzeug zu verfolgen.
+                        <strong>Einnahmen:</strong> Sie können Einnahmen Flugzeugen oder allgemeinen Kostenstellen zuordnen,
+                        um Erlöse zu verfolgen.
                       </span>
                     )}
                     {editingTransaction.type === 'expense' && (
                       <span className="block mt-2">
-                        <strong>Ausgaben:</strong> Ordnen Sie Ausgaben Flugzeugen zu, um die Kosten pro Flugzeug
-                        in der Kostenermittlung zu verfolgen.
+                        <strong>Ausgaben:</strong> Ordnen Sie Ausgaben Flugzeugen oder allgemeinen Kostenstellen zu,
+                        um die Kosten zu verfolgen.
                       </span>
                     )}
                   </p>
                 </div>
               </div>
 
-              {allocationForm.map((alloc, index) => (
-                <div
-                  key={index}
-                  className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-600"
-                >
-                  <div className="flex-1">
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      Flugzeug
-                    </label>
-                    <select
-                      value={alloc.aircraft}
-                      onChange={(e) =>
-                        handleAllocationChange(index, 'aircraft', e.target.value)
-                      }
-                      className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
-                    >
-                      <option value="">Flugzeug auswählen...</option>
-                      {aircraft
-                        .filter((ac) => ac.active !== false)
-                        .map((ac) => (
-                          <option key={ac.id} value={ac.id}>
-                            {ac.registration} {ac.name ? `(${ac.name})` : ''}
-                          </option>
-                        ))}
-                    </select>
+              {allocationForm.map((alloc, index) => {
+                const availableGeneralCosts = generalCosts.filter(
+                  (gc) => gc.active && 
+                    (editingTransaction.type === 'income' ? gc.availableForIncome : gc.availableForExpense)
+                )
+                return (
+                  <div
+                    key={index}
+                    className="flex flex-col gap-4 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-600"
+                  >
+                    <div className="w-full">
+                      <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                        Zuordnungstyp
+                      </label>
+                      <select
+                        value={alloc.allocationType}
+                        onChange={(e) =>
+                          handleAllocationChange(index, 'allocationType', e.target.value)
+                        }
+                        className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
+                      >
+                        <option value="aircraft">Flugzeug</option>
+                        <option value="generalCost">Allgemeine Kosten</option>
+                      </select>
+                    </div>
+                    <div className="flex items-center gap-4">
+                      <div className="flex-1">
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                          {alloc.allocationType === 'aircraft' ? 'Flugzeug' : 'Allgemeine Kosten'}
+                        </label>
+                        {alloc.allocationType === 'aircraft' ? (
+                          <select
+                            value={alloc.aircraft || ''}
+                            onChange={(e) =>
+                              handleAllocationChange(index, 'aircraft', e.target.value)
+                            }
+                            className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
+                          >
+                            <option value="">Flugzeug auswählen...</option>
+                            {aircraft
+                              .filter((ac) => ac.active !== false)
+                              .map((ac) => (
+                                <option key={ac.id} value={ac.id}>
+                                  {ac.registration} {ac.name ? `(${ac.name})` : ''}
+                                </option>
+                              ))}
+                          </select>
+                        ) : (
+                          <select
+                            value={alloc.generalCost || ''}
+                            onChange={(e) =>
+                              handleAllocationChange(index, 'generalCost', e.target.value)
+                            }
+                            className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
+                          >
+                            <option value="">Allgemeine Kosten auswählen...</option>
+                            {availableGeneralCosts.map((gc) => (
+                              <option key={gc.id} value={gc.id}>
+                                {gc.name}
+                              </option>
+                            ))}
+                          </select>
+                        )}
+                      </div>
+                      <div className="w-32">
+                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                          Gewichtung (%)
+                        </label>
+                        <input
+                          type="number"
+                          min="0"
+                          max="100"
+                          step="0.01"
+                          value={alloc.weight}
+                          onChange={(e) =>
+                            handleAllocationChange(index, 'weight', e.target.value)
+                          }
+                          className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
+                        />
+                      </div>
+                      {allocationForm.length > 1 && (
+                        <button
+                          onClick={() => handleRemoveAllocation(index)}
+                          className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors mt-6"
+                        >
+                          <Trash2 className="w-5 h-5" />
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <div className="w-32">
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      Gewichtung (%)
-                    </label>
-                    <input
-                      type="number"
-                      min="0"
-                      max="100"
-                      step="0.01"
-                      value={alloc.weight}
-                      onChange={(e) =>
-                        handleAllocationChange(index, 'weight', e.target.value)
-                      }
-                      className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
-                    />
-                  </div>
-                  {allocationForm.length > 1 && (
-                    <button
-                      onClick={() => handleRemoveAllocation(index)}
-                      className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors mt-6"
-                    >
-                      <Trash2 className="w-5 h-5" />
-                    </button>
-                  )}
-                </div>
-              ))}
+                )
+              })}
 
               <div className="flex items-center justify-between pt-2">
                 <button

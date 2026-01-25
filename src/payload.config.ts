@@ -9,6 +9,7 @@ import { Aircraft } from './collections/Aircraft'
 import { CostCenters } from './collections/CostCenters'
 import { FlightLogs } from './collections/FlightLogs'
 import { FuelEntries } from './collections/FuelEntries'
+import { GeneralCosts } from './collections/GeneralCosts'
 import { Media } from './collections/Media'
 import { Transactions } from './collections/Transactions'
 import { TransactionCategories } from './collections/TransactionCategories'
@@ -92,7 +93,7 @@ export default buildConfig({
       }
     },
   }),
-  collections: [Users, Media, Transactions, TransactionCategories, CostCenters, Aircraft, FlightLogs, FuelEntries],
+  collections: [Users, Media, Transactions, TransactionCategories, CostCenters, Aircraft, FlightLogs, FuelEntries, GeneralCosts],
   cors: [getServerSideURL()].filter(Boolean),
   plugins,
   secret: process.env.PAYLOAD_SECRET,

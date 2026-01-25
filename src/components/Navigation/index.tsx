@@ -11,6 +11,7 @@ import {
   TrendingUp,
   Menu,
   X,
+  Database,
 } from 'lucide-react'
 import { useOrganization } from '@/providers/Organization'
 import { ThemeToggle } from '@/components/ThemeToggle'
@@ -47,6 +48,16 @@ export function Navigation() {
         { label: 'Übersicht', href: '/flugzeuge', enabled: isFeatureEnabled('aircraft') },
         { label: 'Kostenermittlung', href: '/flugzeuge/kostenermittlung', enabled: isFeatureEnabled('costCalculation') },
         { label: 'Kraftstofferfassung', href: '/flugzeuge/kraftstofferfassung', enabled: isFeatureEnabled('fuelTracking') },
+        { label: 'Flugstunden & Starts', href: '/flugzeuge/flugstunden', enabled: isFeatureEnabled('aircraft') },
+      ],
+    },
+    {
+      label: 'Stammdaten',
+      href: '/stammdaten',
+      icon: Database,
+      enabled: true,
+      children: [
+        { label: 'Allgemeine Kosten', href: '/stammdaten/allgemeine-kosten', enabled: true },
       ],
     },
   ].filter((item) => item.enabled)
