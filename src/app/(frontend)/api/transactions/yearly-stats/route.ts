@@ -16,7 +16,7 @@ export async function GET() {
     // Group by year
     const yearMap = new Map<number, { income: number; expenses: number; count: number }>()
 
-    result.docs.forEach((transaction) => {
+    result.docs.forEach((transaction: any) => {
       const date = new Date(transaction.date)
       const year = date.getFullYear()
 
