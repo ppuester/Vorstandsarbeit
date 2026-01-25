@@ -17,6 +17,8 @@ export default function KontobewegungenPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
   const [importedCount, setImportedCount] = useState(0)
+  const [skippedCount, setSkippedCount] = useState(0)
+  const [skippedTransactions, setSkippedTransactions] = useState<Transaction[]>([])
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
@@ -211,7 +213,9 @@ export default function KontobewegungenPage() {
 
       const result = await response.json()
       setSuccess(true)
-      setImportedCount(result.count || preview.length)
+      setImportedCount(result.count || 0)
+      setSkippedCount(result.skipped || 0)
+      setSkippedTransactions(result.skippedTransactions || [])
       setPreview([])
       
       // Reset file input
@@ -315,11 +319,42 @@ export default function KontobewegungenPage() {
             )}
 
             {success && (
-              <div className="mt-6 flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-                <p className="text-sm text-green-700">
-                  Erfolgreich {importedCount} Kontobewegung(en) importiert!
-                </p>
+              <div className="mt-6 space-y-3">
+                <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
+                  <p className="text-sm text-green-700">
+                    Erfolgreich {importedCount} Kontobewegung(en) importiert!
+                  </p>
+                </div>
+                {skippedCount > 0 && (
+                  <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <XCircle className="w-5 h-5 text-yellow-600 flex-shrink-0" />
+                      <p className="text-sm font-medium text-yellow-800">
+                        {skippedCount} Bewegung(en) übersprungen (bereits vorhanden)
+                      </p>
+                    </div>
+                    {skippedTransactions.length > 0 && skippedTransactions.length <= 10 && (
+                      <div className="mt-2 text-xs text-yellow-700">
+                        <p className="font-medium mb-1">Übersprungene Bewegungen:</p>
+                        <ul className="list-disc list-inside space-y-1">
+                          {skippedTransactions.map((t, idx) => (
+                            <li key={idx}>
+                              {new Date(t.date).toLocaleDateString('de-DE')} - {t.description} -{' '}
+                              {t.amount >= 0 ? '+' : ''}
+                              {t.amount.toFixed(2)} €
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    )}
+                    {skippedTransactions.length > 10 && (
+                      <p className="mt-2 text-xs text-yellow-700">
+                        {skippedTransactions.length} Bewegungen wurden übersprungen (zu viele zum Anzeigen)
+                      </p>
+                    )}
+                  </div>
+                )}
               </div>
             )}
           </div>
