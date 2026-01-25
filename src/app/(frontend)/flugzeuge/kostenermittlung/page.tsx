@@ -4,7 +4,20 @@ import React, { useState, useEffect } from 'react'
 import { Calculator, Plane, TrendingUp, TrendingDown, DollarSign } from 'lucide-react'
 import Link from 'next/link'
 
-interface Aircraft {
+type TransactionData = {
+  id: string
+  date: string
+  amount: number
+  type: 'income' | 'expense'
+  description?: string
+  reference?: string
+  costAllocations?: Array<{
+    aircraft: string | Aircraft
+    weight: number
+  }>
+}
+
+type Aircraft = {
   id: string
   registration: string
   name?: string
@@ -19,7 +32,7 @@ interface Aircraft {
   maintenanceCostPerHour?: number
 }
 
-interface FlightLog {
+type FlightLog = {
   id: string
   aircraft: string | Aircraft
   year: number
@@ -27,20 +40,7 @@ interface FlightLog {
   flightHours: number
 }
 
-interface Transaction {
-  id: string
-  date: string
-  amount: number
-  type: 'income' | 'expense'
-  description?: string
-  reference?: string
-  costAllocations?: Array<{
-    aircraft: string | Aircraft
-    weight: number
-  }>
-}
-
-interface AircraftCosts {
+type AircraftCosts = {
   aircraft: Aircraft
   year: number
   fixedCosts: number
@@ -55,7 +55,7 @@ interface AircraftCosts {
 export default function KostenermittlungPage() {
   const [aircraft, setAircraft] = useState<Aircraft[]>([])
   const [flightLogs, setFlightLogs] = useState<FlightLog[]>([])
-  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [transactions, setTransactions] = useState<TransactionData[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
   const [selectedAircraft, setSelectedAircraft] = useState<string>('all')
