@@ -37,12 +37,12 @@ export async function POST(request: Request) {
           collection: 'transactions' as CollectionSlug,
           data: {
             date: transactionData.date,
-            description: transactionData.description,
+            description: transactionData.description as string,
             amount: amount,
-            type: type,
+            type: type as 'income' | 'expense',
             reference: transactionData.reference || undefined,
             processed: false,
-          },
+          } as any, // Type assertion needed until types are generated
         })
 
         importedCount++
