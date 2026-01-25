@@ -2,9 +2,6 @@
 
 import React, { useState, useEffect, useRef } from 'react'
 import {
-  Calendar,
-  Plane,
-  Fuel,
   Save,
   Plus,
   Trash2,
@@ -574,7 +571,7 @@ export default function KraftstofferfassungPage() {
                 <p className="font-semibold mb-1">Hinweise zur Schnellerfassung:</p>
                 <ul className="list-disc list-inside space-y-1 text-blue-700 dark:text-blue-400">
                   <li>Liter werden automatisch aus Zählerständen berechnet</li>
-                  <li>Wenn Sie "Zählerstand neu" eingeben, wird dieser Wert automatisch in die nächste Zeile als "Zählerstand alt" übernommen</li>
+                  <li>Wenn Sie &quot;Zählerstand neu&quot; eingeben, wird dieser Wert automatisch in die nächste Zeile als &quot;Zählerstand alt&quot; übernommen</li>
                   <li>Verwenden Sie die Tab-Taste für schnelle Navigation zwischen Feldern</li>
                   <li>Duplikate werden automatisch erkannt und übersprungen</li>
                   <li>Mehrere Einträge können auf einmal gespeichert werden</li>

@@ -7,7 +7,6 @@ import {
   Home,
   FileText,
   Plane,
-  Calculator,
   TrendingUp,
   Menu,
   X,

@@ -3,7 +3,6 @@
 import React from 'react'
 import Link from 'next/link'
 import {
-  TrendingUp,
   FileText,
   Plane,
   Calculator,
@@ -66,24 +65,6 @@ export function DashboardContent() {
       enabled: isFeatureEnabled('transactions'),
     },
     {
-      title: 'Einnahmen & Ausgaben',
-      description: 'Übersicht in Reitern anzeigen',
-      href: '/kontobewegungen/uebersicht',
-      icon: TrendingUp,
-      iconBg: 'bg-emerald-100',
-      iconColor: 'text-emerald-600',
-      enabled: isFeatureEnabled('transactions'),
-    },
-    {
-      title: 'Jahresvergleich',
-      description: 'Jahre vergleichen & Trends',
-      href: '/kontobewegungen/jahresvergleich',
-      icon: BarChart3,
-      iconBg: 'bg-amber-100',
-      iconColor: 'text-amber-600',
-      enabled: isFeatureEnabled('yearlyComparison'),
-    },
-    {
       title: 'Flugzeuge',
       description: 'Flugzeugstammdaten verwalten',
       href: '/flugzeuge',
@@ -91,24 +72,6 @@ export function DashboardContent() {
       iconBg: 'bg-violet-100',
       iconColor: 'text-violet-600',
       enabled: isFeatureEnabled('aircraft'),
-    },
-    {
-      title: 'Kostenermittlung',
-      description: 'Flugzeugkosten berechnen',
-      href: '/flugzeuge/kostenermittlung',
-      icon: Calculator,
-      iconBg: 'bg-teal-100',
-      iconColor: 'text-teal-600',
-      enabled: isFeatureEnabled('costCalculation'),
-    },
-    {
-      title: 'Kraftstofferfassung',
-      description: 'Getankten Kraftstoff erfassen',
-      href: '/flugzeuge/kraftstofferfassung',
-      icon: Fuel,
-      iconBg: 'bg-orange-100',
-      iconColor: 'text-orange-600',
-      enabled: isFeatureEnabled('fuelTracking'),
     },
   ].filter((action) => action.enabled)
 
@@ -149,7 +112,7 @@ export function DashboardContent() {
             <div className="p-2 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-lg">
               <BarChart3 className="w-5 h-5 text-white" />
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100">Schnellzugriff</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100">Stammdaten</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {quickActions.map((action, index) => (

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Plus, Save, X, AlertCircle, CheckCircle, Edit2, Calendar } from 'lucide-react'
+import { Plus, Save, X, AlertCircle, CheckCircle, Edit2 } from 'lucide-react'
 import Link from 'next/link'
 
 interface Aircraft {

@@ -1,15 +1,6 @@
 import React from 'react'
 import { Metadata } from 'next'
-import Link from 'next/link'
-import {
-  TrendingUp,
-  FileText,
-  Plane,
-  Calculator,
-  BarChart3,
-  ArrowRight,
-  Sparkles,
-} from 'lucide-react'
+import { Sparkles } from 'lucide-react'
 import { OrganizationSelector } from '@/components/OrganizationSelector'
 import { DashboardContent } from '@/components/DashboardContent'
 

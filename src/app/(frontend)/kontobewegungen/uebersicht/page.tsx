@@ -117,6 +117,7 @@ export default function KontobewegungenUebersichtPage() {
   useEffect(() => {
     setCurrentPage(1) // Reset to first page when filters change
     fetchTransactions(1)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, searchTerm, filterProcessed, dateFrom, dateTo, amountMin, amountMax])
 
   const fetchAircraftAndCostCenters = async () => {
