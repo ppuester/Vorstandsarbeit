@@ -109,6 +109,7 @@ export default function KontobewegungenUebersichtPage() {
   const [totalPages, setTotalPages] = useState(1)
   const [totalDocs, setTotalDocs] = useState(0)
   const [limit] = useState(50)
+  const [totals, setTotals] = useState({ income: 0, expenses: 0, balance: 0 })
 
   useEffect(() => {
     fetchAircraftAndCostCenters()
@@ -117,6 +118,7 @@ export default function KontobewegungenUebersichtPage() {
   useEffect(() => {
     setCurrentPage(1) // Reset to first page when filters change
     fetchTransactions(1)
+    fetchTotals()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab, searchTerm, filterProcessed, dateFrom, dateTo, amountMin, amountMax])
 
@@ -198,6 +200,55 @@ export default function KontobewegungenUebersichtPage() {
       console.error('Fehler beim Laden der Transaktionen:', error)
     } finally {
       setLoading(false)
+    }
+  }
+
+  const fetchTotals = async () => {
+    try {
+      const params = new URLSearchParams()
+
+      if (activeTab !== 'all') {
+        params.append('type', activeTab)
+      }
+
+      if (searchTerm) {
+        params.append('search', searchTerm)
+      }
+
+      if (filterProcessed === 'processed') {
+        params.append('processed', 'true')
+      } else if (filterProcessed === 'unprocessed') {
+        params.append('processed', 'false')
+      }
+
+      if (dateFrom) {
+        params.append('dateFrom', dateFrom)
+      }
+
+      if (dateTo) {
+        params.append('dateTo', dateTo)
+      }
+
+      if (amountMin) {
+        params.append('amountMin', amountMin)
+      }
+
+      if (amountMax) {
+        params.append('amountMax', amountMax)
+      }
+
+      const response = await fetch(`/api/transactions/totals?${params.toString()}`)
+
+      if (response.ok) {
+        const data = await response.json()
+        setTotals({
+          income: data.income || 0,
+          expenses: data.expenses || 0,
+          balance: data.balance || 0,
+        })
+      }
+    } catch (error) {
+      console.error('Fehler beim Laden der Summen:', error)
     }
   }
 
@@ -345,14 +396,10 @@ export default function KontobewegungenUebersichtPage() {
   // Calculate total weight
   const totalWeight = allocationForm.reduce((sum, alloc) => sum + alloc.weight, 0)
 
-  // Calculate totals from current page (note: these are only for the current page, not all data)
-  const totalIncome = transactions
-    .filter((t) => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0)
-  const totalExpenses = transactions
-    .filter((t) => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0)
-  const balance = totalIncome - totalExpenses
+  // Use totals from API (calculated over all filtered transactions, not just current page)
+  const totalIncome = totals.income
+  const totalExpenses = totals.expenses
+  const balance = totals.balance
 
   // Transactions are already sorted by the API
   const sortedTransactions = transactions
