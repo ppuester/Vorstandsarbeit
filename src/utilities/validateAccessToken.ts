@@ -7,6 +7,16 @@ export interface TokenValidationResult {
   tokenId?: string
 }
 
+interface AccessToken {
+  id: string
+  token: string
+  permissions?: string[]
+  expiresAt?: string | Date
+  active?: boolean
+  lastUsedAt?: string | Date
+  usageCount?: number
+}
+
 /**
  * Validiert einen Access Token und gibt die Berechtigungen zurück
  */
@@ -31,7 +41,7 @@ export async function validateAccessToken(
       return { valid: false }
     }
 
-    const accessToken = result.docs[0]
+    const accessToken = result.docs[0] as AccessToken
 
     // Prüfe Ablaufdatum
     if (accessToken.expiresAt) {
@@ -47,7 +57,7 @@ export async function validateAccessToken(
       id: accessToken.id,
       data: {
         lastUsedAt: new Date().toISOString(),
-        usageCount: ((accessToken.usageCount as number) || 0) + 1,
+        usageCount: (accessToken.usageCount || 0) + 1,
       } as any,
     })
 
