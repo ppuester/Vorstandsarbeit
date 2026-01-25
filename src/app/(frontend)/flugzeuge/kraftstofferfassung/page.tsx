@@ -8,6 +8,7 @@ interface Aircraft {
   id: string
   registration: string
   name?: string
+  active?: boolean
 }
 
 interface FuelEntry {
