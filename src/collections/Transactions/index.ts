@@ -134,7 +134,7 @@ export const Transactions: CollectionConfig = {
   timestamps: true,
   hooks: {
     beforeValidate: [
-      ({ data }: { data: any }) => {
+      ({ data }: any) => {
         // Validierung der Gewichtungen
         if (data && data.costAllocations && Array.isArray(data.costAllocations)) {
           const totalWeight = data.costAllocations.reduce(
@@ -153,7 +153,7 @@ export const Transactions: CollectionConfig = {
       },
     ],
     beforeChange: [
-      ({ data, operation: _operation }: { data: any; operation?: any }) => {
+      ({ data, operation: _operation }: any) => {
         // Automatisch Typ basierend auf Betrag setzen, wenn nicht bereits gesetzt
         if (data && data.amount !== undefined) {
           if (data.amount < 0 && (!data.type || data.type === 'expense')) {
