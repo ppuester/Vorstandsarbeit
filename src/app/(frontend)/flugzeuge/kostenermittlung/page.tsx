@@ -14,6 +14,21 @@ import {
 } from 'lucide-react'
 import Link from 'next/link'
 
+type Aircraft = {
+  id: string
+  registration: string
+  name?: string
+  aircraftGroup: string
+  active: boolean
+  insurance?: number
+  hangar?: number
+  annualInspection?: number
+  fixedCosts?: number
+  fuelConsumption?: number
+  fuelPrice?: number
+  maintenanceCostPerHour?: number
+}
+
 type TransactionData = {
   id: string
   date: string
@@ -29,21 +44,6 @@ type TransactionData = {
     aircraft: string | Aircraft
     weight: number
   }>
-}
-
-type Aircraft = {
-  id: string
-  registration: string
-  name?: string
-  aircraftGroup: string
-  active: boolean
-  insurance?: number
-  hangar?: number
-  annualInspection?: number
-  fixedCosts?: number
-  fuelConsumption?: number
-  fuelPrice?: number
-  maintenanceCostPerHour?: number
 }
 
 type FlightLog = {
