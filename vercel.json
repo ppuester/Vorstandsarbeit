@@ -1,0 +1,15 @@
+{
+  "buildCommand": "pnpm build",
+  "devCommand": "pnpm dev",
+  "installCommand": "pnpm install",
+  "framework": "nextjs",
+  "regions": ["fra1"],
+  "functions": {
+    "src/app/**/*.ts": {
+      "maxDuration": 60
+    },
+    "src/app/**/*.tsx": {
+      "maxDuration": 60
+    }
+  }
+}
