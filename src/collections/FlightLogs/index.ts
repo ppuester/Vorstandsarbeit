@@ -55,10 +55,10 @@ export const FlightLogs: CollectionConfig = {
       required: true,
       label: 'Flugstunden',
       defaultValue: 0,
-      step: 0.01,
       min: 0,
       admin: {
         description: 'Gesamte Flugstunden in diesem Jahr',
+        step: 0.01,
       },
     },
     {
