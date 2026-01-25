@@ -1,7 +1,19 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { ArrowUp, ArrowDown, Filter, Search, Edit2, CheckCircle, XCircle } from 'lucide-react'
+import {
+  ArrowUp,
+  ArrowDown,
+  Filter,
+  Search,
+  Edit2,
+  CheckCircle,
+  XCircle,
+  Plane,
+  X,
+  Plus,
+  Trash2,
+} from 'lucide-react'
 import Link from 'next/link'
 
 interface Transaction {
@@ -28,8 +40,15 @@ interface Transaction {
   }>
 }
 
+interface Aircraft {
+  id: string
+  registration: string
+  name?: string
+}
+
 export default function KontobewegungenUebersichtPage() {
   const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [aircraft, setAircraft] = useState<Aircraft[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'all' | 'income' | 'expense'>('all')
   const [searchTerm, setSearchTerm] = useState('')
@@ -39,21 +58,34 @@ export default function KontobewegungenUebersichtPage() {
   const [amountMin, setAmountMin] = useState('')
   const [amountMax, setAmountMax] = useState('')
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null)
+  const [allocationForm, setAllocationForm] = useState<
+    Array<{ aircraft: string; weight: number }>
+  >([])
 
   useEffect(() => {
-    fetchTransactions()
+    fetchData()
   }, [])
 
-  const fetchTransactions = async () => {
+  const fetchData = async () => {
     try {
       setLoading(true)
-      const response = await fetch('/api/transactions')
-      if (response.ok) {
-        const data = await response.json()
+      const [transactionsRes, aircraftRes] = await Promise.all([
+        fetch('/api/transactions'),
+        fetch('/api/aircraft'),
+      ])
+
+      if (transactionsRes.ok) {
+        const data = await transactionsRes.json()
         setTransactions(data.docs || [])
       }
+
+      if (aircraftRes.ok) {
+        const data = await aircraftRes.json()
+        setAircraft(data.docs || [])
+      }
     } catch (error) {
-      console.error('Fehler beim Laden der Transaktionen:', error)
+      console.error('Fehler beim Laden der Daten:', error)
     } finally {
       setLoading(false)
     }
@@ -78,6 +110,87 @@ export default function KontobewegungenUebersichtPage() {
       console.error('Fehler beim Aktualisieren:', error)
     }
   }
+
+  const handleEditAllocation = (transaction: Transaction) => {
+    setEditingTransaction(transaction)
+    // Initialize form with existing allocations or empty
+    if (transaction.costAllocations && transaction.costAllocations.length > 0) {
+      setAllocationForm(
+        transaction.costAllocations.map((alloc) => ({
+          aircraft:
+            typeof alloc.aircraft === 'object' ? alloc.aircraft.id : alloc.aircraft,
+          weight: alloc.weight,
+        }))
+      )
+    } else {
+      setAllocationForm([{ aircraft: '', weight: 100 }])
+    }
+  }
+
+  const handleSaveAllocation = async () => {
+    if (!editingTransaction) return
+
+    // Calculate total weight
+    const totalWeight = allocationForm.reduce((sum, alloc) => sum + alloc.weight, 0)
+
+    if (Math.abs(totalWeight - 100) > 0.01) {
+      alert(
+        `Die Gesamtgewichtung beträgt ${totalWeight.toFixed(2)}% statt 100%. Bitte korrigieren Sie die Gewichtungen.`
+      )
+      return
+    }
+
+    try {
+      const response = await fetch(`/api/transactions/${editingTransaction.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          costAllocations: allocationForm.map((alloc) => ({
+            aircraft: alloc.aircraft,
+            weight: alloc.weight,
+          })),
+        }),
+      })
+
+      if (response.ok) {
+        const updated = await response.json()
+        setTransactions((prev) =>
+          prev.map((t) => (t.id === editingTransaction.id ? updated : t))
+        )
+        setEditingTransaction(null)
+        setAllocationForm([])
+      }
+    } catch (error) {
+      console.error('Fehler beim Speichern der Zuordnung:', error)
+      alert('Fehler beim Speichern der Zuordnung')
+    }
+  }
+
+  const handleAddAllocation = () => {
+    setAllocationForm([...allocationForm, { aircraft: '', weight: 0 }])
+  }
+
+  const handleRemoveAllocation = (index: number) => {
+    setAllocationForm(allocationForm.filter((_, i) => i !== index))
+  }
+
+  const handleAllocationChange = (
+    index: number,
+    field: 'aircraft' | 'weight',
+    value: string | number
+  ) => {
+    const newForm = [...allocationForm]
+    newForm[index] = {
+      ...newForm[index],
+      [field]: field === 'weight' ? Number(value) : value,
+    }
+    setAllocationForm(newForm)
+  }
+
+  // Calculate total weight
+  const totalWeight = allocationForm.reduce((sum, alloc) => sum + alloc.weight, 0)
 
   // Filter transactions
   const filteredTransactions = transactions.filter((transaction) => {
@@ -434,35 +547,43 @@ export default function KontobewegungenUebersichtPage() {
                           {transaction.reference || '–'}
                         </td>
                         <td className="py-4 px-6">
-                          {transaction.costAllocations && transaction.costAllocations.length > 0 ? (
-                            <div className="flex flex-wrap gap-2">
-                              {transaction.costAllocations.map((allocation, idx) => {
-                                const aircraft =
-                                  typeof allocation.aircraft === 'object'
-                                    ? allocation.aircraft
-                                    : null
-                                return (
-                                  <span
-                                    key={idx}
-                                    className="inline-flex items-center gap-1 px-2 py-1 bg-violet-100 text-violet-700 rounded text-xs font-medium"
-                                  >
-                                    {aircraft ? (
-                                      <>
-                                        {aircraft.registration}
-                                        <span className="text-violet-500">
-                                          ({allocation.weight.toFixed(0)}%)
-                                        </span>
-                                      </>
-                                    ) : (
-                                      <span className="text-slate-400">Flugzeug gelöscht</span>
-                                    )}
-                                  </span>
-                                )
-                              })}
-                            </div>
-                          ) : (
-                            <span className="text-slate-400">–</span>
-                          )}
+                          <button
+                            onClick={() => handleEditAllocation(transaction)}
+                            className="text-left w-full"
+                          >
+                            {transaction.costAllocations &&
+                            transaction.costAllocations.length > 0 ? (
+                              <div className="flex flex-wrap gap-2">
+                                {transaction.costAllocations.map((allocation, idx) => {
+                                  const aircraft =
+                                    typeof allocation.aircraft === 'object'
+                                      ? allocation.aircraft
+                                      : null
+                                  return (
+                                    <span
+                                      key={idx}
+                                      className="inline-flex items-center gap-1 px-2 py-1 bg-violet-100 text-violet-700 rounded text-xs font-medium hover:bg-violet-200 transition-colors cursor-pointer"
+                                    >
+                                      {aircraft ? (
+                                        <>
+                                          {aircraft.registration}
+                                          <span className="text-violet-500">
+                                            ({allocation.weight.toFixed(0)}%)
+                                          </span>
+                                        </>
+                                      ) : (
+                                        <span className="text-slate-400">Flugzeug gelöscht</span>
+                                      )}
+                                    </span>
+                                  )
+                                })}
+                              </div>
+                            ) : (
+                              <span className="text-slate-400 hover:text-violet-600 transition-colors">
+                                Zuordnung hinzufügen
+                              </span>
+                            )}
+                          </button>
                         </td>
                         <td
                           className={`py-4 px-6 text-right font-semibold ${
@@ -516,6 +637,138 @@ export default function KontobewegungenUebersichtPage() {
           </div>
         </div>
       </div>
+
+      {/* Allocation Edit Modal */}
+      {editingTransaction && (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+          <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-slate-200">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h2 className="text-2xl font-bold text-slate-900">Zuordnung bearbeiten</h2>
+                  <p className="text-sm text-slate-600 mt-1">
+                    {editingTransaction.description} -{' '}
+                    {new Date(editingTransaction.date).toLocaleDateString('de-DE')} -{' '}
+                    {editingTransaction.amount.toFixed(2)} €
+                  </p>
+                </div>
+                <button
+                  onClick={() => {
+                    setEditingTransaction(null)
+                    setAllocationForm([])
+                  }}
+                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                >
+                  <X className="w-5 h-5 text-slate-600" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <p className="text-sm text-blue-800">
+                  <strong>Hinweis:</strong> Die Gesamtgewichtung muss 100% betragen. Die Zuordnung
+                  wird basierend auf dem Datum der Transaktion in der Kostenermittlung verwendet.
+                </p>
+              </div>
+
+              {allocationForm.map((alloc, index) => (
+                <div
+                  key={index}
+                  className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg border border-slate-200"
+                >
+                  <div className="flex-1">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Flugzeug
+                    </label>
+                    <select
+                      value={alloc.aircraft}
+                      onChange={(e) =>
+                        handleAllocationChange(index, 'aircraft', e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    >
+                      <option value="">Flugzeug auswählen...</option>
+                      {aircraft
+                        .filter((ac) => ac.active !== false)
+                        .map((ac) => (
+                          <option key={ac.id} value={ac.id}>
+                            {ac.registration} {ac.name ? `(${ac.name})` : ''}
+                          </option>
+                        ))}
+                    </select>
+                  </div>
+                  <div className="w-32">
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Gewichtung (%)
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      step="0.01"
+                      value={alloc.weight}
+                      onChange={(e) =>
+                        handleAllocationChange(index, 'weight', e.target.value)
+                      }
+                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    />
+                  </div>
+                  {allocationForm.length > 1 && (
+                    <button
+                      onClick={() => handleRemoveAllocation(index)}
+                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors mt-6"
+                    >
+                      <Trash2 className="w-5 h-5" />
+                    </button>
+                  )}
+                </div>
+              ))}
+
+              <div className="flex items-center justify-between pt-2">
+                <button
+                  onClick={handleAddAllocation}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-violet-600 hover:bg-violet-50 rounded-lg transition-colors"
+                >
+                  <Plus className="w-4 h-4" />
+                  Weitere Zuordnung hinzufügen
+                </button>
+                <div className="text-sm font-medium">
+                  Gesamtgewichtung:{' '}
+                  <span
+                    className={
+                      Math.abs(totalWeight - 100) < 0.01
+                        ? 'text-green-600'
+                        : 'text-red-600'
+                    }
+                  >
+                    {totalWeight.toFixed(2)}%
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <div className="p-6 border-t border-slate-200 flex justify-end gap-3">
+              <button
+                onClick={() => {
+                  setEditingTransaction(null)
+                  setAllocationForm([])
+                }}
+                className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+              >
+                Abbrechen
+              </button>
+              <button
+                onClick={handleSaveAllocation}
+                disabled={Math.abs(totalWeight - 100) > 0.01}
+                className="px-6 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
+              >
+                Speichern
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

@@ -16,6 +16,7 @@ export async function PATCH(
       collection: 'transactions' as CollectionSlug,
       id: id,
       data: body,
+      depth: 2, // Include category and aircraft relationships
     })
 
     return NextResponse.json(updated)

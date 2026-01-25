@@ -21,3 +21,27 @@ export async function GET() {
     )
   }
 }
+
+export async function POST(request: Request) {
+  try {
+    const body = await request.json()
+    const payload = await getPayload({ config: configPromise })
+
+    const created = await payload.create({
+      collection: 'aircraft' as CollectionSlug,
+      data: body as any,
+    })
+
+    return NextResponse.json(created, { status: 201 })
+  } catch (error) {
+    console.error('Error creating aircraft:', error)
+    return NextResponse.json(
+      {
+        error:
+          'Fehler beim Erstellen des Flugzeugs: ' +
+          (error instanceof Error ? error.message : 'Unbekannter Fehler'),
+      },
+      { status: 500 }
+    )
+  }
+}
