@@ -30,34 +30,51 @@ export default function KontobewegungenPage() {
   const parseCSV = async (file: File) => {
     try {
       const text = await file.text()
-      const lines = text.split('\n').filter((line) => line.trim())
+      // Normalisiere Zeilenumbrüche (Windows/Unix/Mac)
+      const normalizedText = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+      const lines = normalizedText.split('\n').filter((line) => line.trim())
       
       if (lines.length < 2) {
         setError('Die CSV-Datei muss mindestens eine Kopfzeile und eine Datenzeile enthalten.')
         return
       }
 
-      // Erste Zeile als Header
-      const headers = lines[0].split(',').map((h) => h.trim().toLowerCase())
+      // Erste Zeile als Header - Bankformat verwendet Semikolon
+      const headers = lines[0].split(';').map((h) => h.trim())
       
-      // Finde Spaltenindizes
-      const dateIndex = headers.findIndex((h) => 
-        h.includes('datum') || h.includes('date') || h.includes('buchung')
+      // Finde Spaltenindizes basierend auf Bankformat
+      const buchungstagIndex = headers.findIndex((h) => 
+        h.toLowerCase().includes('buchungstag')
       )
-      const descriptionIndex = headers.findIndex((h) => 
-        h.includes('beschreibung') || h.includes('text') || h.includes('verwendungszweck') || h.includes('zweck')
+      const valutadatumIndex = headers.findIndex((h) => 
+        h.toLowerCase().includes('valutadatum')
       )
-      const amountIndex = headers.findIndex((h) => 
-        h.includes('betrag') || h.includes('amount') || h.includes('saldo') || h.includes('umsatz')
+      const nameIndex = headers.findIndex((h) => 
+        h.toLowerCase().includes('name zahlungsbeteiligter')
       )
-      const referenceIndex = headers.findIndex((h) => 
-        h.includes('referenz') || h.includes('reference') || h.includes('buchungstext')
+      const verwendungszweckIndex = headers.findIndex((h) => 
+        h.toLowerCase().includes('verwendungszweck')
+      )
+      const betragIndex = headers.findIndex((h) => 
+        h.toLowerCase().includes('betrag') && !h.toLowerCase().includes('saldo')
+      )
+      const buchungstextIndex = headers.findIndex((h) => 
+        h.toLowerCase().includes('buchungstext')
       )
 
-      if (dateIndex === -1 || descriptionIndex === -1 || amountIndex === -1) {
+      // Fallback: Versuche alternative Spaltennamen
+      const dateIndex = buchungstagIndex !== -1 ? buchungstagIndex : 
+                       (valutadatumIndex !== -1 ? valutadatumIndex : -1)
+      const descriptionIndex = nameIndex !== -1 ? nameIndex : 
+                              (verwendungszweckIndex !== -1 ? verwendungszweckIndex : -1)
+      const amountIndex = betragIndex !== -1 ? betragIndex : -1
+      const referenceIndex = verwendungszweckIndex !== -1 ? verwendungszweckIndex : 
+                            (buchungstextIndex !== -1 ? buchungstextIndex : -1)
+
+      if (dateIndex === -1 || amountIndex === -1) {
         setError(
-          'Die CSV-Datei muss Spalten für Datum, Beschreibung und Betrag enthalten. ' +
-          'Erwartete Spaltennamen: "Datum", "Beschreibung", "Betrag" (oder ähnlich)'
+          'Die CSV-Datei entspricht nicht dem erwarteten Bankformat. ' +
+          'Erwartete Spalten: "Buchungstag" oder "Valutadatum", "Betrag"'
         )
         return
       }
@@ -65,43 +82,83 @@ export default function KontobewegungenPage() {
       // Parse Datenzeilen
       const transactions: Transaction[] = []
       for (let i = 1; i < lines.length; i++) {
-        const values = lines[i].split(',').map((v) => v.trim())
+        // Verwende Semikolon als Trennzeichen
+        const values = lines[i].split(';').map((v) => v.trim())
         
-        const dateStr = values[dateIndex]
-        const description = values[descriptionIndex] || ''
+        if (values.length < Math.max(dateIndex, amountIndex) + 1) {
+          continue // Überspringe unvollständige Zeilen
+        }
+
+        const dateStr = values[dateIndex] || ''
+        const name = nameIndex !== -1 ? (values[nameIndex] || '') : ''
+        const verwendungszweck = verwendungszweckIndex !== -1 ? (values[verwendungszweckIndex] || '') : ''
+        const buchungstext = buchungstextIndex !== -1 ? (values[buchungstextIndex] || '') : ''
         const amountStr = values[amountIndex] || '0'
         const reference = referenceIndex !== -1 ? values[referenceIndex] : undefined
 
-        // Parse Datum (verschiedene Formate)
+        // Überspringe Abschlusszeilen
+        if (buchungstext.toLowerCase().includes('abschluss') || 
+            dateStr.toLowerCase().includes('abschluss') ||
+            !dateStr) {
+          continue
+        }
+
+        // Kombiniere Beschreibung aus Name und Verwendungszweck
+        let description = ''
+        if (name && verwendungszweck) {
+          description = `${name} - ${verwendungszweck}`
+        } else if (name) {
+          description = name
+        } else if (verwendungszweck) {
+          description = verwendungszweck
+        } else if (buchungstext) {
+          description = buchungstext
+        }
+
+        // Parse Datum (deutsches Format DD.MM.YYYY)
         let date: string
         try {
-          const dateObj = new Date(dateStr)
-          if (isNaN(dateObj.getTime())) {
-            // Versuche deutsches Format DD.MM.YYYY
-            const parts = dateStr.split('.')
-            if (parts.length === 3) {
-              date = `${parts[2]}-${parts[1].padStart(2, '0')}-${parts[0].padStart(2, '0')}`
+          const parts = dateStr.split('.')
+          if (parts.length === 3) {
+            const day = parts[0].padStart(2, '0')
+            const month = parts[1].padStart(2, '0')
+            const year = parts[2]
+            date = `${year}-${month}-${day}`
+          } else {
+            // Fallback: Versuche ISO-Format
+            const dateObj = new Date(dateStr)
+            if (!isNaN(dateObj.getTime())) {
+              date = dateObj.toISOString().split('T')[0]
             } else {
               continue // Überspringe ungültige Zeilen
             }
-          } else {
-            date = dateObj.toISOString().split('T')[0]
           }
         } catch {
           continue // Überspringe ungültige Zeilen
         }
 
-        // Parse Betrag (entferne Tausender-Trennzeichen, ersetze Komma durch Punkt)
-        const amount = parseFloat(
-          amountStr.replace(/\./g, '').replace(',', '.')
-        )
+        // Parse Betrag (deutsches Format: Komma als Dezimaltrennzeichen)
+        // Beispiel: "-180,94" oder "100,00"
+        let amount: number
+        try {
+          // Entferne Leerzeichen, ersetze Komma durch Punkt
+          const cleanedAmount = amountStr.replace(/\s/g, '').replace(',', '.')
+          amount = parseFloat(cleanedAmount)
+          
+          if (isNaN(amount)) {
+            continue // Überspringe ungültige Beträge
+          }
+        } catch {
+          continue // Überspringe ungültige Beträge
+        }
 
-        if (!isNaN(amount) && description) {
+        // Nur hinzufügen wenn Beschreibung vorhanden
+        if (description.trim()) {
           transactions.push({
             date,
-            description,
+            description: description.trim(),
             amount,
-            reference,
+            reference: reference?.trim() || undefined,
           })
         }
       }
@@ -218,13 +275,13 @@ export default function KontobewegungenPage() {
                     CSV-Format
                   </h3>
                   <p className="text-sm text-blue-700 mb-3">
-                    Ihre CSV-Datei sollte folgende Spalten enthalten:
+                    Unterstütztes Format: Volksbank CSV-Export
                   </p>
                   <ul className="text-xs text-blue-600 space-y-1 list-disc list-inside">
-                    <li>Datum (DD.MM.YYYY oder YYYY-MM-DD)</li>
-                    <li>Beschreibung</li>
-                    <li>Betrag (negativ für Ausgaben)</li>
-                    <li>Referenz (optional)</li>
+                    <li>Semikolon-getrennt (;)</li>
+                    <li>Datum: DD.MM.YYYY</li>
+                    <li>Betrag: Komma als Dezimaltrennzeichen</li>
+                    <li>Automatische Erkennung der Spalten</li>
                   </ul>
                 </div>
 

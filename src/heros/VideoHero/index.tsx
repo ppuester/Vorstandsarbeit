@@ -36,7 +36,6 @@ export const VideoHero: React.FC<Page['hero']> = ({ links, richText, videoUrl, v
 
   // Fallback-Video URL (kann in Payload CMS konfiguriert werden)
   const defaultVideoUrl = '/imagevideo.webm'
-  const videoSrc = videoUrl || defaultVideoUrl
 
   return (
     <section className="video-hero-block py-8 md:py-12 lg:py-16 bg-background">

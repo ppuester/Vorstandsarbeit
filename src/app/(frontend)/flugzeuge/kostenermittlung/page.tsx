@@ -408,8 +408,9 @@ export default function KostenermittlungPage() {
 
           {/* Financial Overview by Aircraft Group */}
           {Object.entries(aircraftByGroup).map(([group, groupAircraft]) => {
+            const aircraftList = groupAircraft as Aircraft[]
             const groupFinancials = financialData.filter((f) =>
-              groupAircraft.some((ac) => ac.id === f.aircraft.id)
+              aircraftList.some((ac) => ac.id === f.aircraft.id)
             )
 
             if (groupFinancials.length === 0) return null
@@ -465,7 +466,7 @@ export default function KostenermittlungPage() {
                 </div>
 
                 {/* Aircraft Details */}
-                {(groupAircraft as Aircraft[])
+                {aircraftList
                   .filter((ac: Aircraft) => selectedAircraft === 'all' || ac.id === selectedAircraft)
                   .map((ac: Aircraft) => {
                     const aircraftFinancials = groupedByAircraft[ac.id] || []
