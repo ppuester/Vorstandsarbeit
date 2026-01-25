@@ -32,7 +32,13 @@ export default function FlugstundenPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [formData, setFormData] = useState<Partial<FlightLog>>({
+  const [formData, setFormData] = useState<{
+    aircraft: string
+    year: number
+    starts: number
+    flightHours: number
+    notes: string
+  }>({
     aircraft: '',
     year: new Date().getFullYear(),
     starts: 0,
@@ -84,8 +90,9 @@ export default function FlugstundenPage() {
 
   const handleEdit = (log: FlightLog) => {
     setEditingId(log.id)
+    const aircraftId = typeof log.aircraft === 'object' ? log.aircraft.id : log.aircraft || ''
     setFormData({
-      aircraft: typeof log.aircraft === 'object' ? log.aircraft.id : log.aircraft,
+      aircraft: aircraftId,
       year: log.year,
       starts: log.starts,
       flightHours: log.flightHours,
