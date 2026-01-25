@@ -13,6 +13,9 @@ import {
   Plus,
   Trash2,
   Link as LinkIcon,
+  ExternalLink,
+  Calendar,
+  Euro,
 } from 'lucide-react'
 import Link from 'next/link'
 import { useOrganization } from '@/providers/Organization'
@@ -306,26 +309,26 @@ export default function KontobewegungenUebersichtPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-violet-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600">Lade Kontobewegungen...</p>
+          <div className="w-16 h-16 border-4 border-violet-600 dark:border-violet-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600 dark:text-slate-400">Lade Kontobewegungen...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8 flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-slate-900 mb-4">
+              <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4">
                 Kontobewegungen Übersicht
               </h1>
-              <p className="text-lg text-slate-600">
+              <p className="text-lg text-slate-600 dark:text-slate-400">
                 Verwalten Sie Ihre Einnahmen und Ausgaben
               </p>
             </div>
@@ -347,30 +350,30 @@ export default function KontobewegungenUebersichtPage() {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">Einnahmen</span>
-                <ArrowUp className="w-5 h-5 text-green-500" />
+                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Einnahmen</span>
+                <ArrowUp className="w-5 h-5 text-green-500 dark:text-green-400" />
               </div>
-              <p className="text-3xl font-bold text-green-600">
+              <p className="text-3xl font-bold text-green-600 dark:text-green-400">
                 {totalIncome.toFixed(2)} €
               </p>
             </div>
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">Ausgaben</span>
-                <ArrowDown className="w-5 h-5 text-red-500" />
+                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Ausgaben</span>
+                <ArrowDown className="w-5 h-5 text-red-500 dark:text-red-400" />
               </div>
-              <p className="text-3xl font-bold text-red-600">
+              <p className="text-3xl font-bold text-red-600 dark:text-red-400">
                 {totalExpenses.toFixed(2)} €
               </p>
             </div>
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">Saldo</span>
+                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Saldo</span>
                 <span
                   className={`text-2xl font-bold ${
-                    balance >= 0 ? 'text-green-600' : 'text-red-600'
+                    balance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                   }`}
                 >
                   {balance >= 0 ? '+' : ''}
@@ -381,15 +384,15 @@ export default function KontobewegungenUebersichtPage() {
           </div>
 
           {/* Tabs and Filters */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-6">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 mb-6">
             {/* Tabs */}
-            <div className="flex gap-2 mb-6 border-b border-slate-200">
+            <div className="flex gap-2 mb-6 border-b border-slate-200 dark:border-slate-700">
               <button
                 onClick={() => setActiveTab('all')}
                 className={`px-6 py-3 font-medium transition-colors border-b-2 ${
                   activeTab === 'all'
-                    ? 'border-violet-600 text-violet-600'
-                    : 'border-transparent text-slate-600 hover:text-slate-900'
+                    ? 'border-violet-600 dark:border-violet-400 text-violet-600 dark:text-violet-400'
+                    : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
                 }`}
               >
                 Alle ({transactions.length})
@@ -398,8 +401,8 @@ export default function KontobewegungenUebersichtPage() {
                 onClick={() => setActiveTab('income')}
                 className={`px-6 py-3 font-medium transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'income'
-                    ? 'border-green-600 text-green-600'
-                    : 'border-transparent text-slate-600 hover:text-slate-900'
+                    ? 'border-green-600 dark:border-green-400 text-green-600 dark:text-green-400'
+                    : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
                 }`}
               >
                 <ArrowUp className="w-4 h-4" />
@@ -409,8 +412,8 @@ export default function KontobewegungenUebersichtPage() {
                 onClick={() => setActiveTab('expense')}
                 className={`px-6 py-3 font-medium transition-colors border-b-2 flex items-center gap-2 ${
                   activeTab === 'expense'
-                    ? 'border-red-600 text-red-600'
-                    : 'border-transparent text-slate-600 hover:text-slate-900'
+                    ? 'border-red-600 dark:border-red-400 text-red-600 dark:text-red-400'
+                    : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
                 }`}
               >
                 <ArrowDown className="w-4 h-4" />
@@ -422,17 +425,17 @@ export default function KontobewegungenUebersichtPage() {
             <div className="space-y-4">
               <div className="flex flex-col md:flex-row gap-4">
                 <div className="flex-1 relative">
-                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 dark:text-slate-500" />
                   <input
                     type="text"
                     placeholder="Suchen nach Beschreibung, Referenz oder Kategorie..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                   />
                 </div>
                 <div className="flex items-center gap-2">
-                  <Filter className="w-5 h-5 text-slate-400" />
+                  <Filter className="w-5 h-5 text-slate-400 dark:text-slate-500" />
                   <select
                     value={filterProcessed}
                     onChange={(e) =>
@@ -440,7 +443,7 @@ export default function KontobewegungenUebersichtPage() {
                         e.target.value as 'all' | 'processed' | 'unprocessed'
                       )
                     }
-                    className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    className="px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
                   >
                     <option value="all">Alle</option>
                     <option value="processed">Nur verarbeitete</option>
@@ -449,7 +452,7 @@ export default function KontobewegungenUebersichtPage() {
                 </div>
                 <button
                   onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
-                  className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors text-sm font-medium"
+                  className="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800"
                 >
                   {showAdvancedFilters ? 'Weniger Filter' : 'Erweiterte Filter'}
                 </button>
@@ -457,31 +460,31 @@ export default function KontobewegungenUebersichtPage() {
 
               {/* Advanced Filters */}
               {showAdvancedFilters && (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-slate-200">
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 pt-4 border-t border-slate-200 dark:border-slate-700">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                       Von Datum
                     </label>
                     <input
                       type="date"
                       value={dateFrom}
                       onChange={(e) => setDateFrom(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                       Bis Datum
                     </label>
                     <input
                       type="date"
                       value={dateTo}
                       onChange={(e) => setDateTo(e.target.value)}
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                       Min. Betrag (€)
                     </label>
                     <input
@@ -490,11 +493,11 @@ export default function KontobewegungenUebersichtPage() {
                       value={amountMin}
                       onChange={(e) => setAmountMin(e.target.value)}
                       placeholder="0.00"
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
                     />
                   </div>
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-1">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">
                       Max. Betrag (€)
                     </label>
                     <input
@@ -503,7 +506,7 @@ export default function KontobewegungenUebersichtPage() {
                       value={amountMax}
                       onChange={(e) => setAmountMax(e.target.value)}
                       placeholder="0.00"
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
                     />
                   </div>
                 </div>
@@ -518,7 +521,7 @@ export default function KontobewegungenUebersichtPage() {
                     setAmountMin('')
                     setAmountMax('')
                   }}
-                  className="text-sm text-violet-600 hover:text-violet-700 font-medium"
+                  className="text-sm text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 font-medium"
                 >
                   Filter zurücksetzen
                 </button>
@@ -527,22 +530,22 @@ export default function KontobewegungenUebersichtPage() {
           </div>
 
           {/* Transactions Table */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-50 border-b border-slate-200">
+                <thead className="bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600">
                   <tr>
-                    <th className="text-left py-4 px-6 font-semibold text-slate-700">Datum</th>
-                    <th className="text-right py-4 px-6 font-semibold text-slate-700">Betrag</th>
-                    <th className="text-left py-4 px-6 font-semibold text-slate-700">
+                    <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Datum</th>
+                    <th className="text-right py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Betrag</th>
+                    <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">
                       Beschreibung
                     </th>
-                    <th className="text-left py-4 px-6 font-semibold text-slate-700">Kategorie</th>
-                    <th className="text-left py-4 px-6 font-semibold text-slate-700">Kostenstelle</th>
-                    <th className="text-left py-4 px-6 font-semibold text-slate-700">Referenz</th>
-                    <th className="text-left py-4 px-6 font-semibold text-slate-700">Zuordnung</th>
-                    <th className="text-center py-4 px-6 font-semibold text-slate-700">Status</th>
-                    <th className="text-center py-4 px-6 font-semibold text-slate-700">Aktionen</th>
+                    <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Kategorie</th>
+                    <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Kostenstelle</th>
+                    <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Referenz</th>
+                    <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Zuordnung</th>
+                    <th className="text-center py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Status</th>
+                    <th className="text-center py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Aktionen</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -555,7 +558,7 @@ export default function KontobewegungenUebersichtPage() {
                           (isFeatureEnabled('costAllocations') ? 1 : 0) +
                           2
                         }
-                        className="py-12 text-center text-slate-500"
+                        className="py-12 text-center text-slate-500 dark:text-slate-400"
                       >
                         {searchTerm || filterProcessed !== 'all'
                           ? 'Keine Bewegungen gefunden, die den Filterkriterien entsprechen.'
@@ -566,9 +569,9 @@ export default function KontobewegungenUebersichtPage() {
                     sortedTransactions.map((transaction) => (
                       <tr
                         key={transaction.id}
-                        className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
+                        className="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                       >
-                        <td className="py-4 px-6">
+                        <td className="py-4 px-6 text-slate-900 dark:text-slate-100">
                           {new Date(transaction.date).toLocaleDateString('de-DE', {
                             day: '2-digit',
                             month: '2-digit',
@@ -578,19 +581,19 @@ export default function KontobewegungenUebersichtPage() {
                         <td
                           className={`py-4 px-6 text-right font-bold text-lg ${
                             transaction.type === 'income'
-                              ? 'text-green-600'
-                              : 'text-red-600'
+                              ? 'text-green-600 dark:text-green-400'
+                              : 'text-red-600 dark:text-red-400'
                           }`}
                         >
                           {transaction.type === 'income' ? '+' : '-'}
                           {transaction.amount.toFixed(2)} €
                         </td>
                         <td className="py-4 px-6">
-                          <div className="font-medium text-slate-900">
+                          <div className="font-medium text-slate-900 dark:text-slate-100">
                             {transaction.description}
                           </div>
                           {transaction.notes && (
-                            <div className="text-sm text-slate-500 mt-1">
+                            <div className="text-sm text-slate-500 dark:text-slate-400 mt-1">
                               {transaction.notes}
                             </div>
                           )}
@@ -609,7 +612,7 @@ export default function KontobewegungenUebersichtPage() {
                               {transaction.category.name}
                             </span>
                           ) : (
-                            <span className="text-slate-400">–</span>
+                            <span className="text-slate-400 dark:text-slate-500">–</span>
                           )}
                         </td>
                         {isFeatureEnabled('costCenters') && (
@@ -623,7 +626,7 @@ export default function KontobewegungenUebersichtPage() {
                                 }}
                                 onBlur={() => setEditingCostCenter(null)}
                                 autoFocus
-                                className="px-3 py-1.5 border border-violet-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm"
+                                className="px-3 py-1.5 bg-white dark:bg-slate-700 border border-violet-300 dark:border-violet-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-sm text-slate-900 dark:text-slate-100"
                               >
                                 <option value="">Keine Kostenstelle</option>
                                 {costCenters.map((cc) => (
@@ -661,7 +664,7 @@ export default function KontobewegungenUebersichtPage() {
                                     {transaction.costCenter.name}
                                   </span>
                                 ) : (
-                                  <span className="text-slate-400 hover:text-violet-600 transition-colors text-sm">
+                                  <span className="text-slate-400 dark:text-slate-500 hover:text-violet-600 dark:hover:text-violet-400 transition-colors text-sm">
                                     Kostenstelle zuordnen
                                   </span>
                                 )}
@@ -669,7 +672,7 @@ export default function KontobewegungenUebersichtPage() {
                             )}
                           </td>
                         )}
-                        <td className="py-4 px-6 text-slate-500">
+                        <td className="py-4 px-6 text-slate-500 dark:text-slate-400">
                           {transaction.reference || '–'}
                         </td>
                         <td className="py-4 px-6">
@@ -686,28 +689,28 @@ export default function KontobewegungenUebersichtPage() {
                                     return (
                                       <span
                                         key={idx}
-                                        className="inline-flex items-center gap-1 px-2 py-1 bg-violet-100 text-violet-700 rounded text-xs font-medium"
+                                        className="inline-flex items-center gap-1 px-2 py-1 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 rounded text-xs font-medium"
                                       >
                                         {aircraft ? (
                                           <>
                                             {aircraft.registration}
-                                            <span className="text-violet-500">
+                                            <span className="text-violet-500 dark:text-violet-400">
                                               ({allocation.weight.toFixed(0)}%)
                                             </span>
                                           </>
                                         ) : (
-                                          <span className="text-slate-400">Flugzeug gelöscht</span>
+                                          <span className="text-slate-400 dark:text-slate-500">Flugzeug gelöscht</span>
                                         )}
                                       </span>
                                     )
                                   })}
                                 </div>
                               ) : (
-                                <span className="text-slate-400 text-sm">Keine Zuordnung</span>
+                                <span className="text-slate-400 dark:text-slate-500 text-sm">Keine Zuordnung</span>
                               )}
                               <button
                                 onClick={() => handleEditAllocation(transaction)}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-violet-600 hover:text-violet-700 hover:bg-violet-50 rounded-lg transition-colors border border-violet-200"
+                                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-900/20 rounded-lg transition-colors border border-violet-200 dark:border-violet-800"
                                 title="Zuordnung bearbeiten"
                               >
                                 <LinkIcon className="w-4 h-4" />
@@ -717,7 +720,7 @@ export default function KontobewegungenUebersichtPage() {
                               </button>
                             </div>
                           ) : (
-                            <span className="text-slate-400 text-sm">Nicht verfügbar</span>
+                            <span className="text-slate-400 dark:text-slate-500 text-sm">Nicht verfügbar</span>
                           )}
                         </td>
                         <td className="py-4 px-6 text-center">
@@ -727,8 +730,8 @@ export default function KontobewegungenUebersichtPage() {
                             }
                             className={`inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-medium transition-colors ${
                               transaction.processed
-                                ? 'bg-green-100 text-green-700 hover:bg-green-200'
-                                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                                ? 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 hover:bg-green-200 dark:hover:bg-green-900/50'
+                                : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-600'
                             }`}
                           >
                             {transaction.processed ? (
@@ -745,13 +748,24 @@ export default function KontobewegungenUebersichtPage() {
                           </button>
                         </td>
                         <td className="py-4 px-6 text-center">
-                          <Link
-                            href={`/admin/collections/transactions/${transaction.id}`}
-                            className="inline-flex items-center gap-1 px-3 py-1 text-sm text-violet-600 hover:text-violet-700 hover:bg-violet-50 rounded transition-colors"
-                          >
-                            <Edit2 className="w-4 h-4" />
-                            Bearbeiten
-                          </Link>
+                          <div className="flex items-center justify-center gap-2">
+                            <button
+                              onClick={() => handleEditAllocation(transaction)}
+                              className="inline-flex items-center gap-1 px-3 py-1 text-sm text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-900/20 rounded transition-colors"
+                              title="Zuordnung bearbeiten"
+                            >
+                              <LinkIcon className="w-4 h-4" />
+                              Zuordnung
+                            </button>
+                            <Link
+                              href={`/admin/collections/transactions/${transaction.id}`}
+                              className="inline-flex items-center gap-1 px-3 py-1 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded transition-colors"
+                              title="Im Admin bearbeiten"
+                            >
+                              <Edit2 className="w-4 h-4" />
+                              Bearbeiten
+                            </Link>
+                          </div>
                         </td>
                       </tr>
                     ))
@@ -765,51 +779,145 @@ export default function KontobewegungenUebersichtPage() {
 
       {/* Allocation Edit Modal */}
       {editingTransaction && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-slate-200">
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
               <div className="flex items-center justify-between">
-                <div>
-                  <h2 className="text-2xl font-bold text-slate-900">Zuordnung bearbeiten</h2>
-                  <p className="text-sm text-slate-600 mt-1">
-                    {editingTransaction.description} -{' '}
-                    {new Date(editingTransaction.date).toLocaleDateString('de-DE')} -{' '}
-                    {editingTransaction.amount.toFixed(2)} €
-                  </p>
+                <div className="flex-1">
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">
+                    Transaktion bearbeiten
+                  </h2>
+                  
+                  {/* Transaction Details */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div className="flex items-start gap-3">
+                      <Calendar className="w-5 h-5 text-slate-400 dark:text-slate-500 mt-0.5" />
+                      <div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Datum</div>
+                        <div className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                          {new Date(editingTransaction.date).toLocaleDateString('de-DE', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric',
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex items-start gap-3">
+                      <Euro className="w-5 h-5 text-slate-400 dark:text-slate-500 mt-0.5" />
+                      <div>
+                        <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Betrag</div>
+                        <div
+                          className={`text-sm font-bold ${
+                            editingTransaction.type === 'income'
+                              ? 'text-green-600 dark:text-green-400'
+                              : 'text-red-600 dark:text-red-400'
+                          }`}
+                        >
+                          {editingTransaction.type === 'income' ? '+' : '-'}
+                          {editingTransaction.amount.toFixed(2)} €
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="mb-4">
+                    <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Beschreibung</div>
+                    <div className="text-sm font-medium text-slate-900 dark:text-slate-100">
+                      {editingTransaction.description}
+                    </div>
+                  </div>
+
+                  {editingTransaction.reference && (
+                    <div className="mb-4">
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Referenz</div>
+                      <div className="text-sm text-slate-700 dark:text-slate-300">
+                        {editingTransaction.reference}
+                      </div>
+                    </div>
+                  )}
+
+                  {editingTransaction.category && (
+                    <div className="mb-4">
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Kategorie</div>
+                      <span
+                        className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
+                        style={{
+                          backgroundColor: editingTransaction.category.color
+                            ? `${editingTransaction.category.color}20`
+                            : '#F3F4F6',
+                          color: editingTransaction.category.color || '#6B7280',
+                        }}
+                      >
+                        {editingTransaction.category.name}
+                      </span>
+                    </div>
+                  )}
+
+                  {editingTransaction.notes && (
+                    <div className="mb-4">
+                      <div className="text-xs text-slate-500 dark:text-slate-400 mb-1">Notizen</div>
+                      <div className="text-sm text-slate-700 dark:text-slate-300">
+                        {editingTransaction.notes}
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="flex items-center gap-2 mt-4">
+                    <Link
+                      href={`/admin/collections/transactions/${editingTransaction.id}`}
+                      target="_blank"
+                      className="inline-flex items-center gap-2 px-3 py-1.5 text-sm text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-900/20 rounded-lg transition-colors"
+                    >
+                      <ExternalLink className="w-4 h-4" />
+                      Im Admin bearbeiten
+                    </Link>
+                  </div>
                 </div>
                 <button
                   onClick={() => {
                     setEditingTransaction(null)
                     setAllocationForm([])
                   }}
-                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors ml-4"
                 >
-                  <X className="w-5 h-5 text-slate-600" />
+                  <X className="w-5 h-5 text-slate-600 dark:text-slate-400" />
                 </button>
               </div>
             </div>
 
             <div className="p-6 space-y-4">
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-800">
-                  <strong>Hinweis:</strong> Die Gesamtgewichtung muss 100% betragen. Die Zuordnung
-                  wird basierend auf dem Datum der Transaktion in der Kostenermittlung verwendet.
-                  {editingTransaction.type === 'income' && (
-                    <span className="block mt-2">
-                      <strong>Einnahmen:</strong> Sie können Einnahmen ebenfalls Flugzeugen zuordnen,
-                      um Erlöse pro Flugzeug zu verfolgen.
-                    </span>
-                  )}
-                </p>
+              <div>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">
+                  Zuordnung zu Flugzeugen
+                </h3>
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4 mb-4">
+                  <p className="text-sm text-blue-800 dark:text-blue-300">
+                    <strong>Hinweis:</strong> Die Gesamtgewichtung muss 100% betragen. Die Zuordnung
+                    wird basierend auf dem Datum der Transaktion in der Kostenermittlung verwendet.
+                    {editingTransaction.type === 'income' && (
+                      <span className="block mt-2">
+                        <strong>Einnahmen:</strong> Sie können Einnahmen ebenfalls Flugzeugen zuordnen,
+                        um Erlöse pro Flugzeug zu verfolgen.
+                      </span>
+                    )}
+                    {editingTransaction.type === 'expense' && (
+                      <span className="block mt-2">
+                        <strong>Ausgaben:</strong> Ordnen Sie Ausgaben Flugzeugen zu, um die Kosten pro Flugzeug
+                        in der Kostenermittlung zu verfolgen.
+                      </span>
+                    )}
+                  </p>
+                </div>
               </div>
 
               {allocationForm.map((alloc, index) => (
                 <div
                   key={index}
-                  className="flex items-center gap-4 p-4 bg-slate-50 rounded-lg border border-slate-200"
+                  className="flex items-center gap-4 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-600"
                 >
                   <div className="flex-1">
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                       Flugzeug
                     </label>
                     <select
@@ -817,7 +925,7 @@ export default function KontobewegungenUebersichtPage() {
                       onChange={(e) =>
                         handleAllocationChange(index, 'aircraft', e.target.value)
                       }
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
                     >
                       <option value="">Flugzeug auswählen...</option>
                       {aircraft
@@ -830,7 +938,7 @@ export default function KontobewegungenUebersichtPage() {
                     </select>
                   </div>
                   <div className="w-32">
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                       Gewichtung (%)
                     </label>
                     <input
@@ -842,13 +950,13 @@ export default function KontobewegungenUebersichtPage() {
                       onChange={(e) =>
                         handleAllocationChange(index, 'weight', e.target.value)
                       }
-                      className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
                     />
                   </div>
                   {allocationForm.length > 1 && (
                     <button
                       onClick={() => handleRemoveAllocation(index)}
-                      className="p-2 text-red-600 hover:bg-red-50 rounded-lg transition-colors mt-6"
+                      className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors mt-6"
                     >
                       <Trash2 className="w-5 h-5" />
                     </button>
@@ -859,18 +967,18 @@ export default function KontobewegungenUebersichtPage() {
               <div className="flex items-center justify-between pt-2">
                 <button
                   onClick={handleAddAllocation}
-                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-violet-600 hover:bg-violet-50 rounded-lg transition-colors"
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 rounded-lg transition-colors"
                 >
                   <Plus className="w-4 h-4" />
                   Weitere Zuordnung hinzufügen
                 </button>
-                <div className="text-sm font-medium">
+                <div className="text-sm font-medium text-slate-900 dark:text-slate-100">
                   Gesamtgewichtung:{' '}
                   <span
                     className={
                       Math.abs(totalWeight - 100) < 0.01
-                        ? 'text-green-600'
-                        : 'text-red-600'
+                        ? 'text-green-600 dark:text-green-400'
+                        : 'text-red-600 dark:text-red-400'
                     }
                   >
                     {totalWeight.toFixed(2)}%
@@ -879,20 +987,20 @@ export default function KontobewegungenUebersichtPage() {
               </div>
             </div>
 
-            <div className="p-6 border-t border-slate-200 flex justify-end gap-3">
+            <div className="p-6 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3">
               <button
                 onClick={() => {
                   setEditingTransaction(null)
                   setAllocationForm([])
                 }}
-                className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                className="px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
               >
                 Abbrechen
               </button>
               <button
                 onClick={handleSaveAllocation}
                 disabled={Math.abs(totalWeight - 100) > 0.01}
-                className="px-6 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:bg-slate-300 disabled:cursor-not-allowed transition-colors"
+                className="px-6 py-2 bg-violet-600 dark:bg-violet-500 text-white rounded-lg hover:bg-violet-700 dark:hover:bg-violet-600 disabled:bg-slate-300 dark:disabled:bg-slate-600 disabled:cursor-not-allowed transition-colors"
               >
                 Speichern
               </button>
