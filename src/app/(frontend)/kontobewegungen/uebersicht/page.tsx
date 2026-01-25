@@ -535,6 +535,7 @@ export default function KontobewegungenUebersichtPage() {
               <table className="w-full">
                 <thead className="bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600">
                   <tr>
+                    <th className="text-center py-4 px-4 font-semibold text-slate-700 dark:text-slate-300 w-32">Aktion</th>
                     <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Datum</th>
                     <th className="text-right py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Betrag</th>
                     <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">
@@ -545,7 +546,6 @@ export default function KontobewegungenUebersichtPage() {
                     <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Referenz</th>
                     <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Zuordnung</th>
                     <th className="text-center py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Status</th>
-                    <th className="text-center py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Aktionen</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -553,10 +553,10 @@ export default function KontobewegungenUebersichtPage() {
                     <tr>
                       <td
                         colSpan={
-                          5 +
+                          6 +
                           (isFeatureEnabled('costCenters') ? 1 : 0) +
                           (isFeatureEnabled('costAllocations') ? 1 : 0) +
-                          2
+                          1
                         }
                         className="py-12 text-center text-slate-500 dark:text-slate-400"
                       >
@@ -571,6 +571,20 @@ export default function KontobewegungenUebersichtPage() {
                         key={transaction.id}
                         className="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                       >
+                        <td className="py-4 px-4 text-center">
+                          {isFeatureEnabled('costAllocations') ? (
+                            <button
+                              onClick={() => handleEditAllocation(transaction)}
+                              className="inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-white bg-violet-600 dark:bg-violet-500 hover:bg-violet-700 dark:hover:bg-violet-600 rounded-lg transition-colors shadow-sm hover:shadow-md"
+                              title="Zuordnung bearbeiten"
+                            >
+                              <LinkIcon className="w-4 h-4" />
+                              Zuordnung
+                            </button>
+                          ) : (
+                            <span className="text-slate-400 dark:text-slate-500 text-xs">–</span>
+                          )}
+                        </td>
                         <td className="py-4 px-6 text-slate-900 dark:text-slate-100">
                           {new Date(transaction.date).toLocaleDateString('de-DE', {
                             day: '2-digit',
@@ -677,47 +691,34 @@ export default function KontobewegungenUebersichtPage() {
                         </td>
                         <td className="py-4 px-6">
                           {isFeatureEnabled('costAllocations') ? (
-                            <div className="flex items-center gap-2">
-                              {transaction.costAllocations &&
-                              transaction.costAllocations.length > 0 ? (
-                                <div className="flex flex-wrap gap-2 flex-1">
-                                  {transaction.costAllocations.map((allocation, idx) => {
-                                    const aircraft =
-                                      typeof allocation.aircraft === 'object'
-                                        ? allocation.aircraft
-                                        : null
-                                    return (
-                                      <span
-                                        key={idx}
-                                        className="inline-flex items-center gap-1 px-2 py-1 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 rounded text-xs font-medium"
-                                      >
-                                        {aircraft ? (
-                                          <>
-                                            {aircraft.registration}
-                                            <span className="text-violet-500 dark:text-violet-400">
-                                              ({allocation.weight.toFixed(0)}%)
-                                            </span>
-                                          </>
-                                        ) : (
-                                          <span className="text-slate-400 dark:text-slate-500">Flugzeug gelöscht</span>
-                                        )}
-                                      </span>
-                                    )
-                                  })}
-                                </div>
+                            <div className="flex flex-wrap gap-2">
+                              {transaction.costAllocations && transaction.costAllocations.length > 0 ? (
+                                transaction.costAllocations.map((allocation, idx) => {
+                                  const aircraft =
+                                    typeof allocation.aircraft === 'object'
+                                      ? allocation.aircraft
+                                      : null
+                                  return (
+                                    <span
+                                      key={idx}
+                                      className="inline-flex items-center gap-1 px-2 py-1 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 rounded text-xs font-medium"
+                                    >
+                                      {aircraft ? (
+                                        <>
+                                          {aircraft.registration}
+                                          <span className="text-violet-500 dark:text-violet-400">
+                                            ({allocation.weight.toFixed(0)}%)
+                                          </span>
+                                        </>
+                                      ) : (
+                                        <span className="text-slate-400 dark:text-slate-500">Flugzeug gelöscht</span>
+                                      )}
+                                    </span>
+                                  )
+                                })
                               ) : (
                                 <span className="text-slate-400 dark:text-slate-500 text-sm">Keine Zuordnung</span>
                               )}
-                              <button
-                                onClick={() => handleEditAllocation(transaction)}
-                                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-900/20 rounded-lg transition-colors border border-violet-200 dark:border-violet-800"
-                                title="Zuordnung bearbeiten"
-                              >
-                                <LinkIcon className="w-4 h-4" />
-                                {transaction.costAllocations && transaction.costAllocations.length > 0
-                                  ? 'Bearbeiten'
-                                  : 'Zuordnen'}
-                              </button>
                             </div>
                           ) : (
                             <span className="text-slate-400 dark:text-slate-500 text-sm">Nicht verfügbar</span>
@@ -748,24 +749,14 @@ export default function KontobewegungenUebersichtPage() {
                           </button>
                         </td>
                         <td className="py-4 px-6 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <button
-                              onClick={() => handleEditAllocation(transaction)}
-                              className="inline-flex items-center gap-1 px-3 py-1 text-sm text-violet-600 dark:text-violet-400 hover:text-violet-700 dark:hover:text-violet-300 hover:bg-violet-50 dark:hover:bg-violet-900/20 rounded transition-colors"
-                              title="Zuordnung bearbeiten"
-                            >
-                              <LinkIcon className="w-4 h-4" />
-                              Zuordnung
-                            </button>
-                            <Link
-                              href={`/admin/collections/transactions/${transaction.id}`}
-                              className="inline-flex items-center gap-1 px-3 py-1 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded transition-colors"
-                              title="Im Admin bearbeiten"
-                            >
-                              <Edit2 className="w-4 h-4" />
-                              Bearbeiten
-                            </Link>
-                          </div>
+                          <Link
+                            href={`/admin/collections/transactions/${transaction.id}`}
+                            className="inline-flex items-center gap-1 px-3 py-1 text-sm text-slate-600 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 rounded transition-colors"
+                            title="Im Admin bearbeiten"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                            Bearbeiten
+                          </Link>
                         </td>
                       </tr>
                     ))
