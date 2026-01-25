@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getPayload } from 'payload'
+import { getPayload, type CollectionSlug } from 'payload'
 import configPromise from '@payload-config'
 
 export async function GET() {
@@ -7,7 +7,7 @@ export async function GET() {
     const payload = await getPayload({ config: configPromise })
 
     const result = await payload.find({
-      collection: 'transactions' as const,
+      collection: 'transactions' as CollectionSlug,
       depth: 2, // Include category and aircraft relationships
       sort: '-date',
       limit: 10000, // Get all transactions

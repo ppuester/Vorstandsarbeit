@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getPayload } from 'payload'
+import { getPayload, type CollectionSlug } from 'payload'
 import configPromise from '@payload-config'
 
 interface TransactionData {
@@ -34,7 +34,7 @@ export async function POST(request: Request) {
         const amount = Math.abs(transactionData.amount)
 
         await payload.create({
-          collection: 'transactions' as const,
+          collection: 'transactions' as CollectionSlug,
           data: {
             date: transactionData.date,
             description: transactionData.description,

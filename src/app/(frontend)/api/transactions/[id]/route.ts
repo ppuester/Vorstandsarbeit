@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { getPayload } from 'payload'
+import { getPayload, type CollectionSlug } from 'payload'
 import configPromise from '@payload-config'
 
 export async function PATCH(
@@ -13,7 +13,7 @@ export async function PATCH(
     const payload = await getPayload({ config: configPromise })
 
     const updated = await payload.update({
-      collection: 'transactions' as const,
+      collection: 'transactions' as CollectionSlug,
       id: id,
       data: body,
     })
