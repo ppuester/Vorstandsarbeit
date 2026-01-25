@@ -9,7 +9,6 @@ import {
   Edit2,
   CheckCircle,
   XCircle,
-  Plane,
   X,
   Plus,
   Trash2,
@@ -44,6 +43,7 @@ interface Aircraft {
   id: string
   registration: string
   name?: string
+  active?: boolean
 }
 
 export default function KontobewegungenUebersichtPage() {

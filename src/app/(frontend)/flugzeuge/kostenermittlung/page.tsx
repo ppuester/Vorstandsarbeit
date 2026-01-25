@@ -6,7 +6,6 @@ import {
   Plane,
   TrendingUp,
   TrendingDown,
-  DollarSign,
   ArrowLeft,
   ChevronDown,
   ChevronRight,
