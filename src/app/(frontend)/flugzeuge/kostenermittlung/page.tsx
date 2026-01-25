@@ -137,6 +137,14 @@ export default function KostenermittlungPage() {
       if (transactionsRes.ok) {
         const data = await transactionsRes.json()
         setTransactions(data.docs || [])
+        // Debug: Log transactions with allocations
+        const transactionsWithAllocations = (data.docs || []).filter((t: TransactionData) => 
+          t.costAllocations && Array.isArray(t.costAllocations) && t.costAllocations.length > 0
+        )
+        if (transactionsWithAllocations.length > 0) {
+          console.log('Transaktionen mit Zuordnungen gefunden:', transactionsWithAllocations.length)
+          console.log('Beispiel-Transaktion:', transactionsWithAllocations[0])
+        }
       }
 
       if (fuelEntriesRes.ok) {
@@ -270,14 +278,35 @@ export default function KostenermittlungPage() {
           if (transactionYear !== year) return false
 
           // Check if transaction has cost allocations for this aircraft
-          if (t.costAllocations && Array.isArray(t.costAllocations)) {
-            return t.costAllocations.some((allocation) => {
+          if (t.costAllocations && Array.isArray(t.costAllocations) && t.costAllocations.length > 0) {
+            const hasAllocation = t.costAllocations.some((allocation) => {
               const allocationType = allocation.allocationType || (allocation.aircraft ? 'aircraft' : 'generalCost')
               if (allocationType !== 'aircraft') return false
-              const aircraftId =
-                typeof allocation.aircraft === 'object' ? allocation.aircraft.id : allocation.aircraft
+              
+              // Handle both string ID and populated object
+              let aircraftId: string | null = null
+              if (typeof allocation.aircraft === 'string') {
+                aircraftId = allocation.aircraft
+              } else if (allocation.aircraft && typeof allocation.aircraft === 'object' && 'id' in allocation.aircraft) {
+                aircraftId = allocation.aircraft.id
+              }
+              
               return aircraftId === ac.id
             })
+            
+            // Debug logging for first transaction
+            if (hasAllocation && costTransactions.length === 0) {
+              console.log('Gefundene Transaktion mit Zuordnung:', {
+                transactionId: t.id,
+                description: t.description,
+                amount: t.amount,
+                allocations: t.costAllocations,
+                aircraftId: ac.id,
+                registration: ac.registration
+              })
+            }
+            
+            return hasAllocation
           }
 
           // Fallback: Check if transaction references this aircraft
@@ -294,8 +323,15 @@ export default function KostenermittlungPage() {
             const allocation = t.costAllocations.find((alloc) => {
               const allocationType = alloc.allocationType || (alloc.aircraft ? 'aircraft' : 'generalCost')
               if (allocationType !== 'aircraft') return false
-              const aircraftId =
-                typeof alloc.aircraft === 'object' ? alloc.aircraft.id : alloc.aircraft
+              
+              // Handle both string ID and populated object
+              let aircraftId: string | null = null
+              if (typeof alloc.aircraft === 'string') {
+                aircraftId = alloc.aircraft
+              } else if (alloc.aircraft && typeof alloc.aircraft === 'object' && 'id' in alloc.aircraft) {
+                aircraftId = alloc.aircraft.id
+              }
+              
               return aircraftId === ac.id
             })
             if (allocation) {
@@ -737,24 +773,50 @@ export default function KostenermittlungPage() {
                                       )}
 
                                       {/* Costs from Transactions */}
-                                      {yearData.costs.fromTransactions > 0 && (
+                                      {yearData.costs.transactions.length > 0 && (
                                         <div className="mt-3 pt-3 border-t border-red-200 dark:border-red-800">
                                           <div className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">
                                             Weitere Kosten aus Transaktionen:
                                           </div>
-                                          {yearData.costs.transactions.map((t) => (
-                                            <div
-                                              key={t.id}
-                                              className="flex justify-between items-center text-sm mb-1"
-                                            >
-                                              <span className="text-slate-700 dark:text-slate-300">
-                                                {t.description || t.reference || 'Kosten'}
-                                              </span>
-                                              <span className="font-medium text-red-700 dark:text-red-300">
-                                                {t.amount.toFixed(2)} €
-                                              </span>
-                                            </div>
-                                          ))}
+                                          {yearData.costs.transactions.map((t) => {
+                                            // Berechne den gewichteten Betrag für diese Transaktion
+                                            const allocation = t.costAllocations?.find((alloc) => {
+                                              const allocationType = alloc.allocationType || (alloc.aircraft ? 'aircraft' : 'generalCost')
+                                              if (allocationType !== 'aircraft') return false
+                                              
+                                              // Handle both string ID and populated object
+                                              let aircraftId: string | null = null
+                                              if (typeof alloc.aircraft === 'string') {
+                                                aircraftId = alloc.aircraft
+                                              } else if (alloc.aircraft && typeof alloc.aircraft === 'object' && 'id' in alloc.aircraft) {
+                                                aircraftId = alloc.aircraft.id
+                                              }
+                                              
+                                              return aircraftId === ac.id
+                                            })
+                                            const weightedAmount = allocation 
+                                              ? (t.amount * allocation.weight) / 100
+                                              : t.amount
+                                            
+                                            return (
+                                              <div
+                                                key={t.id}
+                                                className="flex justify-between items-center text-sm mb-1"
+                                              >
+                                                <span className="text-slate-700 dark:text-slate-300">
+                                                  {t.description || t.reference || 'Kosten'}
+                                                  {allocation && allocation.weight < 100 && (
+                                                    <span className="ml-2 text-xs text-slate-500 dark:text-slate-400">
+                                                      ({allocation.weight.toFixed(0)}%)
+                                                    </span>
+                                                  )}
+                                                </span>
+                                                <span className="font-medium text-red-700 dark:text-red-300">
+                                                  {weightedAmount.toFixed(2)} €
+                                                </span>
+                                              </div>
+                                            )
+                                          })}
                                           <div className="mt-2 pt-2 border-t border-red-200 dark:border-red-800 flex justify-between items-center text-sm font-medium">
                                             <span className="text-slate-700 dark:text-slate-300">Summe</span>
                                             <span className="text-red-700 dark:text-red-300">
