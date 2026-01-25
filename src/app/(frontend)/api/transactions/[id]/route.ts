@@ -13,7 +13,7 @@ export async function PATCH(
     const payload = await getPayload({ config: configPromise })
 
     const updated = await payload.update({
-      collection: 'transactions',
+      collection: 'transactions' as const,
       id: id,
       data: body,
     })

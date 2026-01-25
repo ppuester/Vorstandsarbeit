@@ -34,7 +34,7 @@ export async function POST(request: Request) {
         const amount = Math.abs(transactionData.amount)
 
         await payload.create({
-          collection: 'transactions',
+          collection: 'transactions' as const,
           data: {
             date: transactionData.date,
             description: transactionData.description,

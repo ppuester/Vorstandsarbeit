@@ -8,7 +8,7 @@ export async function GET() {
 
     // Get all transactions
     const result = await payload.find({
-      collection: 'transactions',
+      collection: 'transactions' as const,
       limit: 10000,
       sort: 'date',
     })

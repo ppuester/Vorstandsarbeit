@@ -7,7 +7,7 @@ export async function GET() {
     const payload = await getPayload({ config: configPromise })
 
     const result = await payload.find({
-      collection: 'flight-logs',
+      collection: 'flight-logs' as const,
       depth: 1, // Include aircraft relationship
       sort: '-year',
       limit: 10000,

@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Calculator, Plane, TrendingUp, TrendingDown, Calendar, DollarSign } from 'lucide-react'
+import { Calculator, Plane, TrendingUp, TrendingDown, DollarSign } from 'lucide-react'
 import Link from 'next/link'
 
 interface Aircraft {
@@ -42,7 +42,7 @@ interface AircraftCosts {
 export default function KostenermittlungPage() {
   const [aircraft, setAircraft] = useState<Aircraft[]>([])
   const [flightLogs, setFlightLogs] = useState<FlightLog[]>([])
-  const [transactions, setTransactions] = useState<any[]>([])
+  const [transactions, setTransactions] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedYear, setSelectedYear] = useState(new Date().getFullYear())
   const [selectedAircraft, setSelectedAircraft] = useState<string>('all')

@@ -37,11 +37,9 @@ export default function AircraftDetailPage({ params }: { params: Promise<{ id: s
   const [aircraft, setAircraft] = useState<Aircraft | null>(null)
   const [flightLogs, setFlightLogs] = useState<FlightLog[]>([])
   const [loading, setLoading] = useState(true)
-  const [aircraftId, setAircraftId] = useState<string>('')
 
   useEffect(() => {
     params.then((p) => {
-      setAircraftId(p.id)
       fetchAircraftData(p.id)
     })
   }, [params])

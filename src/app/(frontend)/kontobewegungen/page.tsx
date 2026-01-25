@@ -12,7 +12,6 @@ interface Transaction {
 }
 
 export default function KontobewegungenPage() {
-  const [file, setFile] = useState<File | null>(null)
   const [preview, setPreview] = useState<Transaction[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -22,7 +21,6 @@ export default function KontobewegungenPage() {
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
     if (selectedFile) {
-      setFile(selectedFile)
       setError(null)
       setSuccess(false)
       parseCSV(selectedFile)
@@ -147,7 +145,6 @@ export default function KontobewegungenPage() {
       setSuccess(true)
       setImportedCount(result.count || preview.length)
       setPreview([])
-      setFile(null)
       
       // Reset file input
       const fileInput = document.getElementById('csv-file') as HTMLInputElement
@@ -339,7 +336,6 @@ export default function KontobewegungenPage() {
                 <button
                   onClick={() => {
                     setPreview([])
-                    setFile(null)
                     setError(null)
                     setSuccess(false)
                     const fileInput = document.getElementById('csv-file') as HTMLInputElement

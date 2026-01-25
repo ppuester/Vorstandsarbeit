@@ -7,7 +7,7 @@ export async function GET() {
     const payload = await getPayload({ config: configPromise })
 
     const result = await payload.find({
-      collection: 'transactions',
+      collection: 'transactions' as const,
       depth: 2, // Include category and aircraft relationships
       sort: '-date',
       limit: 10000, // Get all transactions
