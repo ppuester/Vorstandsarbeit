@@ -9,7 +9,7 @@ export const FuelEntries: CollectionConfig = {
   },
   admin: {
     useAsTitle: 'date',
-    defaultColumns: ['date', 'aircraft', 'fuelType', 'liters', 'pricePerLiter', 'totalPrice', 'gasStation'],
+    defaultColumns: ['date', 'name', 'aircraft', 'fuelType', 'meterReadingOld', 'meterReadingNew', 'liters', 'totalPrice'],
     group: 'Flugzeuge',
   },
   access: {
@@ -54,13 +54,44 @@ export const FuelEntries: CollectionConfig = {
       },
     },
     {
+      name: 'name',
+      type: 'text',
+      required: true,
+      label: 'Name (in Druckbuchstaben)',
+      admin: {
+        description: 'Name der Person, die getankt hat',
+      },
+    },
+    {
+      name: 'meterReadingOld',
+      type: 'number',
+      required: true,
+      label: 'Zählerstand alt',
+      min: 0,
+      admin: {
+        description: 'Zählerstand vor dem Tanken',
+        step: 0.01,
+      },
+    },
+    {
+      name: 'meterReadingNew',
+      type: 'number',
+      required: true,
+      label: 'Zählerstand neu',
+      min: 0,
+      admin: {
+        description: 'Zählerstand nach dem Tanken',
+        step: 0.01,
+      },
+    },
+    {
       name: 'liters',
       type: 'number',
       required: true,
-      label: 'Liter',
-      min: 0,
+      label: 'Menge (Liter)',
       admin: {
-        description: 'Getankte Liter',
+        description: 'Getankte Liter (wird automatisch berechnet: Zählerstand neu - Zählerstand alt)',
+        readOnly: true,
         step: 0.01,
       },
     },
@@ -124,9 +155,17 @@ export const FuelEntries: CollectionConfig = {
   hooks: {
     beforeChange: [
       ({ data, operation: _operation }: any) => {
+        // Berechne Liter automatisch aus Zählerständen
+        if (
+          data &&
+          data.meterReadingOld !== undefined &&
+          data.meterReadingNew !== undefined
+        ) {
+          data.liters = Math.max(0, data.meterReadingNew - data.meterReadingOld)
+        }
         // Berechne Gesamtpreis automatisch
         if (data && data.liters !== undefined && data.pricePerLiter !== undefined) {
-          data.totalPrice = (data.liters * data.pricePerLiter).toFixed(2)
+          data.totalPrice = Number((data.liters * data.pricePerLiter).toFixed(2))
         }
         return data
       },

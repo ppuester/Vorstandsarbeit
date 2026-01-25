@@ -9,6 +9,7 @@ import {
   Calculator,
   BarChart3,
   ArrowRight,
+  Fuel,
 } from 'lucide-react'
 import { useOrganization } from '@/providers/Organization'
 
@@ -42,6 +43,15 @@ export function DashboardContent() {
       description: 'Kosten pro Flugzeug',
       href: '/flugzeuge/kostenermittlung',
       enabled: isFeatureEnabled('costCalculation'),
+    },
+    {
+      title: 'Kraftstofferfassung',
+      value: 'Tankvorgänge',
+      icon: Fuel,
+      gradient: 'from-orange-500 to-red-500',
+      description: 'Kraftstoff erfassen',
+      href: '/flugzeuge/kraftstofferfassung',
+      enabled: isFeatureEnabled('fuelTracking'),
     },
   ].filter((stat) => stat.enabled)
 
@@ -90,6 +100,15 @@ export function DashboardContent() {
       iconBg: 'bg-teal-100',
       iconColor: 'text-teal-600',
       enabled: isFeatureEnabled('costCalculation'),
+    },
+    {
+      title: 'Kraftstofferfassung',
+      description: 'Getankten Kraftstoff erfassen',
+      href: '/flugzeuge/kraftstofferfassung',
+      icon: Fuel,
+      iconBg: 'bg-orange-100',
+      iconColor: 'text-orange-600',
+      enabled: isFeatureEnabled('fuelTracking'),
     },
   ].filter((action) => action.enabled)
 

@@ -45,6 +45,7 @@ export function Navigation() {
       children: [
         { label: 'Übersicht', href: '/flugzeuge', enabled: isFeatureEnabled('aircraft') },
         { label: 'Kostenermittlung', href: '/flugzeuge/kostenermittlung', enabled: isFeatureEnabled('costCalculation') },
+        { label: 'Kraftstofferfassung', href: '/flugzeuge/kraftstofferfassung', enabled: isFeatureEnabled('fuelTracking') },
       ],
     },
   ].filter((item) => item.enabled)

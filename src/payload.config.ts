@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url'
 import { Aircraft } from './collections/Aircraft'
 import { CostCenters } from './collections/CostCenters'
 import { FlightLogs } from './collections/FlightLogs'
+import { FuelEntries } from './collections/FuelEntries'
 import { Media } from './collections/Media'
 import { Transactions } from './collections/Transactions'
 import { TransactionCategories } from './collections/TransactionCategories'
@@ -91,7 +92,7 @@ export default buildConfig({
       }
     },
   }),
-  collections: [Users, Media, Transactions, TransactionCategories, CostCenters, Aircraft, FlightLogs],
+  collections: [Users, Media, Transactions, TransactionCategories, CostCenters, Aircraft, FlightLogs, FuelEntries],
   cors: [getServerSideURL()].filter(Boolean),
   plugins,
   secret: process.env.PAYLOAD_SECRET,

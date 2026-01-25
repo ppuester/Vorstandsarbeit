@@ -19,6 +19,7 @@ export interface OrganizationConfig {
     costAllocations: boolean // Kostenstellen-Zuordnung zu Flugzeugen
     yearlyComparison: boolean // Jahresvergleich
     costCalculation: boolean // Kostenermittlung
+    fuelTracking: boolean // Kraftstofferfassung
   }
 }
 
@@ -35,6 +36,7 @@ export const organizationConfigs: Record<Organization, OrganizationConfig> = {
       costAllocations: true,
       yearlyComparison: true,
       costCalculation: true,
+      fuelTracking: true,
     },
   },
   'cdu-stadtverband': {
@@ -49,6 +51,7 @@ export const organizationConfigs: Record<Organization, OrganizationConfig> = {
       costAllocations: false,
       yearlyComparison: true,
       costCalculation: false,
+      fuelTracking: false,
     },
   },
   'cdu-fraktion': {
@@ -63,6 +66,7 @@ export const organizationConfigs: Record<Organization, OrganizationConfig> = {
       costAllocations: false,
       yearlyComparison: true,
       costCalculation: false,
+      fuelTracking: false,
     },
   },
 }
@@ -89,5 +93,6 @@ export function getOrganizationFeatures(organization: Organization): Organizatio
     costAllocations: false,
     yearlyComparison: false,
     costCalculation: false,
+    fuelTracking: false,
   }
 }
