@@ -70,6 +70,15 @@ export const Transactions: CollectionConfig = {
       },
     },
     {
+      name: 'costCenter',
+      type: 'relationship',
+      relationTo: 'cost-centers' as any,
+      label: 'Kostenstelle',
+      admin: {
+        description: 'Optional: Kostenstelle für diese Bewegung (z.B. Verwaltung, Flugbetrieb)',
+      },
+    },
+    {
       name: 'reference',
       type: 'text',
       label: 'Referenz/Verwendungszweck',

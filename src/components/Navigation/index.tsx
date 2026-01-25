@@ -12,37 +12,42 @@ import {
   Menu,
   X,
 } from 'lucide-react'
+import { useOrganization } from '@/providers/Organization'
 
 export function Navigation() {
   const pathname = usePathname()
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
+  const { isFeatureEnabled } = useOrganization()
 
   const navItems = [
     {
       label: 'Dashboard',
       href: '/',
       icon: Home,
+      enabled: true,
     },
     {
       label: 'Kontobewegungen',
       href: '/kontobewegungen',
       icon: FileText,
+      enabled: isFeatureEnabled('transactions'),
       children: [
-        { label: 'Import', href: '/kontobewegungen' },
-        { label: 'Übersicht', href: '/kontobewegungen/uebersicht' },
-        { label: 'Jahresvergleich', href: '/kontobewegungen/jahresvergleich' },
+        { label: 'Import', href: '/kontobewegungen', enabled: isFeatureEnabled('transactions') },
+        { label: 'Übersicht', href: '/kontobewegungen/uebersicht', enabled: isFeatureEnabled('transactions') },
+        { label: 'Jahresvergleich', href: '/kontobewegungen/jahresvergleich', enabled: isFeatureEnabled('yearlyComparison') },
       ],
     },
     {
       label: 'Flugzeuge',
       href: '/flugzeuge',
       icon: Plane,
+      enabled: isFeatureEnabled('aircraft'),
       children: [
-        { label: 'Übersicht', href: '/flugzeuge' },
-        { label: 'Kostenermittlung', href: '/flugzeuge/kostenermittlung' },
+        { label: 'Übersicht', href: '/flugzeuge', enabled: isFeatureEnabled('aircraft') },
+        { label: 'Kostenermittlung', href: '/flugzeuge/kostenermittlung', enabled: isFeatureEnabled('costCalculation') },
       ],
     },
-  ]
+  ].filter((item) => item.enabled)
 
   const isActive = (href: string) => {
     if (href === '/') {
@@ -70,6 +75,9 @@ export function Navigation() {
               const active = isActive(item.href)
 
               if (item.children) {
+                const enabledChildren = item.children.filter((child) => child.enabled)
+                if (enabledChildren.length === 0) return null
+
                 return (
                   <div key={item.href} className="relative group">
                     <button
@@ -84,7 +92,7 @@ export function Navigation() {
                     </button>
                     <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-lg border border-slate-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                       <div className="py-2">
-                        {item.children.map((child) => {
+                        {enabledChildren.map((child) => {
                           const childActive = isActive(child.href)
                           return (
                             <Link
@@ -145,6 +153,9 @@ export function Navigation() {
               const active = isActive(item.href)
 
               if (item.children) {
+                const enabledChildren = item.children.filter((child) => child.enabled)
+                if (enabledChildren.length === 0) return null
+
                 return (
                   <div key={item.href} className="mb-2">
                     <div className="flex items-center gap-2 px-4 py-2 text-slate-600 font-medium">
@@ -152,7 +163,7 @@ export function Navigation() {
                       {item.label}
                     </div>
                     <div className="pl-8 space-y-1">
-                      {item.children.map((child) => {
+                      {enabledChildren.map((child) => {
                         const childActive = isActive(child.href)
                         return (
                           <Link

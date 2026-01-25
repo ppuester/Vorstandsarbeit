@@ -15,6 +15,7 @@ import {
   Link as LinkIcon,
 } from 'lucide-react'
 import Link from 'next/link'
+import { useOrganization } from '@/providers/Organization'
 
 interface Transaction {
   id: string
@@ -25,6 +26,12 @@ interface Transaction {
   category?: {
     id: string
     name: string
+    color?: string
+  }
+  costCenter?: {
+    id: string
+    name: string
+    code?: string
     color?: string
   }
   reference?: string
@@ -47,10 +54,21 @@ interface Aircraft {
   active?: boolean
 }
 
+interface CostCenter {
+  id: string
+  name: string
+  code?: string
+  color?: string
+  active: boolean
+}
+
 export default function KontobewegungenUebersichtPage() {
+  const { isFeatureEnabled } = useOrganization()
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [aircraft, setAircraft] = useState<Aircraft[]>([])
+  const [costCenters, setCostCenters] = useState<CostCenter[]>([])
   const [loading, setLoading] = useState(true)
+  const [editingCostCenter, setEditingCostCenter] = useState<{ transactionId: string; costCenterId: string | null } | null>(null)
   const [activeTab, setActiveTab] = useState<'all' | 'income' | 'expense'>('all')
   const [searchTerm, setSearchTerm] = useState('')
   const [filterProcessed, setFilterProcessed] = useState<'all' | 'processed' | 'unprocessed'>('all')
@@ -71,9 +89,10 @@ export default function KontobewegungenUebersichtPage() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const [transactionsRes, aircraftRes] = await Promise.all([
+      const [transactionsRes, aircraftRes, costCentersRes] = await Promise.all([
         fetch('/api/transactions'),
         fetch('/api/aircraft'),
+        fetch('/api/cost-centers'),
       ])
 
       if (transactionsRes.ok) {
@@ -84,6 +103,11 @@ export default function KontobewegungenUebersichtPage() {
       if (aircraftRes.ok) {
         const data = await aircraftRes.json()
         setAircraft(data.docs || [])
+      }
+
+      if (costCentersRes.ok) {
+        const data = await costCentersRes.json()
+        setCostCenters(data.docs || [])
       }
     } catch (error) {
       console.error('Fehler beim Laden der Daten:', error)
@@ -175,6 +199,31 @@ export default function KontobewegungenUebersichtPage() {
 
   const handleRemoveAllocation = (index: number) => {
     setAllocationForm(allocationForm.filter((_, i) => i !== index))
+  }
+
+  const handleCostCenterChange = async (transactionId: string, costCenterId: string | null) => {
+    try {
+      const response = await fetch(`/api/transactions/${transactionId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          costCenter: costCenterId || null,
+        }),
+      })
+
+      if (response.ok) {
+        const updated = await response.json()
+        setTransactions((prev) =>
+          prev.map((t) => (t.id === transactionId ? updated : t))
+        )
+        setEditingCostCenter(null)
+      }
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren der Kostenstelle:', error)
+      alert('Fehler beim Speichern der Kostenstelle')
+    }
   }
 
   const handleAllocationChange = (
@@ -489,6 +538,7 @@ export default function KontobewegungenUebersichtPage() {
                       Beschreibung
                     </th>
                     <th className="text-left py-4 px-6 font-semibold text-slate-700">Kategorie</th>
+                    <th className="text-left py-4 px-6 font-semibold text-slate-700">Kostenstelle</th>
                     <th className="text-left py-4 px-6 font-semibold text-slate-700">Referenz</th>
                     <th className="text-left py-4 px-6 font-semibold text-slate-700">Zuordnung</th>
                     <th className="text-center py-4 px-6 font-semibold text-slate-700">Status</th>
@@ -498,7 +548,15 @@ export default function KontobewegungenUebersichtPage() {
                 <tbody>
                   {sortedTransactions.length === 0 ? (
                     <tr>
-                      <td colSpan={8} className="py-12 text-center text-slate-500">
+                      <td
+                        colSpan={
+                          5 +
+                          (isFeatureEnabled('costCenters') ? 1 : 0) +
+                          (isFeatureEnabled('costAllocations') ? 1 : 0) +
+                          2
+                        }
+                        className="py-12 text-center text-slate-500"
+                      >
                         {searchTerm || filterProcessed !== 'all'
                           ? 'Keine Bewegungen gefunden, die den Filterkriterien entsprechen.'
                           : 'Noch keine Kontobewegungen vorhanden. Importieren Sie Ihre ersten Bewegungen!'}
@@ -554,52 +612,113 @@ export default function KontobewegungenUebersichtPage() {
                             <span className="text-slate-400">–</span>
                           )}
                         </td>
+                        {isFeatureEnabled('costCenters') && (
+                          <td className="py-4 px-6">
+                            {editingCostCenter?.transactionId === transaction.id ? (
+                              <select
+                                value={editingCostCenter.costCenterId || ''}
+                                onChange={(e) => {
+                                  const newValue = e.target.value || null
+                                  handleCostCenterChange(transaction.id, newValue)
+                                }}
+                                onBlur={() => setEditingCostCenter(null)}
+                                autoFocus
+                                className="px-3 py-1.5 border border-violet-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-sm"
+                              >
+                                <option value="">Keine Kostenstelle</option>
+                                {costCenters.map((cc) => (
+                                  <option key={cc.id} value={cc.id}>
+                                    {cc.code ? `${cc.code} - ` : ''}
+                                    {cc.name}
+                                  </option>
+                                ))}
+                              </select>
+                            ) : (
+                              <button
+                                onClick={() =>
+                                  setEditingCostCenter({
+                                    transactionId: transaction.id,
+                                    costCenterId: transaction.costCenter?.id || null,
+                                  })
+                                }
+                                className="text-left w-full"
+                              >
+                                {transaction.costCenter ? (
+                                  <span
+                                    className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium hover:opacity-80 transition-opacity"
+                                    style={{
+                                      backgroundColor: transaction.costCenter.color
+                                        ? `${transaction.costCenter.color}20`
+                                        : '#E0E7FF',
+                                      color: transaction.costCenter.color || '#6366F1',
+                                    }}
+                                  >
+                                    {transaction.costCenter.code && (
+                                      <span className="mr-1 font-semibold">
+                                        {transaction.costCenter.code}
+                                      </span>
+                                    )}
+                                    {transaction.costCenter.name}
+                                  </span>
+                                ) : (
+                                  <span className="text-slate-400 hover:text-violet-600 transition-colors text-sm">
+                                    Kostenstelle zuordnen
+                                  </span>
+                                )}
+                              </button>
+                            )}
+                          </td>
+                        )}
                         <td className="py-4 px-6 text-slate-500">
                           {transaction.reference || '–'}
                         </td>
                         <td className="py-4 px-6">
-                          <div className="flex items-center gap-2">
-                            {transaction.costAllocations &&
-                            transaction.costAllocations.length > 0 ? (
-                              <div className="flex flex-wrap gap-2 flex-1">
-                                {transaction.costAllocations.map((allocation, idx) => {
-                                  const aircraft =
-                                    typeof allocation.aircraft === 'object'
-                                      ? allocation.aircraft
-                                      : null
-                                  return (
-                                    <span
-                                      key={idx}
-                                      className="inline-flex items-center gap-1 px-2 py-1 bg-violet-100 text-violet-700 rounded text-xs font-medium"
-                                    >
-                                      {aircraft ? (
-                                        <>
-                                          {aircraft.registration}
-                                          <span className="text-violet-500">
-                                            ({allocation.weight.toFixed(0)}%)
-                                          </span>
-                                        </>
-                                      ) : (
-                                        <span className="text-slate-400">Flugzeug gelöscht</span>
-                                      )}
-                                    </span>
-                                  )
-                                })}
-                              </div>
-                            ) : (
-                              <span className="text-slate-400 text-sm">Keine Zuordnung</span>
-                            )}
-                            <button
-                              onClick={() => handleEditAllocation(transaction)}
-                              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-violet-600 hover:text-violet-700 hover:bg-violet-50 rounded-lg transition-colors border border-violet-200"
-                              title="Zuordnung bearbeiten"
-                            >
-                              <LinkIcon className="w-4 h-4" />
-                              {transaction.costAllocations && transaction.costAllocations.length > 0
-                                ? 'Bearbeiten'
-                                : 'Zuordnen'}
-                            </button>
-                          </div>
+                          {isFeatureEnabled('costAllocations') ? (
+                            <div className="flex items-center gap-2">
+                              {transaction.costAllocations &&
+                              transaction.costAllocations.length > 0 ? (
+                                <div className="flex flex-wrap gap-2 flex-1">
+                                  {transaction.costAllocations.map((allocation, idx) => {
+                                    const aircraft =
+                                      typeof allocation.aircraft === 'object'
+                                        ? allocation.aircraft
+                                        : null
+                                    return (
+                                      <span
+                                        key={idx}
+                                        className="inline-flex items-center gap-1 px-2 py-1 bg-violet-100 text-violet-700 rounded text-xs font-medium"
+                                      >
+                                        {aircraft ? (
+                                          <>
+                                            {aircraft.registration}
+                                            <span className="text-violet-500">
+                                              ({allocation.weight.toFixed(0)}%)
+                                            </span>
+                                          </>
+                                        ) : (
+                                          <span className="text-slate-400">Flugzeug gelöscht</span>
+                                        )}
+                                      </span>
+                                    )
+                                  })}
+                                </div>
+                              ) : (
+                                <span className="text-slate-400 text-sm">Keine Zuordnung</span>
+                              )}
+                              <button
+                                onClick={() => handleEditAllocation(transaction)}
+                                className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-violet-600 hover:text-violet-700 hover:bg-violet-50 rounded-lg transition-colors border border-violet-200"
+                                title="Zuordnung bearbeiten"
+                              >
+                                <LinkIcon className="w-4 h-4" />
+                                {transaction.costAllocations && transaction.costAllocations.length > 0
+                                  ? 'Bearbeiten'
+                                  : 'Zuordnen'}
+                              </button>
+                            </div>
+                          ) : (
+                            <span className="text-slate-400 text-sm">Nicht verfügbar</span>
+                          )}
                         </td>
                         <td className="py-4 px-6 text-center">
                           <button

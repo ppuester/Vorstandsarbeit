@@ -1,6 +1,7 @@
 'use client'
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
+import { organizationConfigs, type OrganizationConfig } from '@/config/organizations'
 
 export type Organization = 'lsv-sauerland' | 'cdu-stadtverband' | 'cdu-fraktion'
 
@@ -8,6 +9,8 @@ interface OrganizationContextType {
   organization: Organization
   setOrganization: (org: Organization) => void
   organizationName: string
+  organizationConfig: OrganizationConfig
+  isFeatureEnabled: (feature: keyof OrganizationConfig['features']) => boolean
 }
 
 const OrganizationContext = createContext<OrganizationContextType | undefined>(undefined)
@@ -52,12 +55,21 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
     setOrganizationState(org)
   }, [])
 
+  const isFeatureEnabled = useCallback(
+    (feature: keyof OrganizationConfig['features']) => {
+      return organizationConfigs[organization]?.features[feature] ?? false
+    },
+    [organization]
+  )
+
   return (
     <OrganizationContext.Provider
       value={{
         organization,
         setOrganization,
         organizationName: organizationNames[organization],
+        organizationConfig: organizationConfigs[organization],
+        isFeatureEnabled,
       }}
     >
       {children}
