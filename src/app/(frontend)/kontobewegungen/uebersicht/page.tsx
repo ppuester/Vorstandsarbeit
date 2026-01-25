@@ -483,13 +483,13 @@ export default function KontobewegungenUebersichtPage() {
                 <thead className="bg-slate-50 border-b border-slate-200">
                   <tr>
                     <th className="text-left py-4 px-6 font-semibold text-slate-700">Datum</th>
+                    <th className="text-right py-4 px-6 font-semibold text-slate-700">Betrag</th>
                     <th className="text-left py-4 px-6 font-semibold text-slate-700">
                       Beschreibung
                     </th>
                     <th className="text-left py-4 px-6 font-semibold text-slate-700">Kategorie</th>
                     <th className="text-left py-4 px-6 font-semibold text-slate-700">Referenz</th>
                     <th className="text-left py-4 px-6 font-semibold text-slate-700">Zuordnung</th>
-                    <th className="text-right py-4 px-6 font-semibold text-slate-700">Betrag</th>
                     <th className="text-center py-4 px-6 font-semibold text-slate-700">Status</th>
                     <th className="text-center py-4 px-6 font-semibold text-slate-700">Aktionen</th>
                   </tr>
@@ -515,6 +515,16 @@ export default function KontobewegungenUebersichtPage() {
                             month: '2-digit',
                             year: 'numeric',
                           })}
+                        </td>
+                        <td
+                          className={`py-4 px-6 text-right font-bold text-lg ${
+                            transaction.type === 'income'
+                              ? 'text-green-600'
+                              : 'text-red-600'
+                          }`}
+                        >
+                          {transaction.type === 'income' ? '+' : '-'}
+                          {transaction.amount.toFixed(2)} €
                         </td>
                         <td className="py-4 px-6">
                           <div className="font-medium text-slate-900">
@@ -584,16 +594,6 @@ export default function KontobewegungenUebersichtPage() {
                               </span>
                             )}
                           </button>
-                        </td>
-                        <td
-                          className={`py-4 px-6 text-right font-semibold ${
-                            transaction.type === 'income'
-                              ? 'text-green-600'
-                              : 'text-red-600'
-                          }`}
-                        >
-                          {transaction.type === 'income' ? '+' : '-'}
-                          {transaction.amount.toFixed(2)} €
                         </td>
                         <td className="py-4 px-6 text-center">
                           <button
