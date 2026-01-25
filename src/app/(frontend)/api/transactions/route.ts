@@ -7,6 +7,7 @@ export async function GET(request: Request) {
     const { searchParams } = new URL(request.url)
     const page = parseInt(searchParams.get('page') || '1', 10)
     const limit = parseInt(searchParams.get('limit') || '50', 10)
+    const depth = parseInt(searchParams.get('depth') || '2', 10)
     const type = searchParams.get('type') // 'income' | 'expense' | null
     const search = searchParams.get('search') || ''
     const processed = searchParams.get('processed') // 'true' | 'false' | null
@@ -58,13 +59,14 @@ export async function GET(request: Request) {
       }
     }
 
+    // Wenn depth angegeben ist, lade alle Transaktionen ohne Pagination
     const result = await payload.find({
       collection: 'transactions' as CollectionSlug,
       where: Object.keys(where).length > 0 ? where : undefined,
-      depth: 2,
+      depth,
       sort: '-date',
-      limit,
-      page,
+      limit: depth > 1 ? 100000 : limit, // Alle laden wenn depth > 1 (für Kostenermittlung)
+      page: depth > 1 ? 1 : page,
     })
 
     return NextResponse.json(result)

@@ -633,6 +633,7 @@ export default function KontobewegungenUebersichtPage() {
                 <thead className="bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600">
                   <tr>
                     <th className="text-center py-4 px-4 font-semibold text-slate-700 dark:text-slate-300 w-32">Aktion</th>
+                    <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Zuordnung</th>
                     <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Datum</th>
                     <th className="text-right py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Betrag</th>
                     <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">
@@ -641,7 +642,6 @@ export default function KontobewegungenUebersichtPage() {
                     <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Kategorie</th>
                     <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Kostenstelle</th>
                     <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Referenz</th>
-                    <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Zuordnung</th>
                     <th className="text-center py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Status</th>
                   </tr>
                 </thead>
@@ -680,6 +680,57 @@ export default function KontobewegungenUebersichtPage() {
                             </button>
                           ) : (
                             <span className="text-slate-400 dark:text-slate-500 text-xs">–</span>
+                          )}
+                        </td>
+                        <td className="py-4 px-6">
+                          {isFeatureEnabled('costAllocations') ? (
+                            <div className="flex flex-wrap gap-2">
+                              {transaction.costAllocations && transaction.costAllocations.length > 0 ? (
+                                transaction.costAllocations.map((allocation, idx) => {
+                                  const allocationType = allocation.allocationType || (allocation.aircraft ? 'aircraft' : 'generalCost')
+                                  const aircraft =
+                                    allocationType === 'aircraft' && typeof allocation.aircraft === 'object'
+                                      ? allocation.aircraft
+                                      : null
+                                  const generalCost =
+                                    allocationType === 'generalCost' && typeof allocation.generalCost === 'object'
+                                      ? allocation.generalCost
+                                      : null
+                                  return (
+                                    <span
+                                      key={idx}
+                                      className="inline-flex items-center gap-1 px-2 py-1 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 rounded text-xs font-medium"
+                                    >
+                                      {allocationType === 'aircraft' ? (
+                                        aircraft ? (
+                                          <>
+                                            {aircraft.registration}
+                                            <span className="text-violet-500 dark:text-violet-400">
+                                              ({allocation.weight.toFixed(0)}%)
+                                            </span>
+                                          </>
+                                        ) : (
+                                          <span className="text-slate-400 dark:text-slate-500">Flugzeug gelöscht</span>
+                                        )
+                                      ) : generalCost ? (
+                                        <>
+                                          {generalCost.name}
+                                          <span className="text-violet-500 dark:text-violet-400">
+                                            ({allocation.weight.toFixed(0)}%)
+                                          </span>
+                                        </>
+                                      ) : (
+                                        <span className="text-slate-400 dark:text-slate-500">Allgemeine Kosten gelöscht</span>
+                                      )}
+                                    </span>
+                                  )
+                                })
+                              ) : (
+                                <span className="text-slate-400 dark:text-slate-500 text-sm">Keine Zuordnung</span>
+                              )}
+                            </div>
+                          ) : (
+                            <span className="text-slate-400 dark:text-slate-500 text-sm">Nicht verfügbar</span>
                           )}
                         </td>
                         <td className="py-4 px-6 text-slate-900 dark:text-slate-100">
@@ -785,57 +836,6 @@ export default function KontobewegungenUebersichtPage() {
                         )}
                         <td className="py-4 px-6 text-slate-500 dark:text-slate-400">
                           {transaction.reference || '–'}
-                        </td>
-                        <td className="py-4 px-6">
-                          {isFeatureEnabled('costAllocations') ? (
-                            <div className="flex flex-wrap gap-2">
-                              {transaction.costAllocations && transaction.costAllocations.length > 0 ? (
-                                transaction.costAllocations.map((allocation, idx) => {
-                                  const allocationType = allocation.allocationType || (allocation.aircraft ? 'aircraft' : 'generalCost')
-                                  const aircraft =
-                                    allocationType === 'aircraft' && typeof allocation.aircraft === 'object'
-                                      ? allocation.aircraft
-                                      : null
-                                  const generalCost =
-                                    allocationType === 'generalCost' && typeof allocation.generalCost === 'object'
-                                      ? allocation.generalCost
-                                      : null
-                                  return (
-                                    <span
-                                      key={idx}
-                                      className="inline-flex items-center gap-1 px-2 py-1 bg-violet-100 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 rounded text-xs font-medium"
-                                    >
-                                      {allocationType === 'aircraft' ? (
-                                        aircraft ? (
-                                          <>
-                                            {aircraft.registration}
-                                            <span className="text-violet-500 dark:text-violet-400">
-                                              ({allocation.weight.toFixed(0)}%)
-                                            </span>
-                                          </>
-                                        ) : (
-                                          <span className="text-slate-400 dark:text-slate-500">Flugzeug gelöscht</span>
-                                        )
-                                      ) : generalCost ? (
-                                        <>
-                                          {generalCost.name}
-                                          <span className="text-violet-500 dark:text-violet-400">
-                                            ({allocation.weight.toFixed(0)}%)
-                                          </span>
-                                        </>
-                                      ) : (
-                                        <span className="text-slate-400 dark:text-slate-500">Allgemeine Kosten gelöscht</span>
-                                      )}
-                                    </span>
-                                  )
-                                })
-                              ) : (
-                                <span className="text-slate-400 dark:text-slate-500 text-sm">Keine Zuordnung</span>
-                              )}
-                            </div>
-                          ) : (
-                            <span className="text-slate-400 dark:text-slate-500 text-sm">Nicht verfügbar</span>
-                          )}
                         </td>
                         <td className="py-4 px-6 text-center">
                           <button

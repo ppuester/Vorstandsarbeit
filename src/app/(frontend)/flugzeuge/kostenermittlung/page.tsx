@@ -41,7 +41,9 @@ type TransactionData = {
     name: string
   }
   costAllocations?: Array<{
-    aircraft: string | Aircraft
+    allocationType?: 'aircraft' | 'generalCost'
+    aircraft?: string | Aircraft
+    generalCost?: string | { id: string; name: string }
     weight: number
   }>
 }
@@ -227,7 +229,9 @@ export default function KostenermittlungPage() {
 
           // Check if transaction has cost allocations for this aircraft
           if (t.costAllocations && Array.isArray(t.costAllocations)) {
-            return t.costAllocations.some((allocation: { aircraft: string | Aircraft; weight: number }) => {
+            return t.costAllocations.some((allocation) => {
+              const allocationType = allocation.allocationType || (allocation.aircraft ? 'aircraft' : 'generalCost')
+              if (allocationType !== 'aircraft') return false
               const aircraftId =
                 typeof allocation.aircraft === 'object' ? allocation.aircraft.id : allocation.aircraft
               return aircraftId === ac.id
@@ -245,7 +249,9 @@ export default function KostenermittlungPage() {
         // Calculate weighted revenues
         const totalRevenue = revenueTransactions.reduce((sum: number, t: TransactionData) => {
           if (t.costAllocations && Array.isArray(t.costAllocations)) {
-            const allocation = t.costAllocations.find((alloc: { aircraft: string | Aircraft; weight: number }) => {
+            const allocation = t.costAllocations.find((alloc) => {
+              const allocationType = alloc.allocationType || (alloc.aircraft ? 'aircraft' : 'generalCost')
+              if (allocationType !== 'aircraft') return false
               const aircraftId =
                 typeof alloc.aircraft === 'object' ? alloc.aircraft.id : alloc.aircraft
               return aircraftId === ac.id
@@ -265,7 +271,9 @@ export default function KostenermittlungPage() {
 
           // Check if transaction has cost allocations for this aircraft
           if (t.costAllocations && Array.isArray(t.costAllocations)) {
-            return t.costAllocations.some((allocation: { aircraft: string | Aircraft; weight: number }) => {
+            return t.costAllocations.some((allocation) => {
+              const allocationType = allocation.allocationType || (allocation.aircraft ? 'aircraft' : 'generalCost')
+              if (allocationType !== 'aircraft') return false
               const aircraftId =
                 typeof allocation.aircraft === 'object' ? allocation.aircraft.id : allocation.aircraft
               return aircraftId === ac.id
@@ -282,17 +290,24 @@ export default function KostenermittlungPage() {
 
         // Calculate weighted costs from transactions
         const costsFromTransactions = costTransactions.reduce((sum: number, t: TransactionData) => {
-          if (t.costAllocations && Array.isArray(t.costAllocations)) {
-            const allocation = t.costAllocations.find((alloc: { aircraft: string | Aircraft; weight: number }) => {
+          if (t.costAllocations && Array.isArray(t.costAllocations) && t.costAllocations.length > 0) {
+            const allocation = t.costAllocations.find((alloc) => {
+              const allocationType = alloc.allocationType || (alloc.aircraft ? 'aircraft' : 'generalCost')
+              if (allocationType !== 'aircraft') return false
               const aircraftId =
                 typeof alloc.aircraft === 'object' ? alloc.aircraft.id : alloc.aircraft
               return aircraftId === ac.id
             })
             if (allocation) {
-              return sum + (t.amount * allocation.weight) / 100
+              // Betrag ist bereits positiv (durch beforeChange Hook), daher direkt verwenden
+              const weightedAmount = (t.amount * allocation.weight) / 100
+              return sum + weightedAmount
             }
+            // Wenn keine passende Zuordnung gefunden wurde, nicht addieren (nur zugeordnete Kosten zählen)
+            return sum
           }
-          return sum + t.amount
+          // Wenn keine costAllocations vorhanden sind, nicht addieren (nur zugeordnete Kosten zählen)
+          return sum
         }, 0)
 
         const variableCosts = fuelCosts + maintenanceCosts
