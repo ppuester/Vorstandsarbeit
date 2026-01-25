@@ -41,7 +41,16 @@ export async function validateAccessToken(
       return { valid: false }
     }
 
-    const accessToken = result.docs[0] as AccessToken
+    const doc = result.docs[0] as any
+    const accessToken: AccessToken = {
+      id: doc.id,
+      token: doc.token,
+      permissions: doc.permissions,
+      expiresAt: doc.expiresAt,
+      active: doc.active,
+      lastUsedAt: doc.lastUsedAt,
+      usageCount: doc.usageCount,
+    }
 
     // Prüfe Ablaufdatum
     if (accessToken.expiresAt) {
