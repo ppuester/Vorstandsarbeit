@@ -241,7 +241,7 @@ export default function KraftstofferfassungPage() {
   if (!isFeatureEnabled('fuelTracking')) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
-        <div className="bg-white rounded-xl shadow-lg p-8 max-w-md text-center">
+        <div className="bg-slate-50 rounded-xl shadow-lg p-8 max-w-md text-center">
           <AlertCircle className="w-16 h-16 text-slate-400 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-slate-900 mb-2">Nicht verfügbar</h2>
           <p className="text-slate-600">
@@ -261,21 +261,21 @@ export default function KraftstofferfassungPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-slate-900 mb-2">Kraftstofferfassung</h1>
-            <p className="text-lg text-slate-600">Erfassen Sie getankten Kraftstoff für Flugzeuge</p>
+            <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2">Kraftstofferfassung</h1>
+            <p className="text-lg text-slate-600 dark:text-slate-400">Erfassen Sie getankten Kraftstoff für Flugzeuge</p>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="bg-white rounded-xl shadow-lg border border-slate-200 p-8">
+          <form onSubmit={handleSubmit} className="bg-slate-50 dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 p-8">
             <div className="space-y-6">
               {/* Datum */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   <Calendar className="w-4 h-4 inline mr-2" />
                   Datum
                 </label>
@@ -284,13 +284,13 @@ export default function KraftstofferfassungPage() {
                   value={formData.date}
                   onChange={(e) => handleInputChange('date', e.target.value)}
                   required
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
                 />
               </div>
 
               {/* Flugzeug */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   <Plane className="w-4 h-4 inline mr-2" />
                   Flugzeug
                 </label>
@@ -298,7 +298,7 @@ export default function KraftstofferfassungPage() {
                   value={formData.aircraft}
                   onChange={(e) => handleInputChange('aircraft', e.target.value)}
                   required
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
                 >
                   <option value="">Flugzeug auswählen...</option>
                   {aircraft
@@ -313,7 +313,7 @@ export default function KraftstofferfassungPage() {
 
               {/* Kraftstoff */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   <Fuel className="w-4 h-4 inline mr-2" />
                   Kraftstoff
                 </label>
@@ -321,7 +321,7 @@ export default function KraftstofferfassungPage() {
                   value={formData.fuelType}
                   onChange={(e) => handleInputChange('fuelType', e.target.value as 'avgas' | 'mogas')}
                   required
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
                 >
                   <option value="avgas">Avgas</option>
                   <option value="mogas">Mogas</option>
@@ -331,7 +331,7 @@ export default function KraftstofferfassungPage() {
               {/* Zählerstände */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     Zählerstand alt
                   </label>
                   <input
@@ -343,11 +343,11 @@ export default function KraftstofferfassungPage() {
                       handleInputChange('meterReadingOld', parseFloat(e.target.value) || 0)
                     }
                     required
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     Zählerstand neu
                   </label>
                   <input
@@ -359,28 +359,28 @@ export default function KraftstofferfassungPage() {
                       handleInputChange('meterReadingNew', parseFloat(e.target.value) || 0)
                     }
                     required
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                    className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
                   />
                 </div>
               </div>
 
               {/* Menge (automatisch berechnet) */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Menge (Liter)</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Menge (Liter)</label>
                 <input
                   type="number"
                   value={formData.liters.toFixed(2)}
                   readOnly
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-600 cursor-not-allowed"
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-400 cursor-not-allowed"
                 />
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   Berechnet: Zählerstand neu - Zählerstand alt
                 </p>
               </div>
 
               {/* Preis pro Liter */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Preis pro Liter</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Preis pro Liter</label>
                 <input
                   type="number"
                   min="0"
@@ -390,46 +390,46 @@ export default function KraftstofferfassungPage() {
                     handleInputChange('pricePerLiter', parseFloat(e.target.value) || 0)
                   }
                   required
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
                 />
               </div>
 
               {/* Gesamtpreis (readonly) */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Gesamtpreis</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Gesamtpreis</label>
                 <input
                   type="number"
                   value={formData.totalPrice.toFixed(2)}
                   readOnly
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg bg-slate-50 text-slate-600 cursor-not-allowed"
+                  className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-400 cursor-not-allowed"
                 />
               </div>
 
               {/* Tankstelle */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Tankstelle</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Tankstelle</label>
                 <input
                   type="text"
                   value={formData.gasStation}
                   onChange={(e) => handleInputChange('gasStation', e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
                 />
               </div>
 
               {/* Rechnungsnummer */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Rechnungsnummer</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Rechnungsnummer</label>
                 <input
                   type="text"
                   value={formData.invoiceNumber}
                   onChange={(e) => handleInputChange('invoiceNumber', e.target.value)}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
                 />
               </div>
 
               {/* Rechnung (Datei-Upload) */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   <FileText className="w-4 h-4 inline mr-2" />
                   Rechnung
                 </label>
@@ -439,10 +439,10 @@ export default function KraftstofferfassungPage() {
                     type="file"
                     onChange={handleFileChange}
                     accept=".pdf,.jpg,.jpeg,.png"
-                    className="block w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-violet-50 file:text-violet-700 hover:file:bg-violet-100"
+                    className="block w-full text-sm text-slate-500 dark:text-slate-400 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-violet-50 dark:file:bg-violet-900/30 file:text-violet-700 dark:file:text-violet-300 hover:file:bg-violet-100 dark:hover:file:bg-violet-900/50"
                   />
                   {invoiceFile && (
-                    <span className="text-sm text-slate-600 flex items-center gap-2">
+                    <span className="text-sm text-slate-600 dark:text-slate-400 flex items-center gap-2">
                       <Upload className="w-4 h-4" />
                       {invoiceFile.name}
                     </span>
@@ -452,34 +452,34 @@ export default function KraftstofferfassungPage() {
 
               {/* Notizen */}
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">Notizen</label>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Notizen</label>
                 <textarea
                   value={formData.notes}
                   onChange={(e) => handleInputChange('notes', e.target.value)}
                   rows={3}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                  className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
                 />
               </div>
 
               {/* Error/Success Messages */}
               {error && (
-                <div className="flex items-center gap-2 p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0" />
-                  <p className="text-sm text-red-700">{error}</p>
+                <div className="flex items-center gap-2 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                  <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" />
+                  <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
                 </div>
               )}
 
               {duplicateWarning && (
-                <div className="flex items-center gap-2 p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <AlertCircle className="w-5 h-5 text-yellow-600 flex-shrink-0" />
-                  <p className="text-sm text-yellow-700">{duplicateWarning}</p>
+                <div className="flex items-center gap-2 p-4 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+                  <AlertCircle className="w-5 h-5 text-yellow-600 dark:text-yellow-400 flex-shrink-0" />
+                  <p className="text-sm text-yellow-700 dark:text-yellow-300">{duplicateWarning}</p>
                 </div>
               )}
 
               {success && (
-                <div className="flex items-center gap-2 p-4 bg-green-50 border border-green-200 rounded-lg">
-                  <CheckCircle className="w-5 h-5 text-green-600 flex-shrink-0" />
-                  <p className="text-sm text-green-700">Kraftstoffeintrag erfolgreich gespeichert!</p>
+                <div className="flex items-center gap-2 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                  <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+                  <p className="text-sm text-green-700 dark:text-green-300">Kraftstoffeintrag erfolgreich gespeichert!</p>
                 </div>
               )}
 

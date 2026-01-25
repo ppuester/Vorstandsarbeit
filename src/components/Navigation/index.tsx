@@ -13,6 +13,7 @@ import {
   X,
 } from 'lucide-react'
 import { useOrganization } from '@/providers/Organization'
+import { ThemeToggle } from '@/components/ThemeToggle'
 
 export function Navigation() {
   const pathname = usePathname()
@@ -58,7 +59,7 @@ export function Navigation() {
   }
 
   return (
-    <nav className="bg-white border-b border-slate-200 shadow-sm sticky top-0 z-40">
+    <nav className="bg-white dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 shadow-sm sticky top-0 z-40">
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -66,11 +67,12 @@ export function Navigation() {
             <div className="w-8 h-8 bg-gradient-to-br from-violet-600 to-fuchsia-600 rounded-lg flex items-center justify-center">
               <TrendingUp className="w-5 h-5 text-white" />
             </div>
-            <span className="font-bold text-lg text-slate-900">Vorstandsarbeit</span>
+            <span className="font-bold text-lg text-slate-900 dark:text-slate-100">Vorstandsarbeit</span>
           </Link>
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-1">
+            <ThemeToggle />
             {navItems.map((item) => {
               const Icon = item.icon
               const active = isActive(item.href)
@@ -84,14 +86,14 @@ export function Navigation() {
                     <button
                       className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
                         active
-                          ? 'bg-violet-50 text-violet-700'
-                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                          ? 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300'
+                          : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800'
                       }`}
                     >
                       <Icon className="w-4 h-4" />
                       {item.label}
                     </button>
-                    <div className="absolute top-full left-0 mt-1 w-56 bg-white rounded-lg shadow-lg border border-slate-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
+                    <div className="absolute top-full left-0 mt-1 w-56 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-slate-200 dark:border-slate-700 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200">
                       <div className="py-2">
                         {enabledChildren.map((child) => {
                           const childActive = isActive(child.href)
@@ -101,8 +103,8 @@ export function Navigation() {
                               href={child.href}
                               className={`block px-4 py-2 text-sm transition-colors ${
                                 childActive
-                                  ? 'bg-violet-50 text-violet-700 font-medium'
-                                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+                                  ? 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 font-medium'
+                                  : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-100'
                               }`}
                             >
                               {child.label}
@@ -121,8 +123,8 @@ export function Navigation() {
                   href={item.href}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
                     active
-                      ? 'bg-violet-50 text-violet-700'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50'
+                      ? 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300'
+                      : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
                 >
                   <Icon className="w-4 h-4" />
@@ -132,23 +134,26 @@ export function Navigation() {
             })}
           </div>
 
-          {/* Mobile Menu Button */}
-          <button
-            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="md:hidden p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors"
-            aria-label="Menü öffnen"
-          >
-            {mobileMenuOpen ? (
-              <X className="w-6 h-6" />
-            ) : (
-              <Menu className="w-6 h-6" />
-            )}
-          </button>
+          {/* Mobile Menu Button & Theme Toggle */}
+          <div className="md:hidden flex items-center gap-2">
+            <ThemeToggle />
+            <button
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+              className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-50 dark:text-slate-300 dark:hover:text-slate-100 dark:hover:bg-slate-800 rounded-lg transition-colors"
+              aria-label="Menü öffnen"
+            >
+              {mobileMenuOpen ? (
+                <X className="w-6 h-6" />
+              ) : (
+                <Menu className="w-6 h-6" />
+              )}
+            </button>
+          </div>
         </div>
 
         {/* Mobile Menu */}
         {mobileMenuOpen && (
-          <div className="md:hidden border-t border-slate-200 py-4">
+          <div className="md:hidden border-t border-slate-200 dark:border-slate-800 py-4">
             {navItems.map((item) => {
               const Icon = item.icon
               const active = isActive(item.href)
@@ -159,7 +164,7 @@ export function Navigation() {
 
                 return (
                   <div key={item.href} className="mb-2">
-                    <div className="flex items-center gap-2 px-4 py-2 text-slate-600 font-medium">
+                    <div className="flex items-center gap-2 px-4 py-2 text-slate-600 dark:text-slate-300 font-medium">
                       <Icon className="w-4 h-4" />
                       {item.label}
                     </div>
@@ -173,8 +178,8 @@ export function Navigation() {
                             onClick={() => setMobileMenuOpen(false)}
                             className={`block px-4 py-2 text-sm rounded-lg transition-colors ${
                               childActive
-                                ? 'bg-violet-50 text-violet-700 font-medium'
-                                : 'text-slate-600 hover:bg-slate-50'
+                                ? 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 font-medium'
+                                : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                             }`}
                           >
                             {child.label}
@@ -193,8 +198,8 @@ export function Navigation() {
                   onClick={() => setMobileMenuOpen(false)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors mb-2 ${
                     active
-                      ? 'bg-violet-50 text-violet-700'
-                      : 'text-slate-600 hover:bg-slate-50'
+                      ? 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300'
+                      : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
                 >
                   <Icon className="w-4 h-4" />

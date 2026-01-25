@@ -121,7 +121,7 @@ export function DashboardContent() {
             <Link
               key={index}
               href={stat.href}
-              className="group relative bg-white rounded-2xl shadow-sm border border-slate-200/60 p-6 hover:shadow-xl hover:border-violet-300 transition-all duration-300 hover:-translate-y-1"
+              className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-6 hover:shadow-xl hover:border-violet-300 dark:hover:border-violet-600 transition-all duration-300 hover:-translate-y-1"
             >
               <div className="flex items-start justify-between mb-4">
                 <div
@@ -129,14 +129,14 @@ export function DashboardContent() {
                 >
                   <stat.icon className="w-6 h-6 text-white" />
                 </div>
-                <ArrowRight className="w-5 h-5 text-slate-400 group-hover:text-violet-500 group-hover:translate-x-1 transition-all duration-300" />
+                <ArrowRight className="w-5 h-5 text-slate-400 dark:text-slate-500 group-hover:text-violet-500 dark:group-hover:text-violet-400 group-hover:translate-x-1 transition-all duration-300" />
               </div>
-              <h3 className="text-base font-semibold text-slate-700 mb-2 group-hover:text-violet-600 transition-colors">
+              <h3 className="text-base font-semibold text-slate-700 dark:text-slate-200 mb-2 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
                 {stat.title}
               </h3>
-              <p className="text-2xl font-bold text-slate-900 mb-2">{stat.value}</p>
-              <p className="text-sm text-slate-500">{stat.description}</p>
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-500/0 to-fuchsia-500/0 group-hover:from-violet-500/5 group-hover:to-fuchsia-500/5 transition-all duration-300 pointer-events-none" />
+              <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">{stat.value}</p>
+              <p className="text-sm text-slate-500 dark:text-slate-400">{stat.description}</p>
+              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-500/0 to-fuchsia-500/0 group-hover:from-violet-500/5 dark:group-hover:from-violet-500/10 group-hover:to-fuchsia-500/5 dark:group-hover:to-fuchsia-500/10 transition-all duration-300 pointer-events-none" />
             </Link>
           ))}
         </div>
@@ -144,30 +144,30 @@ export function DashboardContent() {
 
       {/* Quick Actions */}
       {quickActions.length > 0 && (
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6 md:p-8">
+        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-6 md:p-8">
           <div className="flex items-center gap-3 mb-6">
             <div className="p-2 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-lg">
               <BarChart3 className="w-5 h-5 text-white" />
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-900">Schnellzugriff</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100">Schnellzugriff</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {quickActions.map((action, index) => (
               <Link
                 key={index}
                 href={action.href}
-                className="group relative p-5 border-2 border-slate-200 rounded-xl hover:border-violet-400 hover:bg-gradient-to-br hover:from-violet-50 hover:to-fuchsia-50 transition-all duration-300 hover:shadow-md"
+                className="group relative p-5 border-2 border-slate-200 dark:border-slate-700 rounded-xl hover:border-violet-400 dark:hover:border-violet-600 hover:bg-gradient-to-br hover:from-violet-50 dark:hover:from-violet-900/20 hover:to-fuchsia-50 dark:hover:to-fuchsia-900/20 transition-all duration-300 hover:shadow-md"
               >
                 <div className="flex items-start justify-between mb-3">
-                  <div className={`p-2 ${action.iconBg} rounded-lg group-hover:opacity-80 transition-colors`}>
+                  <div className={`p-2 ${action.iconBg} dark:opacity-80 rounded-lg group-hover:opacity-80 transition-colors`}>
                     <action.icon className={`w-5 h-5 ${action.iconColor}`} />
                   </div>
-                  <ArrowRight className="w-4 h-4 text-slate-400 group-hover:text-violet-500 group-hover:translate-x-1 transition-all duration-300" />
+                  <ArrowRight className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-violet-500 dark:group-hover:text-violet-400 group-hover:translate-x-1 transition-all duration-300" />
                 </div>
-                <h3 className="font-semibold text-slate-900 mb-1 group-hover:text-violet-600 transition-colors">
+                <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-1 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
                   {action.title}
                 </h3>
-                <p className="text-sm text-slate-600">{action.description}</p>
+                <p className="text-sm text-slate-600 dark:text-slate-400">{action.description}</p>
               </Link>
             ))}
           </div>
@@ -175,11 +175,11 @@ export function DashboardContent() {
       )}
 
       {stats.length === 0 && quickActions.length === 0 && (
-        <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-12 text-center">
-          <p className="text-lg text-slate-600">
+        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-12 text-center">
+          <p className="text-lg text-slate-600 dark:text-slate-400">
             Für diese Organisation sind noch keine Funktionen aktiviert.
           </p>
-          <p className="text-sm text-slate-500 mt-2">
+          <p className="text-sm text-slate-500 dark:text-slate-500 mt-2">
             Bitte wenden Sie sich an den Administrator, um Funktionen zu aktivieren.
           </p>
         </div>

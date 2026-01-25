@@ -53,6 +53,43 @@
     --warning: 38 92% 50%;
     --error: 0 84% 60%;
   }
+
+  [data-theme='dark'] {
+    --background: 222 47% 11%;
+    --foreground: 0 0% 98%;
+
+    --card: 222 47% 15%;
+    --card-foreground: 0 0% 98%;
+
+    --popover: 222 47% 15%;
+    --popover-foreground: 0 0% 98%;
+
+    /* Primary: Violet (heller für Dark Mode) */
+    --primary: 262 83% 65%;
+    --primary-foreground: 0 0% 100%;
+
+    /* Secondary: Fuchsia (heller für Dark Mode) */
+    --secondary: 292 84% 68%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 222 47% 20%;
+    --muted-foreground: 215 16% 65%;
+
+    /* Accent */
+    --accent: 262 83% 25%;
+    --accent-foreground: 262 83% 85%;
+
+    --destructive: 0 84% 65%;
+    --destructive-foreground: 0 0% 98%;
+
+    --border: 222 47% 25%;
+    --input: 222 47% 25%;
+    --ring: 262 83% 65%;
+
+    --success: 142 76% 45%;
+    --warning: 38 92% 60%;
+    --error: 0 84% 65%;
+  }
 }
 
 @layer base {
