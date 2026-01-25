@@ -1,9 +1,25 @@
 import { NextResponse } from 'next/server'
 import { getPayload, type CollectionSlug } from 'payload'
 import configPromise from '@payload-config'
+import { hasPermission } from '@/utilities/validateAccessToken'
 
 export async function POST(request: Request) {
   try {
+    // Prüfe Token-Berechtigung
+    const authHeader = request.headers.get('authorization')
+    const token = authHeader?.replace('Bearer ', '') || new URL(request.url).searchParams.get('token')
+    
+    if (token) {
+      const hasAccess = await hasPermission(token, 'fuelTracking')
+      if (!hasAccess) {
+        return NextResponse.json(
+          { error: 'Keine Berechtigung für Kraftstofferfassung' },
+          { status: 403 }
+        )
+      }
+    }
+    // Wenn kein Token vorhanden ist, wird die normale Authentifizierung verwendet (Payload prüft das)
+
     const formData = await request.formData()
 
     const payload = await getPayload({ config: configPromise })

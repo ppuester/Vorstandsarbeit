@@ -10,6 +10,7 @@ import {
   FileText,
 } from 'lucide-react'
 import { useOrganization } from '@/providers/Organization'
+import { useSearchParams } from 'next/navigation'
 
 interface Aircraft {
   id: string
@@ -18,10 +19,17 @@ interface Aircraft {
   active?: boolean
 }
 
+interface Member {
+  id: string
+  name: string
+  memberNumber?: string
+  active?: boolean
+}
+
 interface FuelEntryRow {
   id: string // Temporäre ID für die Zeile
   date: string
-  name: string
+  member: string // Mitglied-ID statt Name
   aircraft: string
   fuelType: 'avgas' | 'mogas'
   meterReadingOld: number
@@ -34,7 +42,10 @@ interface FuelEntryRow {
 
 export default function KraftstofferfassungPage() {
   const { isFeatureEnabled } = useOrganization()
+  const searchParams = useSearchParams()
+  const accessToken = searchParams.get('token')
   const [aircraft, setAircraft] = useState<Aircraft[]>([])
+  const [members, setMembers] = useState<Member[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -45,7 +56,7 @@ export default function KraftstofferfassungPage() {
     {
       id: '1',
       date: new Date().toISOString().split('T')[0],
-      name: '',
+      member: '',
       aircraft: '',
       fuelType: 'avgas',
       meterReadingOld: 0,
@@ -60,23 +71,39 @@ export default function KraftstofferfassungPage() {
   const rowIdCounter = useRef(1)
 
   useEffect(() => {
-    if (!isFeatureEnabled('fuelTracking')) {
+    // Wenn Token vorhanden, Feature ist automatisch aktiviert
+    if (accessToken || isFeatureEnabled('fuelTracking')) {
+      fetchData()
+    } else {
       setLoading(false)
-      return
     }
+  }, [isFeatureEnabled, accessToken])
 
-    fetchAircraft()
-  }, [isFeatureEnabled])
-
-  const fetchAircraft = async () => {
+  const fetchData = async () => {
     try {
-      const response = await fetch('/api/aircraft')
-      if (response.ok) {
-        const data = await response.json()
+      const tokenParam = accessToken ? `?token=${encodeURIComponent(accessToken)}` : ''
+      const membersUrl = accessToken 
+        ? `/api/members?token=${encodeURIComponent(accessToken)}&activeOnly=true`
+        : '/api/members?activeOnly=true'
+      
+      const [aircraftRes, membersRes] = await Promise.all([
+        fetch(`/api/aircraft${tokenParam}`),
+        fetch(membersUrl),
+      ])
+
+      if (aircraftRes.ok) {
+        const data = await aircraftRes.json()
         setAircraft(data.docs || [])
+      } else if (aircraftRes.status === 403) {
+        setError('Keine Berechtigung für diesen Zugang')
+      }
+
+      if (membersRes.ok) {
+        const data = await membersRes.json()
+        setMembers(data.docs || [])
       }
     } catch (error) {
-      console.error('Fehler beim Laden der Flugzeuge:', error)
+      console.error('Fehler beim Laden der Daten:', error)
     } finally {
       setLoading(false)
     }
@@ -87,7 +114,7 @@ export default function KraftstofferfassungPage() {
     const newRow: FuelEntryRow = {
       id: rowIdCounter.current.toString(),
       date: rows[0]?.date || new Date().toISOString().split('T')[0],
-      name: '',
+      member: '',
       aircraft: '',
       fuelType: 'avgas',
       meterReadingOld: 0,
@@ -144,14 +171,18 @@ export default function KraftstofferfassungPage() {
 
   const checkDuplicate = async (entry: FuelEntryRow): Promise<boolean> => {
     try {
-      const response = await fetch('/api/fuel-entries/check-duplicate', {
+      const url = accessToken 
+        ? `/api/fuel-entries/check-duplicate?token=${encodeURIComponent(accessToken)}`
+        : '/api/fuel-entries/check-duplicate'
+      const response = await fetch(url, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
         },
         body: JSON.stringify({
           date: entry.date,
-          name: entry.name.toUpperCase(),
+          member: entry.member,
           aircraft: entry.aircraft,
           fuelType: entry.fuelType,
           meterReadingOld: entry.meterReadingOld,
@@ -178,7 +209,7 @@ export default function KraftstofferfassungPage() {
 
     const validRows = rows.filter(
       (row) =>
-        row.name.trim() &&
+        row.member &&
         row.aircraft &&
         row.meterReadingNew > row.meterReadingOld &&
         row.liters > 0
@@ -205,7 +236,9 @@ export default function KraftstofferfassungPage() {
       try {
         const submitData = new FormData()
         submitData.append('date', row.date)
-        submitData.append('name', row.name.toUpperCase())
+        // Hole Mitgliedsname aus members Array
+        const member = members.find((m) => m.id === row.member)
+        submitData.append('name', member?.name.toUpperCase() || '')
         submitData.append('aircraft', row.aircraft)
         submitData.append('fuelType', row.fuelType)
         submitData.append('meterReadingOld', row.meterReadingOld.toString())
@@ -215,8 +248,14 @@ export default function KraftstofferfassungPage() {
         submitData.append('totalPrice', '0')
         submitData.append('notes', row.notes || '')
 
-        const response = await fetch('/api/fuel-entries', {
+        const url = accessToken 
+          ? `/api/fuel-entries?token=${encodeURIComponent(accessToken)}`
+          : '/api/fuel-entries'
+        const response = await fetch(url, {
           method: 'POST',
+          headers: {
+            ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+          },
           body: submitData,
         })
 
@@ -240,7 +279,7 @@ export default function KraftstofferfassungPage() {
         {
           id: (++rowIdCounter.current).toString(),
           date: rows[0]?.date || new Date().toISOString().split('T')[0],
-          name: '',
+          member: '',
           aircraft: '',
           fuelType: 'avgas',
           meterReadingOld: 0,
@@ -260,7 +299,8 @@ export default function KraftstofferfassungPage() {
     setSaving(false)
   }
 
-  if (!isFeatureEnabled('fuelTracking')) {
+  // Prüfe ob Feature aktiviert ist oder Token vorhanden
+  if (!accessToken && !isFeatureEnabled('fuelTracking')) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
         <div className="bg-slate-50 dark:bg-slate-800 rounded-xl shadow-lg p-8 max-w-md text-center">
@@ -367,13 +407,20 @@ export default function KraftstofferfassungPage() {
                           />
                         </td>
                         <td className="py-2 px-4">
-                          <input
-                            type="text"
-                            value={row.name}
-                            onChange={(e) => updateRow(row.id, 'name', e.target.value.toUpperCase())}
-                            placeholder="MAX MUSTERMANN"
-                            className="w-full px-2 py-1.5 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded text-sm text-slate-900 dark:text-slate-100 uppercase focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400"
-                          />
+                          <select
+                            value={row.member}
+                            onChange={(e) => updateRow(row.id, 'member', e.target.value)}
+                            className="w-full px-2 py-1.5 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400"
+                          >
+                            <option value="">–</option>
+                            {members
+                              .filter((m) => m.active !== false)
+                              .map((member) => (
+                                <option key={member.id} value={member.id}>
+                                  {member.name} {member.memberNumber ? `(${member.memberNumber})` : ''}
+                                </option>
+                              ))}
+                          </select>
                         </td>
                         <td className="py-2 px-4">
                           <select
@@ -442,7 +489,7 @@ export default function KraftstofferfassungPage() {
                                 const newRow: FuelEntryRow = {
                                   id: newRowId,
                                   date: row.date,
-                                  name: '',
+                                  member: row.member, // Gleiches Mitglied übernehmen
                                   aircraft: row.aircraft, // Gleiches Flugzeug übernehmen
                                   fuelType: row.fuelType, // Gleicher Kraftstoff übernehmen
                                   meterReadingOld: newValue, // Zählerstand neu wird zu alt

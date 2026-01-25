@@ -9,7 +9,7 @@ export async function GET(request: Request) {
     const authHeader = request.headers.get('authorization')
     const token = authHeader?.replace('Bearer ', '') || new URL(request.url).searchParams.get('token')
     
-    // Wenn Token vorhanden, prüfe Berechtigung (für Kraftstofferfassung wird Flugzeugliste benötigt)
+    // Wenn Token vorhanden, prüfe Berechtigung
     if (token) {
       const hasAccess = await hasPermission(token, 'fuelTracking')
       if (!hasAccess) {
@@ -22,17 +22,29 @@ export async function GET(request: Request) {
 
     const payload = await getPayload({ config: configPromise })
 
+    const { searchParams } = new URL(request.url)
+    const activeOnly = searchParams.get('activeOnly') === 'true'
+
+    const where: any = {}
+    if (activeOnly) {
+      where.active = { equals: true }
+    }
+
     const result = await payload.find({
-      collection: 'aircraft' as CollectionSlug,
-      sort: 'registration',
+      collection: 'members' as CollectionSlug,
+      where: Object.keys(where).length > 0 ? where : undefined,
+      depth: 0,
+      sort: 'name',
       limit: 1000,
     })
 
     return NextResponse.json(result)
   } catch (error) {
-    console.error('Error fetching aircraft:', error)
+    console.error('Error fetching members:', error)
     return NextResponse.json(
-      { error: 'Fehler beim Laden der Flugzeuge' },
+      {
+        error: 'Fehler beim Laden der Mitglieder',
+      },
       { status: 500 }
     )
   }
@@ -41,21 +53,21 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     const body = await request.json()
+
     const payload = await getPayload({ config: configPromise })
 
     const created = await payload.create({
-      collection: 'aircraft' as CollectionSlug,
+      collection: 'members' as CollectionSlug,
       data: body as any,
+      depth: 0,
     })
 
-    return NextResponse.json(created, { status: 201 })
+    return NextResponse.json(created)
   } catch (error) {
-    console.error('Error creating aircraft:', error)
+    console.error('Error creating member:', error)
     return NextResponse.json(
       {
-        error:
-          'Fehler beim Erstellen des Flugzeugs: ' +
-          (error instanceof Error ? error.message : 'Unbekannter Fehler'),
+        error: 'Fehler beim Erstellen des Mitglieds',
       },
       { status: 500 }
     )

@@ -5,12 +5,14 @@ import path from 'path'
 import { buildConfig, PayloadRequest } from 'payload'
 import { fileURLToPath } from 'url'
 
+import { AccessTokens } from './collections/AccessTokens'
 import { Aircraft } from './collections/Aircraft'
 import { AircraftGroups } from './collections/AircraftGroups'
 import { CostCenters } from './collections/CostCenters'
 import { FlightLogs } from './collections/FlightLogs'
 import { FuelEntries } from './collections/FuelEntries'
 import { GeneralCosts } from './collections/GeneralCosts'
+import { Members } from './collections/Members'
 import { Media } from './collections/Media'
 import { Transactions } from './collections/Transactions'
 import { TransactionCategories } from './collections/TransactionCategories'
@@ -94,7 +96,7 @@ export default buildConfig({
       }
     },
   }),
-  collections: [Users, Media, Transactions, TransactionCategories, CostCenters, Aircraft, AircraftGroups, FlightLogs, FuelEntries, GeneralCosts],
+  collections: [Users, Media, Transactions, TransactionCategories, CostCenters, Aircraft, AircraftGroups, FlightLogs, FuelEntries, GeneralCosts, AccessTokens, Members],
   cors: [getServerSideURL()].filter(Boolean),
   plugins,
   secret: process.env.PAYLOAD_SECRET,
