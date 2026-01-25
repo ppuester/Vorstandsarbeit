@@ -10,6 +10,7 @@ import {
   ArrowRight,
   Sparkles,
 } from 'lucide-react'
+import { OrganizationSelector } from '@/components/OrganizationSelector'
 
 export default async function DashboardPage() {
   return (
@@ -18,18 +19,21 @@ export default async function DashboardPage() {
         <div className="max-w-7xl mx-auto">
           {/* Welcome Header */}
           <div className="mb-8 md:mb-12">
-            <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-xl shadow-lg">
-                <Sparkles className="w-6 h-6 text-white" />
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-xl shadow-lg">
+                  <Sparkles className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
+                    Willkommen zurück!
+                  </h1>
+                  <p className="text-sm md:text-base text-slate-600 mt-1">
+                    Ihr Dashboard für die Vorstandsarbeit
+                  </p>
+                </div>
               </div>
-              <div>
-                <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
-                  Willkommen zurück!
-                </h1>
-                <p className="text-sm md:text-base text-slate-600 mt-1">
-                  Ihr Dashboard für die Vorstandsarbeit
-                </p>
-              </div>
+              <OrganizationSelector />
             </div>
             <p className="text-lg md:text-xl text-slate-700 max-w-2xl leading-relaxed">
               Verwalten Sie Ihre Finanzen, Flugzeuge und Kontobewegungen auf einen Blick. Alles

@@ -2,6 +2,7 @@ import React from 'react'
 
 import { FavoritesProvider } from './Favorites'
 import { HeaderThemeProvider } from './HeaderTheme'
+import { OrganizationProvider } from './Organization'
 import { ThemeProvider } from './Theme'
 
 export const Providers: React.FC<{
@@ -9,9 +10,11 @@ export const Providers: React.FC<{
 }> = ({ children }) => {
   return (
     <ThemeProvider>
-      <FavoritesProvider>
-        <HeaderThemeProvider>{children}</HeaderThemeProvider>
-      </FavoritesProvider>
+      <OrganizationProvider>
+        <FavoritesProvider>
+          <HeaderThemeProvider>{children}</HeaderThemeProvider>
+        </FavoritesProvider>
+      </OrganizationProvider>
     </ThemeProvider>
   )
 }
