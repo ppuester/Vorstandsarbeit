@@ -18,6 +18,14 @@ interface Transaction {
   reference?: string
   processed: boolean
   notes?: string
+  costAllocations?: Array<{
+    aircraft: string | {
+      id: string
+      registration: string
+      name?: string
+    }
+    weight: number
+  }>
 }
 
 export default function KontobewegungenUebersichtPage() {
@@ -367,6 +375,7 @@ export default function KontobewegungenUebersichtPage() {
                     </th>
                     <th className="text-left py-4 px-6 font-semibold text-slate-700">Kategorie</th>
                     <th className="text-left py-4 px-6 font-semibold text-slate-700">Referenz</th>
+                    <th className="text-left py-4 px-6 font-semibold text-slate-700">Zuordnung</th>
                     <th className="text-right py-4 px-6 font-semibold text-slate-700">Betrag</th>
                     <th className="text-center py-4 px-6 font-semibold text-slate-700">Status</th>
                     <th className="text-center py-4 px-6 font-semibold text-slate-700">Aktionen</th>
@@ -375,7 +384,7 @@ export default function KontobewegungenUebersichtPage() {
                 <tbody>
                   {sortedTransactions.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="py-12 text-center text-slate-500">
+                      <td colSpan={8} className="py-12 text-center text-slate-500">
                         {searchTerm || filterProcessed !== 'all'
                           ? 'Keine Bewegungen gefunden, die den Filterkriterien entsprechen.'
                           : 'Noch keine Kontobewegungen vorhanden. Importieren Sie Ihre ersten Bewegungen!'}
@@ -423,6 +432,37 @@ export default function KontobewegungenUebersichtPage() {
                         </td>
                         <td className="py-4 px-6 text-slate-500">
                           {transaction.reference || '–'}
+                        </td>
+                        <td className="py-4 px-6">
+                          {transaction.costAllocations && transaction.costAllocations.length > 0 ? (
+                            <div className="flex flex-wrap gap-2">
+                              {transaction.costAllocations.map((allocation, idx) => {
+                                const aircraft =
+                                  typeof allocation.aircraft === 'object'
+                                    ? allocation.aircraft
+                                    : null
+                                return (
+                                  <span
+                                    key={idx}
+                                    className="inline-flex items-center gap-1 px-2 py-1 bg-violet-100 text-violet-700 rounded text-xs font-medium"
+                                  >
+                                    {aircraft ? (
+                                      <>
+                                        {aircraft.registration}
+                                        <span className="text-violet-500">
+                                          ({allocation.weight.toFixed(0)}%)
+                                        </span>
+                                      </>
+                                    ) : (
+                                      <span className="text-slate-400">Flugzeug gelöscht</span>
+                                    )}
+                                  </span>
+                                )
+                              })}
+                            </div>
+                          ) : (
+                            <span className="text-slate-400">–</span>
+                          )}
                         </td>
                         <td
                           className={`py-4 px-6 text-right font-semibold ${

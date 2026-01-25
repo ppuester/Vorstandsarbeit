@@ -126,14 +126,24 @@ export default function KostenermittlungPage() {
         variableCosts += flightHours * ac.maintenanceCostPerHour
       }
 
-      // Get additional costs from transactions (filtered by aircraft category)
-      // Assuming transactions have a category or reference that links to aircraft
+      // Get additional costs from transactions with cost allocations
       const aircraftTransactions = transactions.filter((t) => {
         if (t.type !== 'expense') return false
         const transactionYear = new Date(t.date).getFullYear()
         if (transactionYear !== selectedYear) return false
 
-        // Check if transaction references this aircraft
+        // Check if transaction has cost allocations for this aircraft
+        if (t.costAllocations && Array.isArray(t.costAllocations)) {
+          return t.costAllocations.some((allocation) => {
+            const aircraftId =
+              typeof allocation.aircraft === 'object'
+                ? allocation.aircraft.id
+                : allocation.aircraft
+            return aircraftId === ac.id
+          })
+        }
+
+        // Fallback: Check if transaction references this aircraft (legacy support)
         const ref = t.reference?.toLowerCase() || ''
         const desc = t.description?.toLowerCase() || ''
         const aircraftRef = ac.registration.toLowerCase()
@@ -141,10 +151,25 @@ export default function KostenermittlungPage() {
         return ref.includes(aircraftRef) || desc.includes(aircraftRef)
       })
 
-      const additionalCosts = aircraftTransactions.reduce(
-        (sum, t) => sum + t.amount,
-        0
-      )
+      // Calculate weighted costs from allocations
+      const additionalCosts = aircraftTransactions.reduce((sum, t) => {
+        if (t.costAllocations && Array.isArray(t.costAllocations)) {
+          // Find allocation for this aircraft
+          const allocation = t.costAllocations.find((alloc) => {
+            const aircraftId =
+              typeof alloc.aircraft === 'object' ? alloc.aircraft.id : alloc.aircraft
+            return aircraftId === ac.id
+          })
+
+          if (allocation) {
+            // Add weighted amount
+            return sum + (t.amount * allocation.weight) / 100
+          }
+        }
+
+        // Fallback: Full amount if no allocation but matches by reference
+        return sum + t.amount
+      }, 0)
 
       variableCosts += additionalCosts
 

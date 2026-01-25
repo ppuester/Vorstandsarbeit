@@ -94,11 +94,66 @@ export const Transactions: CollectionConfig = {
         description: 'Zusätzliche Notizen zu dieser Bewegung',
       },
     },
+    {
+      name: 'costAllocations',
+      type: 'array',
+      label: 'Kostenstellen-Zuordnung',
+      admin: {
+        description: 'Ordnen Sie diese Kosten mehreren Stellen zu (z.B. Flugzeugen) mit Gewichtung',
+        initCollapsed: true,
+      },
+      fields: [
+        {
+          name: 'aircraft',
+          type: 'relationship',
+          relationTo: 'aircraft',
+          required: true,
+          label: 'Flugzeug',
+          admin: {
+            description: 'Flugzeug, dem diese Kosten zugeordnet werden',
+          },
+        },
+        {
+          name: 'weight',
+          type: 'number',
+          required: true,
+          label: 'Gewichtung (%)',
+          admin: {
+            description: 'Prozentualer Anteil dieser Kostenstelle (z.B. 50 für 50%)',
+            step: 0.01,
+            min: 0,
+            max: 100,
+          },
+          defaultValue: 100,
+        },
+      ],
+      minRows: 0,
+      maxRows: 20,
+    },
   ],
   timestamps: true,
   hooks: {
+    beforeValidate: [
+      ({ data }: { data: any }) => {
+        // Validierung der Gewichtungen
+        if (data.costAllocations && Array.isArray(data.costAllocations)) {
+          const totalWeight = data.costAllocations.reduce(
+            (sum: number, allocation: any) => sum + (allocation.weight || 0),
+            0
+          )
+
+          // Warnung wenn Gesamtgewichtung nicht 100% ist (aber nicht blockieren)
+          if (totalWeight > 0 && Math.abs(totalWeight - 100) > 0.01) {
+            console.warn(
+              `Warnung: Gesamtgewichtung beträgt ${totalWeight.toFixed(2)}% statt 100%`
+            )
+          }
+        }
+        return data
+      },
+    ],
     beforeChange: [
-      ({ data, operation }) => {
+      ({ data, operation }: { data: any; operation?: any }) => {
         // Automatisch Typ basierend auf Betrag setzen, wenn nicht bereits gesetzt
         if (data.amount !== undefined) {
           if (data.amount < 0 && (!data.type || data.type === 'expense')) {
