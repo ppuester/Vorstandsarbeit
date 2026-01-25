@@ -62,7 +62,7 @@ export async function POST(request: Request) {
         invoiceNumber: invoiceNumber || undefined,
         invoice: invoiceMediaId,
         notes: notes || undefined,
-      },
+      } as any, // Type assertion needed until types are generated
       depth: 2,
     })
 

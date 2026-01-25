@@ -12,8 +12,6 @@ export async function POST(request: Request) {
       fuelType,
       meterReadingOld,
       meterReadingNew,
-      liters,
-      pricePerLiter,
       gasStation,
       invoiceNumber,
     } = body
