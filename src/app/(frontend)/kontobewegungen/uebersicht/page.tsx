@@ -12,6 +12,7 @@ import {
   X,
   Plus,
   Trash2,
+  Link as LinkIcon,
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -557,13 +558,10 @@ export default function KontobewegungenUebersichtPage() {
                           {transaction.reference || '–'}
                         </td>
                         <td className="py-4 px-6">
-                          <button
-                            onClick={() => handleEditAllocation(transaction)}
-                            className="text-left w-full"
-                          >
+                          <div className="flex items-center gap-2">
                             {transaction.costAllocations &&
                             transaction.costAllocations.length > 0 ? (
-                              <div className="flex flex-wrap gap-2">
+                              <div className="flex flex-wrap gap-2 flex-1">
                                 {transaction.costAllocations.map((allocation, idx) => {
                                   const aircraft =
                                     typeof allocation.aircraft === 'object'
@@ -572,7 +570,7 @@ export default function KontobewegungenUebersichtPage() {
                                   return (
                                     <span
                                       key={idx}
-                                      className="inline-flex items-center gap-1 px-2 py-1 bg-violet-100 text-violet-700 rounded text-xs font-medium hover:bg-violet-200 transition-colors cursor-pointer"
+                                      className="inline-flex items-center gap-1 px-2 py-1 bg-violet-100 text-violet-700 rounded text-xs font-medium"
                                     >
                                       {aircraft ? (
                                         <>
@@ -589,11 +587,19 @@ export default function KontobewegungenUebersichtPage() {
                                 })}
                               </div>
                             ) : (
-                              <span className="text-slate-400 hover:text-violet-600 transition-colors">
-                                Zuordnung hinzufügen
-                              </span>
+                              <span className="text-slate-400 text-sm">Keine Zuordnung</span>
                             )}
-                          </button>
+                            <button
+                              onClick={() => handleEditAllocation(transaction)}
+                              className="inline-flex items-center gap-1 px-3 py-1.5 text-sm font-medium text-violet-600 hover:text-violet-700 hover:bg-violet-50 rounded-lg transition-colors border border-violet-200"
+                              title="Zuordnung bearbeiten"
+                            >
+                              <LinkIcon className="w-4 h-4" />
+                              {transaction.costAllocations && transaction.costAllocations.length > 0
+                                ? 'Bearbeiten'
+                                : 'Zuordnen'}
+                            </button>
+                          </div>
                         </td>
                         <td className="py-4 px-6 text-center">
                           <button
@@ -669,6 +675,12 @@ export default function KontobewegungenUebersichtPage() {
                 <p className="text-sm text-blue-800">
                   <strong>Hinweis:</strong> Die Gesamtgewichtung muss 100% betragen. Die Zuordnung
                   wird basierend auf dem Datum der Transaktion in der Kostenermittlung verwendet.
+                  {editingTransaction.type === 'income' && (
+                    <span className="block mt-2">
+                      <strong>Einnahmen:</strong> Sie können Einnahmen ebenfalls Flugzeugen zuordnen,
+                      um Erlöse pro Flugzeug zu verfolgen.
+                    </span>
+                  )}
                 </p>
               </div>
 
