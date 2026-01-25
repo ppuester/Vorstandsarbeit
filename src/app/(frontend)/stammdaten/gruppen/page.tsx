@@ -19,6 +19,7 @@ export default function GruppenPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [showModal, setShowModal] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [formData, setFormData] = useState<Partial<AircraftGroup>>({
     name: '',
@@ -59,6 +60,7 @@ export default function GruppenPage() {
     })
     setError(null)
     setSuccess(null)
+    setShowModal(true)
   }
 
   const handleEdit = (item: AircraftGroup) => {
@@ -72,6 +74,7 @@ export default function GruppenPage() {
     })
     setError(null)
     setSuccess(null)
+    setShowModal(true)
   }
 
   const handleSave = async () => {
@@ -98,6 +101,7 @@ export default function GruppenPage() {
           setSuccess('Gruppe erfolgreich aktualisiert')
           await fetchData()
           setEditingId(null)
+          setShowModal(false)
           handleCreate()
         } else {
           const data = await response.json()
@@ -116,6 +120,7 @@ export default function GruppenPage() {
         if (response.ok) {
           setSuccess('Gruppe erfolgreich erstellt')
           await fetchData()
+          setShowModal(false)
           handleCreate()
         } else {
           const data = await response.json()
@@ -132,6 +137,7 @@ export default function GruppenPage() {
 
   const handleCancel = () => {
     setEditingId(null)
+    setShowModal(false)
     handleCreate()
   }
 
@@ -160,15 +166,13 @@ export default function GruppenPage() {
                 Stammdaten für Flugzeuggruppen (z.B. UL, Segelflugzeug, Motorflugzeug)
               </p>
             </div>
-            {!editingId && (
-              <button
-                onClick={handleCreate}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors font-medium"
-              >
-                <Plus className="w-5 h-5" />
-                Neue Gruppe
-              </button>
-            )}
+            <button
+              onClick={handleCreate}
+              className="inline-flex items-center gap-2 px-6 py-3 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors font-medium"
+            >
+              <Plus className="w-5 h-5" />
+              Neue Gruppe
+            </button>
           </div>
 
           {/* Messages */}
@@ -186,105 +190,124 @@ export default function GruppenPage() {
             </div>
           )}
 
-          {/* Form */}
-          {editingId !== null || formData.name ? (
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 mb-6">
-              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">
-                {editingId ? 'Gruppe bearbeiten' : 'Neue Gruppe'}
-              </h2>
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Name <span className="text-red-500">*</span>
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.name || ''}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="z.B. UL (Ultraleicht), Segelflugzeug, Motorflugzeug"
-                    className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Code
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.code || ''}
-                    onChange={(e) => setFormData({ ...formData, code: e.target.value })}
-                    placeholder="z.B. UL, GL, MOT"
-                    className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Beschreibung
-                  </label>
-                  <textarea
-                    value={formData.description || ''}
-                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                    placeholder="Zusätzliche Informationen..."
-                    rows={3}
-                    className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                    Farbe (Hex-Code)
-                  </label>
-                  <input
-                    type="text"
-                    value={formData.color || ''}
-                    onChange={(e) => setFormData({ ...formData, color: e.target.value })}
-                    placeholder="#3B82F6"
-                    className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
-                  />
-                </div>
-                <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-600">
-                  <input
-                    type="checkbox"
-                    id="active"
-                    checked={formData.active || false}
-                    onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
-                    className="w-5 h-5 text-violet-600 dark:text-violet-400 border-slate-300 dark:border-slate-600 rounded focus:ring-violet-500 dark:focus:ring-violet-400"
-                  />
-                  <label
-                    htmlFor="active"
-                    className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer"
-                  >
-                    Aktiv
-                  </label>
-                </div>
-                <div className="flex gap-3 pt-4">
-                  <button
-                    onClick={handleSave}
-                    disabled={saving}
-                    className="inline-flex items-center gap-2 px-6 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
-                  >
-                    {saving ? (
-                      <>
-                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                        Speichere...
-                      </>
-                    ) : (
-                      <>
-                        <Save className="w-4 h-4" />
-                        Speichern
-                      </>
-                    )}
-                  </button>
+          {/* Modal */}
+          {showModal && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 dark:bg-black/70" onClick={handleCancel}>
+              <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
+                <div className="flex items-center justify-between mb-6">
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
+                    {editingId ? 'Gruppe bearbeiten' : 'Neue Gruppe'}
+                  </h2>
                   <button
                     onClick={handleCancel}
-                    className="inline-flex items-center gap-2 px-6 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors font-medium"
+                    className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                   >
-                    <X className="w-4 h-4" />
-                    Abbrechen
+                    <X className="w-5 h-5" />
                   </button>
+                </div>
+
+                {/* Messages im Modal */}
+                {error && (
+                  <div className="mb-4 flex items-center gap-2 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                    <AlertCircle className="w-4 h-4 text-red-600 dark:text-red-400 flex-shrink-0" />
+                    <p className="text-sm text-red-700 dark:text-red-300">{error}</p>
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                      Name <span className="text-red-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.name || ''}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      placeholder="z.B. UL (Ultraleicht), Segelflugzeug, Motorflugzeug"
+                      className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                      Code
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.code || ''}
+                      onChange={(e) => setFormData({ ...formData, code: e.target.value })}
+                      placeholder="z.B. UL, GL, MOT"
+                      className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                      Beschreibung
+                    </label>
+                    <textarea
+                      value={formData.description || ''}
+                      onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                      placeholder="Zusätzliche Informationen..."
+                      rows={3}
+                      className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                      Farbe (Hex-Code)
+                    </label>
+                    <input
+                      type="text"
+                      value={formData.color || ''}
+                      onChange={(e) => setFormData({ ...formData, color: e.target.value })}
+                      placeholder="#3B82F6"
+                      className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
+                    />
+                  </div>
+                  <div className="flex items-center gap-3 p-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg border border-slate-200 dark:border-slate-600">
+                    <input
+                      type="checkbox"
+                      id="active"
+                      checked={formData.active || false}
+                      onChange={(e) => setFormData({ ...formData, active: e.target.checked })}
+                      className="w-5 h-5 text-violet-600 dark:text-violet-400 border-slate-300 dark:border-slate-600 rounded focus:ring-violet-500 dark:focus:ring-violet-400"
+                    />
+                    <label
+                      htmlFor="active"
+                      className="text-sm font-medium text-slate-700 dark:text-slate-300 cursor-pointer"
+                    >
+                      Aktiv
+                    </label>
+                  </div>
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      onClick={handleSave}
+                      disabled={saving}
+                      className="inline-flex items-center gap-2 px-6 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                    >
+                      {saving ? (
+                        <>
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Speichere...
+                        </>
+                      ) : (
+                        <>
+                          <Save className="w-4 h-4" />
+                          Speichern
+                        </>
+                      )}
+                    </button>
+                    <button
+                      onClick={handleCancel}
+                      className="inline-flex items-center gap-2 px-6 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors font-medium"
+                    >
+                      <X className="w-4 h-4" />
+                      Abbrechen
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>
-          ) : null}
+          )}
 
           {/* List */}
           <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
