@@ -57,6 +57,7 @@ export function Navigation() {
       enabled: true,
       children: [
         { label: 'Allgemeine Kosten', href: '/stammdaten/allgemeine-kosten', enabled: true },
+        { label: 'Gruppen', href: '/stammdaten/gruppen', enabled: isFeatureEnabled('aircraft') },
       ],
     },
   ].filter((item) => item.enabled)

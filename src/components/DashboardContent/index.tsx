@@ -9,6 +9,7 @@ import {
   BarChart3,
   ArrowRight,
   Fuel,
+  FolderTree,
 } from 'lucide-react'
 import { useOrganization } from '@/providers/Organization'
 
@@ -71,6 +72,15 @@ export function DashboardContent() {
       icon: Plane,
       iconBg: 'bg-violet-100',
       iconColor: 'text-violet-600',
+      enabled: isFeatureEnabled('aircraft'),
+    },
+    {
+      title: 'Gruppen',
+      description: 'Flugzeuggruppen verwalten',
+      href: '/stammdaten/gruppen',
+      icon: FolderTree,
+      iconBg: 'bg-indigo-100',
+      iconColor: 'text-indigo-600',
       enabled: isFeatureEnabled('aircraft'),
     },
   ].filter((action) => action.enabled)

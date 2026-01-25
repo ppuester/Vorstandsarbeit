@@ -29,8 +29,6 @@ interface FuelEntryRow {
   liters: number
   pricePerLiter: number
   totalPrice: number
-  gasStation: string
-  invoiceNumber: string
   notes: string
 }
 
@@ -55,8 +53,6 @@ export default function KraftstofferfassungPage() {
       liters: 0,
       pricePerLiter: 0,
       totalPrice: 0,
-      gasStation: '',
-      invoiceNumber: '',
       notes: '',
     },
   ])
@@ -99,8 +95,6 @@ export default function KraftstofferfassungPage() {
       liters: 0,
       pricePerLiter: 0,
       totalPrice: 0,
-      gasStation: '',
-      invoiceNumber: '',
       notes: '',
     }
     setRows([...rows, newRow])
@@ -162,8 +156,6 @@ export default function KraftstofferfassungPage() {
           fuelType: entry.fuelType,
           meterReadingOld: entry.meterReadingOld,
           meterReadingNew: entry.meterReadingNew,
-          gasStation: entry.gasStation,
-          invoiceNumber: entry.invoiceNumber,
         }),
       })
 
@@ -221,8 +213,6 @@ export default function KraftstofferfassungPage() {
         submitData.append('liters', row.liters.toString())
         submitData.append('pricePerLiter', '0')
         submitData.append('totalPrice', '0')
-        submitData.append('gasStation', row.gasStation || '')
-        submitData.append('invoiceNumber', row.invoiceNumber || '')
         submitData.append('notes', row.notes || '')
 
         const response = await fetch('/api/fuel-entries', {
@@ -258,8 +248,6 @@ export default function KraftstofferfassungPage() {
           liters: 0,
           pricePerLiter: 0,
           totalPrice: 0,
-          gasStation: '',
-          invoiceNumber: '',
           notes: '',
         },
       ])
@@ -351,12 +339,6 @@ export default function KraftstofferfassungPage() {
                     </th>
                     <th className="text-right py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                       Liter
-                    </th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                      Tankstelle
-                    </th>
-                    <th className="text-left py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                      Rechnungsnr.
                     </th>
                     <th className="text-left py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                       Notizen
@@ -468,8 +450,6 @@ export default function KraftstofferfassungPage() {
                                   liters: 0,
                                   pricePerLiter: 0,
                                   totalPrice: 0,
-                                  gasStation: '',
-                                  invoiceNumber: '',
                                   notes: '',
                                 }
                                 setRows([...rows, newRow])
@@ -485,22 +465,6 @@ export default function KraftstofferfassungPage() {
                             value={row.liters.toFixed(2)}
                             readOnly
                             className="w-full px-2 py-1.5 bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded text-sm text-right text-slate-600 dark:text-slate-400 cursor-not-allowed"
-                          />
-                        </td>
-                        <td className="py-2 px-4">
-                          <input
-                            type="text"
-                            value={row.gasStation}
-                            onChange={(e) => updateRow(row.id, 'gasStation', e.target.value)}
-                            className="w-full px-2 py-1.5 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400"
-                          />
-                        </td>
-                        <td className="py-2 px-4">
-                          <input
-                            type="text"
-                            value={row.invoiceNumber}
-                            onChange={(e) => updateRow(row.id, 'invoiceNumber', e.target.value)}
-                            className="w-full px-2 py-1.5 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded text-sm text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400"
                           />
                         </td>
                         <td className="py-2 px-4">

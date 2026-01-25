@@ -6,6 +6,7 @@ import { buildConfig, PayloadRequest } from 'payload'
 import { fileURLToPath } from 'url'
 
 import { Aircraft } from './collections/Aircraft'
+import { AircraftGroups } from './collections/AircraftGroups'
 import { CostCenters } from './collections/CostCenters'
 import { FlightLogs } from './collections/FlightLogs'
 import { FuelEntries } from './collections/FuelEntries'
@@ -93,7 +94,7 @@ export default buildConfig({
       }
     },
   }),
-  collections: [Users, Media, Transactions, TransactionCategories, CostCenters, Aircraft, FlightLogs, FuelEntries, GeneralCosts],
+  collections: [Users, Media, Transactions, TransactionCategories, CostCenters, Aircraft, AircraftGroups, FlightLogs, FuelEntries, GeneralCosts],
   cors: [getServerSideURL()].filter(Boolean),
   plugins,
   secret: process.env.PAYLOAD_SECRET,
