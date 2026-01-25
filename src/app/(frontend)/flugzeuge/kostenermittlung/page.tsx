@@ -54,6 +54,16 @@ type FlightLog = {
   flightHours: number
 }
 
+type FuelEntry = {
+  id: string
+  date: string
+  aircraft: string | Aircraft
+  fuelType: 'avgas' | 'mogas'
+  liters: number
+  totalPrice: number
+  pricePerLiter: number
+}
+
 type AircraftFinancialData = {
   aircraft: Aircraft
   year: number
@@ -74,6 +84,15 @@ type AircraftFinancialData = {
   flightHours: number
   starts: number
   fuelConsumption: number
+  fuelEntries: {
+    totalLiters: number
+    totalCost: number
+    avgasLiters: number
+    avgasCost: number
+    mogasLiters: number
+    mogasCost: number
+    entries: FuelEntry[]
+  }
   costPerHour: number
   costPerStart: number
   profit: number
@@ -83,6 +102,7 @@ export default function KostenermittlungPage() {
   const [aircraft, setAircraft] = useState<Aircraft[]>([])
   const [flightLogs, setFlightLogs] = useState<FlightLog[]>([])
   const [transactions, setTransactions] = useState<TransactionData[]>([])
+  const [fuelEntries, setFuelEntries] = useState<FuelEntry[]>([])
   const [loading, setLoading] = useState(true)
   const [selectedYears, setSelectedYears] = useState<number[]>([new Date().getFullYear()])
   const [selectedAircraft, setSelectedAircraft] = useState<string>('all')
@@ -95,10 +115,11 @@ export default function KostenermittlungPage() {
   const fetchData = async () => {
     try {
       setLoading(true)
-      const [aircraftRes, flightLogsRes, transactionsRes] = await Promise.all([
+      const [aircraftRes, flightLogsRes, transactionsRes, fuelEntriesRes] = await Promise.all([
         fetch('/api/aircraft'),
         fetch('/api/flight-logs'),
         fetch('/api/transactions?depth=2'),
+        fetch('/api/fuel-entries'),
       ])
 
       if (aircraftRes.ok) {
@@ -115,6 +136,11 @@ export default function KostenermittlungPage() {
         const data = await transactionsRes.json()
         setTransactions(data.docs || [])
       }
+
+      if (fuelEntriesRes.ok) {
+        const data = await fuelEntriesRes.json()
+        setFuelEntries(data.docs || [])
+      }
     } catch (error) {
       console.error('Fehler beim Laden der Daten:', error)
     } finally {
@@ -127,6 +153,7 @@ export default function KostenermittlungPage() {
     new Set([
       ...flightLogs.map((log: FlightLog) => log.year),
       ...transactions.map((t: TransactionData) => new Date(t.date).getFullYear()),
+      ...fuelEntries.map((fe: FuelEntry) => new Date(fe.date).getFullYear()),
     ])
   ).sort((a: number, b: number) => b - a)
 
@@ -152,11 +179,42 @@ export default function KostenermittlungPage() {
         const fixedCosts =
           (ac.insurance || 0) + (ac.hangar || 0) + (ac.annualInspection || 0) + (ac.fixedCosts || 0)
 
-        // Calculate fuel costs
+        // Get fuel entries for this aircraft and year
+        const aircraftFuelEntries = fuelEntries.filter((fe: FuelEntry) => {
+          const aircraftId = typeof fe.aircraft === 'object' ? fe.aircraft.id : fe.aircraft
+          const entryYear = new Date(fe.date).getFullYear()
+          return aircraftId === ac.id && entryYear === year
+        })
+
+        // Calculate fuel costs from actual fuel entries
+        const fuelCostsFromEntries = aircraftFuelEntries.reduce(
+          (sum: number, fe: FuelEntry) => sum + (fe.totalPrice || 0),
+          0
+        )
+
+        // Calculate fuel costs (use actual entries if available, otherwise use estimated)
         const fuelCosts =
-          ac.fuelConsumption && ac.fuelPrice
-            ? flightHours * ac.fuelConsumption * ac.fuelPrice
-            : 0
+          fuelCostsFromEntries > 0
+            ? fuelCostsFromEntries
+            : ac.fuelConsumption && ac.fuelPrice
+              ? flightHours * ac.fuelConsumption * ac.fuelPrice
+              : 0
+
+        // Calculate fuel consumption from entries
+        const fuelLitersFromEntries = aircraftFuelEntries.reduce(
+          (sum: number, fe: FuelEntry) => sum + (fe.liters || 0),
+          0
+        )
+
+        // Separate Avgas and Mogas
+        const avgasEntries = aircraftFuelEntries.filter((fe: FuelEntry) => fe.fuelType === 'avgas')
+        const mogasEntries = aircraftFuelEntries.filter((fe: FuelEntry) => fe.fuelType === 'mogas')
+
+        const avgasLiters = avgasEntries.reduce((sum: number, fe: FuelEntry) => sum + (fe.liters || 0), 0)
+        const avgasCost = avgasEntries.reduce((sum: number, fe: FuelEntry) => sum + (fe.totalPrice || 0), 0)
+
+        const mogasLiters = mogasEntries.reduce((sum: number, fe: FuelEntry) => sum + (fe.liters || 0), 0)
+        const mogasCost = mogasEntries.reduce((sum: number, fe: FuelEntry) => sum + (fe.totalPrice || 0), 0)
 
         // Calculate maintenance costs
         const maintenanceCosts = ac.maintenanceCostPerHour ? flightHours * ac.maintenanceCostPerHour : 0
@@ -264,6 +322,15 @@ export default function KostenermittlungPage() {
           flightHours,
           starts,
           fuelConsumption: ac.fuelConsumption || 0,
+          fuelEntries: {
+            totalLiters: fuelLitersFromEntries,
+            totalCost: fuelCostsFromEntries,
+            avgasLiters,
+            avgasCost,
+            mogasLiters,
+            mogasCost,
+            entries: aircraftFuelEntries,
+          },
           costPerHour,
           costPerStart,
           profit,
@@ -604,16 +671,40 @@ export default function KostenermittlungPage() {
 
                                       {/* Fuel Costs */}
                                       {yearData.costs.fuel > 0 && (
-                                        <div className="flex justify-between items-center text-sm">
-                                          <div className="flex items-center gap-2">
-                                            <Fuel className="w-4 h-4 text-slate-500" />
-                                            <span className="text-slate-700">
-                                              Kraftstoff ({yearData.fuelConsumption} l/h)
+                                        <div className="space-y-2">
+                                          <div className="flex justify-between items-center text-sm">
+                                            <div className="flex items-center gap-2">
+                                              <Fuel className="w-4 h-4 text-slate-500" />
+                                              <span className="text-slate-700">
+                                                Kraftstoff
+                                                {yearData.fuelEntries.totalLiters > 0
+                                                  ? ` (${yearData.fuelEntries.totalLiters.toFixed(2)} l)`
+                                                  : yearData.fuelConsumption
+                                                    ? ` (${yearData.fuelConsumption} l/h geschätzt)`
+                                                    : ''}
+                                              </span>
+                                            </div>
+                                            <span className="font-medium text-red-700">
+                                              {yearData.costs.fuel.toFixed(2)} €
                                             </span>
                                           </div>
-                                          <span className="font-medium text-red-700">
-                                            {yearData.costs.fuel.toFixed(2)} €
-                                          </span>
+                                          {/* Fuel Details */}
+                                          {yearData.fuelEntries.totalLiters > 0 && (
+                                            <div className="ml-6 space-y-1 text-xs text-slate-600">
+                                              {yearData.fuelEntries.avgasLiters > 0 && (
+                                                <div className="flex justify-between">
+                                                  <span>Avgas: {yearData.fuelEntries.avgasLiters.toFixed(2)} l</span>
+                                                  <span>{yearData.fuelEntries.avgasCost.toFixed(2)} €</span>
+                                                </div>
+                                              )}
+                                              {yearData.fuelEntries.mogasLiters > 0 && (
+                                                <div className="flex justify-between">
+                                                  <span>Mogas: {yearData.fuelEntries.mogasLiters.toFixed(2)} l</span>
+                                                  <span>{yearData.fuelEntries.mogasCost.toFixed(2)} €</span>
+                                                </div>
+                                              )}
+                                            </div>
+                                          )}
                                         </div>
                                       )}
 
