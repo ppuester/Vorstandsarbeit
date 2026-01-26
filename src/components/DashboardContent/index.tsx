@@ -10,6 +10,7 @@ import {
   ArrowRight,
   Fuel,
   FolderTree,
+  Users,
 } from 'lucide-react'
 import { useOrganization } from '@/providers/Organization'
 
@@ -82,6 +83,15 @@ export function DashboardContent() {
       iconBg: 'bg-indigo-100',
       iconColor: 'text-indigo-600',
       enabled: isFeatureEnabled('aircraft'),
+    },
+    {
+      title: 'Mitglieder',
+      description: 'Mitglieder verwalten',
+      href: '/stammdaten/mitglieder',
+      icon: Users,
+      iconBg: 'bg-green-100',
+      iconColor: 'text-green-600',
+      enabled: isFeatureEnabled('fuelTracking'), // Mitglieder werden für Kraftstofferfassung benötigt
     },
   ].filter((action) => action.enabled)
 
