@@ -380,54 +380,101 @@ export default function MitgliederEinnahmenPage() {
                       </td>
                     </tr>
                   ) : (
-                    stats.map((stat) => (
-                      <tr key={stat.id} className="hover:bg-slate-50 dark:hover:bg-slate-700/70">
-                        <td className="py-3 px-6 text-slate-900 dark:text-slate-100 font-medium">
-                          {stat.year}
-                        </td>
-                        <td className="py-3 px-6 text-slate-900 dark:text-slate-100">
-                          {getFeeTypeName(stat)}
-                        </td>
-                        <td className="py-3 px-6 text-slate-600 dark:text-slate-300">
-                          {getGeneralCostName(stat)}
-                        </td>
-                        <td className="py-3 px-6 text-right text-slate-900 dark:text-slate-100">
-                          {stat.memberCount}
-                        </td>
-                        <td className="py-3 px-6 text-right text-slate-900 dark:text-slate-100">
-                          {stat.amountPerMember.toFixed(2)} €
-                        </td>
-                        <td className="py-3 px-6 text-right text-emerald-600 dark:text-emerald-400 font-semibold">
-                          {(stat.totalIncome ?? stat.memberCount * stat.amountPerMember).toFixed(
-                            2,
-                          )}{' '}
-                          €
-                        </td>
-                        <td className="py-3 px-6 text-slate-600 dark:text-slate-300">
-                          {stat.snapshotDate
-                            ? new Date(stat.snapshotDate).toLocaleDateString('de-DE')
-                            : '–'}
-                        </td>
-                        <td className="py-3 px-6 text-center">
-                          <div className="flex items-center justify-center gap-2">
-                            <button
-                              onClick={() => handleEdit(stat)}
-                              className="p-2 text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 rounded-lg transition-colors"
-                              title="Bearbeiten"
+                    yearsInData.map((year) => {
+                      const yearStats = stats.filter((s) => s.year === year)
+                      const totalMembers = yearStats.reduce(
+                        (sum, s) => sum + (s.memberCount || 0),
+                        0,
+                      )
+                      const totalIncome = yearStats.reduce((sum, s) => {
+                        const income =
+                          s.totalIncome != null
+                            ? s.totalIncome
+                            : s.memberCount * s.amountPerMember
+                        return sum + income
+                      }, 0)
+
+                      return (
+                        <React.Fragment key={year}>
+                          <tr className="bg-slate-50/80 dark:bg-slate-900/40">
+                            <td className="py-3 px-6 text-slate-900 dark:text-slate-100 font-semibold">
+                              {year}
+                            </td>
+                            <td className="py-3 px-6 text-slate-700 dark:text-slate-200 font-semibold">
+                              Summe
+                            </td>
+                            <td className="py-3 px-6 text-slate-500 dark:text-slate-400 text-sm">
+                              alle
+                            </td>
+                            <td className="py-3 px-6 text-right text-slate-900 dark:text-slate-100 font-semibold">
+                              {totalMembers}
+                            </td>
+                            <td className="py-3 px-6 text-right text-slate-500 dark:text-slate-400 text-sm">
+                              –
+                            </td>
+                            <td className="py-3 px-6 text-right text-emerald-700 dark:text-emerald-400 font-semibold">
+                              {totalIncome.toFixed(2)} €
+                            </td>
+                            <td className="py-3 px-6 text-slate-500 dark:text-slate-400 text-sm">
+                              –
+                            </td>
+                            <td className="py-3 px-6" />
+                          </tr>
+                          {yearStats.map((stat) => (
+                            <tr
+                              key={stat.id}
+                              className="hover:bg-slate-50 dark:hover:bg-slate-700/70"
                             >
-                              <Edit2 className="w-4 h-4" />
-                            </button>
-                            <button
-                              onClick={() => handleDelete(stat.id)}
-                              className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
-                              title="Löschen"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
+                              <td className="py-3 px-6 text-slate-900 dark:text-slate-100 font-medium">
+                                {stat.year}
+                              </td>
+                              <td className="py-3 px-6 text-slate-900 dark:text-slate-100">
+                                {getFeeTypeName(stat)}
+                              </td>
+                              <td className="py-3 px-6 text-slate-600 dark:text-slate-300">
+                                {getGeneralCostName(stat)}
+                              </td>
+                              <td className="py-3 px-6 text-right text-slate-900 dark:text-slate-100">
+                                {stat.memberCount}
+                              </td>
+                              <td className="py-3 px-6 text-right text-slate-900 dark:text-slate-100">
+                                {stat.amountPerMember.toFixed(2)} €
+                              </td>
+                              <td className="py-3 px-6 text-right text-emerald-600 dark:text-emerald-400 font-semibold">
+                                {(
+                                  stat.totalIncome ??
+                                  stat.memberCount * stat.amountPerMember
+                                ).toFixed(2)}{' '}
+                                €
+                              </td>
+                              <td className="py-3 px-6 text-slate-600 dark:text-slate-300">
+                                {stat.snapshotDate
+                                  ? new Date(stat.snapshotDate).toLocaleDateString('de-DE')
+                                  : '–'}
+                              </td>
+                              <td className="py-3 px-6 text-center">
+                                <div className="flex items-center justify-center gap-2">
+                                  <button
+                                    onClick={() => handleEdit(stat)}
+                                    className="p-2 text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 rounded-lg transition-colors"
+                                    title="Bearbeiten"
+                                  >
+                                    <Edit2 className="w-4 h-4" />
+                                  </button>
+                                  <button
+                                    onClick={() => handleDelete(stat.id)}
+                                    className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                    title="Löschen"
+                                  >
+                                    <Trash2 className="w-4 h-4" />
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </React.Fragment>
+                      )
+                    })
                   )}
                 </tbody>
               </table>
