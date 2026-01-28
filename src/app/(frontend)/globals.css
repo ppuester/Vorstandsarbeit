@@ -249,12 +249,12 @@
      PREMIUM CARD EFFECTS
      ============================================ */
   .card-hover {
-    @apply transition-all duration-500 ease-out;
+    @apply transition-all duration-300 ease-out;
   }
 
   .card-hover:hover {
-    transform: translateY(-4px) scale(1.01);
-    box-shadow: 0 18px 35px -14px rgba(15, 23, 42, 0.18);
+    transform: translateY(-2px);
+    box-shadow: 0 14px 30px -18px rgba(15, 23, 42, 0.35);
   }
 
   .card-3d {
@@ -302,32 +302,18 @@
   }
 
   .btn-primary {
-    @apply btn-base text-white relative overflow-hidden;
-    background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 50%, #8b5cf6 100%);
-    background-size: 200% 200%;
-    box-shadow: 
-      0 10px 40px -10px rgba(139, 92, 246, 0.5),
-      0 0 0 1px rgba(255, 255, 255, 0.1) inset;
-    animation: gradient-shift 3s ease infinite;
+    @apply btn-base text-white bg-slate-900;
+    box-shadow: 0 10px 30px -16px rgba(15, 23, 42, 0.65);
   }
 
   .btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 
-      0 20px 50px -10px rgba(139, 92, 246, 0.6),
-      0 0 0 1px rgba(255, 255, 255, 0.2) inset,
-      0 0 30px rgba(217, 70, 239, 0.3);
+    transform: translateY(-1px);
+    box-shadow: 0 14px 32px -18px rgba(15, 23, 42, 0.8);
+    background-color: hsl(222 47% 15%);
   }
 
   .btn-primary::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: -100%;
-    width: 100%;
-    height: 100%;
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    transition: left 0.5s ease;
+    content: none;
   }
 
   .btn-primary:hover::before {
@@ -345,26 +331,20 @@
   }
 
   .btn-outline {
-    @apply btn-base border-2 border-violet-500 text-violet-600 bg-transparent;
+    @apply btn-base border border-slate-400 text-slate-700 bg-transparent;
   }
 
   .btn-outline:hover {
-    @apply bg-violet-600 text-white;
-    box-shadow: 0 10px 30px -10px rgba(139, 92, 246, 0.5);
+    @apply bg-slate-900 text-white;
+    box-shadow: 0 10px 28px -18px rgba(15, 23, 42, 0.7);
   }
 
   /* ============================================
      GRADIENT TEXT EFFECTS
      ============================================ */
   .gradient-text {
-    @apply relative z-20;
-    color: #8b5cf6; /* Fallback für bessere Lesbarkeit */
-    background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 50%, #06b6d4 100%);
-    background-size: 200% 200%;
-    background-clip: text;
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    animation: gradient-shift 5s ease infinite;
+    @apply relative z-20 font-semibold;
+    color: hsl(var(--primary));
   }
 
   .gradient-text-animated {
@@ -419,11 +399,7 @@
      STAT COUNTER
      ============================================ */
   .stat-number {
-    @apply font-bold;
-    background: linear-gradient(135deg, #8b5cf6 0%, #d946ef 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
+    @apply font-bold text-slate-900;
   }
 
   .stat-card {
@@ -839,7 +815,7 @@
 /* Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: rgba(139, 92, 246, 0.4) transparent;
+  scrollbar-color: rgba(148, 163, 184, 0.6) transparent;
 }
 
 /* Chrome, Edge, Safari */
@@ -853,7 +829,7 @@
 }
 
 *::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, rgba(139, 92, 246, 0.4), rgba(217, 70, 239, 0.4));
+  background: rgba(148, 163, 184, 0.7);
   border-radius: 100px;
 }
 
@@ -882,22 +858,19 @@ body::-webkit-scrollbar-track {
 
 html::-webkit-scrollbar-thumb,
 body::-webkit-scrollbar-thumb {
-  background: linear-gradient(180deg, #8b5cf6, #d946ef, #8b5cf6);
-  background-size: 100% 200%;
+  background: rgba(148, 163, 184, 0.9);
   border-radius: 100px;
   border: 3px solid #f8fafc;
-  animation: gradient-shift 3s ease infinite;
 }
 
 html::-webkit-scrollbar-thumb:hover,
 body::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(180deg, #7c3aed, #c026d3, #7c3aed);
-  background-size: 100% 200%;
+  background: rgba(100, 116, 139, 1);
 }
 
 /* Selection Styling */
 ::selection {
-  background: linear-gradient(135deg, rgba(139, 92, 246, 0.3), rgba(217, 70, 239, 0.3));
+  background: rgba(148, 163, 184, 0.35);
   color: hsl(var(--foreground));
 }
 
