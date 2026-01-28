@@ -45,17 +45,6 @@ export const MembershipFeeTypes: CollectionConfig = {
       },
     },
     {
-      name: 'generalCost',
-      type: 'relationship',
-      // Verweis auf Allgemeine Kosten (Fixkosten etc.)
-      relationTo: 'general-costs' as any,
-      label: 'Zuordnung zu Allgemeiner Kostenstelle',
-      admin: {
-        description:
-          'Optional: Standard-Kostengruppe, der die Beitragseinnahmen gutgeschrieben werden (z.B. „Fixkosten“).',
-      },
-    },
-    {
       name: 'active',
       type: 'checkbox',
       label: 'Aktiv',
