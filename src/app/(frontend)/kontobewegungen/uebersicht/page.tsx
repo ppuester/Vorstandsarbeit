@@ -472,9 +472,9 @@ export default function KontobewegungenUebersichtPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-violet-600 dark:border-violet-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-16 h-16 border-4 border-slate-900 dark:border-slate-100 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-slate-600 dark:text-slate-400">Lade Kontobewegungen...</p>
         </div>
       </div>
@@ -482,35 +482,35 @@ export default function KontobewegungenUebersichtPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8 flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4">
+              <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2">
                 Kontobewegungen Übersicht
               </h1>
-              <p className="text-lg text-slate-600 dark:text-slate-400">
+              <p className="text-sm md:text-base text-slate-600 dark:text-slate-400">
                 Verwalten Sie Ihre Einnahmen und Ausgaben
               </p>
             </div>
             <div className="flex gap-3">
               <Link
                 href="/kontobewegungen/kostenstellenvergleich"
-                className="px-6 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
+                className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors"
               >
                 Kostenstellenvergleich
               </Link>
               <Link
                 href="/kontobewegungen/jahresvergleich"
-                className="px-6 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
+                className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors"
               >
                 Jahresvergleich
               </Link>
               <Link
                 href="/kontobewegungen"
-                className="px-6 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors"
+                className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors"
               >
                 Neue Bewegungen importieren
               </Link>
@@ -519,7 +519,7 @@ export default function KontobewegungenUebersichtPage() {
 
           {/* Stats Cards */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 p-6">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Einnahmen</span>
                 <ArrowUp className="w-5 h-5 text-green-500 dark:text-green-400" />
@@ -528,7 +528,7 @@ export default function KontobewegungenUebersichtPage() {
                 {totalIncome.toFixed(2)} €
               </p>
             </div>
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 p-6">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Ausgaben</span>
                 <ArrowDown className="w-5 h-5 text-red-500 dark:text-red-400" />
@@ -537,7 +537,7 @@ export default function KontobewegungenUebersichtPage() {
                 {totalExpenses.toFixed(2)} €
               </p>
             </div>
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 p-6">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Saldo</span>
                 <span
@@ -553,14 +553,14 @@ export default function KontobewegungenUebersichtPage() {
           </div>
 
           {/* Tabs and Filters */}
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 mb-6">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 p-6 mb-6">
             {/* Tabs */}
             <div className="flex gap-2 mb-6 border-b border-slate-200 dark:border-slate-700">
               <button
                 onClick={() => setActiveTab('all')}
                 className={`px-6 py-3 font-medium transition-colors border-b-2 ${
                   activeTab === 'all'
-                    ? 'border-violet-600 dark:border-violet-400 text-violet-600 dark:text-violet-400'
+                    ? 'border-slate-900 dark:border-slate-100 text-slate-900 dark:text-slate-100'
                     : 'border-transparent text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100'
                 }`}
               >
@@ -606,13 +606,13 @@ export default function KontobewegungenUebersichtPage() {
                         setSearchTerm(searchInput)
                       }
                     }}
-                    className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
+                    className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                   />
                 </div>
                 <button
                   type="button"
                   onClick={() => setSearchTerm(searchInput)}
-                  className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors text-sm font-medium"
+                  className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors text-sm font-medium"
                 >
                   Suchen
                 </button>
@@ -625,7 +625,7 @@ export default function KontobewegungenUebersichtPage() {
                         e.target.value as 'all' | 'processed' | 'unprocessed'
                       )
                     }
-                    className="px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
+                    className="px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 text-slate-900 dark:text-slate-100"
                   >
                     <option value="all">Alle</option>
                     <option value="processed">Nur verarbeitete</option>
@@ -651,7 +651,7 @@ export default function KontobewegungenUebersichtPage() {
                       type="date"
                       value={dateFrom}
                       onChange={(e) => setDateFrom(e.target.value)}
-                      className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 text-slate-900 dark:text-slate-100"
                     />
                   </div>
                   <div>
@@ -662,7 +662,7 @@ export default function KontobewegungenUebersichtPage() {
                       type="date"
                       value={dateTo}
                       onChange={(e) => setDateTo(e.target.value)}
-                      className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 text-slate-900 dark:text-slate-100"
                     />
                   </div>
                   <div>
@@ -675,7 +675,7 @@ export default function KontobewegungenUebersichtPage() {
                       value={amountMin}
                       onChange={(e) => setAmountMin(e.target.value)}
                       placeholder="0.00"
-                      className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 text-slate-900 dark:text-slate-100"
                     />
                   </div>
                   <div>
