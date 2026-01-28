@@ -69,24 +69,6 @@ export const AccessTokens: CollectionConfig = {
         description: 'Welche Bereiche sind mit diesem Token zugänglich?',
       },
     },
-  ],
-  hooks: {
-    beforeValidate: [
-      ({ data }: any) => {
-        // Normalisiere permissions-Feld
-        if (data) {
-          // Stelle sicher, dass permissions ein Array ist
-          if (data.permissions === undefined || data.permissions === null) {
-            data.permissions = []
-          } else if (!Array.isArray(data.permissions)) {
-            // Falls es kein Array ist, konvertiere es
-            data.permissions = [data.permissions].filter(Boolean)
-          }
-        }
-        return data
-      },
-    ],
-  },
     {
       name: 'expiresAt',
       type: 'date',
@@ -130,5 +112,22 @@ export const AccessTokens: CollectionConfig = {
       },
     },
   ],
+  hooks: {
+    beforeValidate: [
+      ({ data }: any) => {
+        // Normalisiere permissions-Feld
+        if (data) {
+          // Stelle sicher, dass permissions ein Array ist
+          if (data.permissions === undefined || data.permissions === null) {
+            data.permissions = []
+          } else if (!Array.isArray(data.permissions)) {
+            // Falls es kein Array ist, konvertiere es
+            data.permissions = [data.permissions].filter(Boolean)
+          }
+        }
+        return data
+      },
+    ],
+  },
   timestamps: true,
 }
