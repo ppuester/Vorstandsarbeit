@@ -380,7 +380,7 @@ export default function MitgliederEinnahmenPage() {
                       </td>
                     </tr>
                   ) : (
-                    yearsInData.map((year) => {
+                    yearsInData.map((year, yearIndex) => {
                       const yearStats = stats.filter((s) => s.year === year)
                       const totalMembers = yearStats.reduce(
                         (sum, s) => sum + (s.memberCount || 0),
@@ -396,6 +396,11 @@ export default function MitgliederEinnahmenPage() {
 
                       return (
                         <React.Fragment key={year}>
+                          {yearIndex > 0 && (
+                            <tr>
+                              <td colSpan={8} className="h-2" />
+                            </tr>
+                          )}
                           <tr className="bg-slate-50/80 dark:bg-slate-900/40">
                             <td className="py-3 px-6 text-slate-900 dark:text-slate-100 font-semibold">
                               {year}
