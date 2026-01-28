@@ -3,8 +3,12 @@ import { Metadata } from 'next'
 import { Sparkles } from 'lucide-react'
 import { OrganizationSelector } from '@/components/OrganizationSelector'
 import { DashboardContent } from '@/components/DashboardContent'
+import { getMeUser } from '@/utilities/getMeUser'
 
 export default async function DashboardPage() {
+  // Prüfe Authentifizierung - leite zur Login-Seite um, wenn nicht eingeloggt
+  await getMeUser({ nullUserRedirect: '/login' })
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-fuchsia-50 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
       <div className="container mx-auto px-4 py-8 md:py-12">
