@@ -170,9 +170,9 @@ export default function FlugstundenPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-violet-600 dark:border-violet-400 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-16 h-16 border-4 border-slate-900 dark:border-slate-100 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-slate-600 dark:text-slate-400">Lade Flugbücher...</p>
         </div>
       </div>
@@ -182,30 +182,30 @@ export default function FlugstundenPage() {
   const activeAircraft = aircraft.filter((ac) => ac.active !== false)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
           <div className="mb-8 flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+              <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2">
                 Flugstunden & Starts
               </h1>
-              <p className="text-lg text-slate-600 dark:text-slate-400">
+              <p className="text-sm md:text-base text-slate-600 dark:text-slate-400">
                 Erfassen Sie jährliche Starts und Flugstunden pro Flugzeug
               </p>
             </div>
             <div className="flex gap-3">
               <Link
                 href="/flugzeuge/flugstunden/auswertung"
-                className="px-6 py-3 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors"
+                className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 text-sm font-medium transition-colors"
               >
                 Auswertung & Vergleich
               </Link>
               {!editingId && (
                 <button
                   onClick={handleCreate}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors font-medium"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 text-sm font-medium transition-colors"
                 >
                   <Plus className="w-5 h-5" />
                   Neuer Eintrag
@@ -231,7 +231,7 @@ export default function FlugstundenPage() {
 
           {/* Form */}
           {editingId !== null || formData.aircraft ? (
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 mb-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 p-6 mb-6">
               <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">
                 {editingId ? 'Flugbuch bearbeiten' : 'Neuer Flugbucheintrag'}
               </h2>
@@ -243,7 +243,7 @@ export default function FlugstundenPage() {
                   <select
                     value={formData.aircraft || ''}
                     onChange={(e) => setFormData({ ...formData, aircraft: e.target.value })}
-                    className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
+                    className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 text-slate-900 dark:text-slate-100"
                   >
                     <option value="">Flugzeug auswählen...</option>
                     {activeAircraft.map((ac) => (
@@ -263,7 +263,7 @@ export default function FlugstundenPage() {
                     max="2100"
                     value={formData.year || ''}
                     onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) || 0 })}
-                    className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
+                    className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 text-slate-900 dark:text-slate-100"
                   />
                 </div>
                 <div>
@@ -276,7 +276,7 @@ export default function FlugstundenPage() {
                     step="1"
                     value={formData.starts || 0}
                     onChange={(e) => setFormData({ ...formData, starts: parseInt(e.target.value) || 0 })}
-                    className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
+                    className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 text-slate-900 dark:text-slate-100"
                   />
                 </div>
                 <div>
@@ -301,14 +301,14 @@ export default function FlugstundenPage() {
                     onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
                     placeholder="Zusätzliche Informationen..."
                     rows={3}
-                    className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
+                    className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 text-slate-900 dark:text-slate-100"
                   />
                 </div>
                 <div className="md:col-span-2 flex gap-3 pt-4">
                   <button
                     onClick={handleSave}
                     disabled={saving}
-                    className="inline-flex items-center gap-2 px-6 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                    className="inline-flex items-center gap-2 px-6 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
                   >
                     {saving ? (
                       <>
@@ -335,7 +335,7 @@ export default function FlugstundenPage() {
           ) : null}
 
           {/* List */}
-          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600">
