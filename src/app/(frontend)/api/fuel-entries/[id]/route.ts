@@ -3,9 +3,40 @@ import { getPayload, type CollectionSlug } from 'payload'
 import configPromise from '@payload-config'
 import { hasPermission } from '@/utilities/validateAccessToken'
 
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const { id } = await params
+
+    const payload = await getPayload({ config: configPromise })
+
+    const { searchParams } = new URL(request.url)
+    const depthParam = searchParams.get('depth')
+    const depth = depthParam != null ? parseInt(depthParam, 10) || 2 : 2
+
+    const doc = await payload.findByID({
+      collection: 'fuel-entries' as CollectionSlug,
+      id,
+      depth,
+    })
+
+    return NextResponse.json(doc)
+  } catch (error) {
+    console.error('Error fetching fuel entry:', error)
+    return NextResponse.json(
+      {
+        error: 'Fehler beim Laden des Kraftstoffeintrags',
+      },
+      { status: 500 },
+    )
+  }
+}
+
 export async function PATCH(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params
@@ -19,7 +50,7 @@ export async function PATCH(
       if (!hasAccess) {
         return NextResponse.json(
           { error: 'Keine Berechtigung für Kraftstofferfassung' },
-          { status: 403 }
+          { status: 403 },
         )
       }
     }
@@ -46,14 +77,14 @@ export async function PATCH(
       {
         error: 'Fehler beim Aktualisieren des Kraftstoffeintrags',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
 
 export async function DELETE(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params
@@ -67,7 +98,7 @@ export async function DELETE(
       if (!hasAccess) {
         return NextResponse.json(
           { error: 'Keine Berechtigung für Kraftstofferfassung' },
-          { status: 403 }
+          { status: 403 },
         )
       }
     }
@@ -86,7 +117,7 @@ export async function DELETE(
       {
         error: 'Fehler beim Löschen des Kraftstoffeintrags',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }

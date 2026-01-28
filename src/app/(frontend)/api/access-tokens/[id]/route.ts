@@ -2,9 +2,39 @@ import { NextResponse } from 'next/server'
 import { getPayload, type CollectionSlug } from 'payload'
 import configPromise from '@payload-config'
 
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
+  try {
+    const { id } = await params
+    const payload = await getPayload({ config: configPromise })
+
+    const { searchParams } = new URL(request.url)
+    const depthParam = searchParams.get('depth')
+    const depth = depthParam != null ? parseInt(depthParam, 10) || 0 : 0
+
+    const doc = await payload.findByID({
+      collection: 'access-tokens' as CollectionSlug,
+      id,
+      depth,
+    })
+
+    return NextResponse.json(doc)
+  } catch (error) {
+    console.error('Error fetching access token:', error)
+    return NextResponse.json(
+      {
+        error: 'Fehler beim Laden des Zugangs',
+      },
+      { status: 500 },
+    )
+  }
+}
+
 export async function PATCH(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params
@@ -26,14 +56,14 @@ export async function PATCH(
       {
         error: 'Fehler beim Aktualisieren des Zugangs',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
 
 export async function DELETE(
-  request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
 ) {
   try {
     const { id } = await params
@@ -52,7 +82,7 @@ export async function DELETE(
       {
         error: 'Fehler beim Löschen des Zugangs',
       },
-      { status: 500 }
+      { status: 500 },
     )
   }
 }
