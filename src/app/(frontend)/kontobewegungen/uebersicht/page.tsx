@@ -284,7 +284,6 @@ export default function KontobewegungenUebersichtPage() {
   }
 
   const handleEditAllocation = (transaction: Transaction) => {
-    setIsBulkAllocation(false)
     setEditingTransaction(transaction)
     // Initialize form with existing allocations or empty
     if (transaction.costAllocations && transaction.costAllocations.length > 0) {
@@ -791,7 +790,10 @@ export default function KontobewegungenUebersichtPage() {
                         <td className="py-4 px-4 text-center">
                           {isFeatureEnabled('costAllocations') ? (
                             <button
-                              onClick={() => handleEditAllocation(transaction)}
+                              onClick={() => {
+                                setIsBulkAllocation(false)
+                                handleEditAllocation(transaction)
+                              }}
                               className="inline-flex items-center justify-center gap-2 px-3 py-2 text-sm font-medium text-white bg-violet-600 dark:bg-violet-500 hover:bg-violet-700 dark:hover:bg-violet-600 rounded-lg transition-colors shadow-sm hover:shadow-md"
                               title="Zuordnung bearbeiten"
                             >
