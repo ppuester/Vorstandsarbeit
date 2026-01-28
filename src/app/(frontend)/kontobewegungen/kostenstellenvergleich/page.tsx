@@ -25,6 +25,7 @@ interface GeneralCost {
   availableForIncome: boolean
   availableForExpense: boolean
   active: boolean
+  parent?: string | null
 }
 
 type GroupType = 'aircraft' | 'generalCost'
@@ -33,6 +34,7 @@ export default function KostenstellenvergleichPage() {
   const [groupType, setGroupType] = useState<GroupType>('generalCost')
   const [aircraft, setAircraft] = useState<Aircraft[]>([])
   const [generalCosts, setGeneralCosts] = useState<GeneralCost[]>([])
+  const [selectedRootId, setSelectedRootId] = useState<string>('')
   const [selectedId, setSelectedId] = useState<string>('')
   const [selectedLabel, setSelectedLabel] = useState<string>('')
   const [stats, setStats] = useState<YearStats[]>([])
@@ -95,20 +97,46 @@ export default function KostenstellenvergleichPage() {
 
   const handleGroupTypeChange = (type: GroupType) => {
     setGroupType(type)
+    setSelectedRootId('')
     setSelectedId('')
     setSelectedLabel('')
     setStats([])
   }
 
-  const handleSelectionChange = (id: string) => {
+  const handleAircraftSelectionChange = (id: string) => {
     setSelectedId(id)
-    if (groupType === 'aircraft') {
-      const ac = aircraft.find((a) => a.id === id)
-      setSelectedLabel(ac ? `${ac.registration}${ac.name ? ` (${ac.name})` : ''}` : '')
-    } else {
-      const gc = generalCosts.find((g) => g.id === id)
-      setSelectedLabel(gc ? gc.name : '')
+    const ac = aircraft.find((a) => a.id === id)
+    setSelectedLabel(ac ? `${ac.registration}${ac.name ? ` (${ac.name})` : ''}` : '')
+  }
+
+  const handleRootCostSelectionChange = (id: string) => {
+    setSelectedRootId(id)
+
+    if (!id) {
+      setSelectedId('')
+      setSelectedLabel('')
+      return
     }
+
+    const root = generalCosts.find((g) => g.id === id)
+    setSelectedId(id)
+    setSelectedLabel(root ? `${root.name} (Gesamt)` : '')
+  }
+
+  const handleDetailCostSelectionChange = (id: string) => {
+    if (!selectedRootId) return
+
+    if (!id) {
+      // Gesamtansicht der Obergruppe
+      const root = generalCosts.find((g) => g.id === selectedRootId)
+      setSelectedId(selectedRootId)
+      setSelectedLabel(root ? `${root.name} (Gesamt)` : '')
+      return
+    }
+
+    setSelectedId(id)
+    const gc = generalCosts.find((g) => g.id === id)
+    setSelectedLabel(gc ? gc.name : '')
   }
 
   const totalIncome = stats.reduce((sum, s) => sum + s.income, 0)
@@ -119,6 +147,11 @@ export default function KostenstellenvergleichPage() {
     ...stats.map((s) => Math.max(s.income, s.expenses)),
     0,
   )
+
+  const rootGeneralCosts = generalCosts.filter((gc) => !gc.parent)
+  const detailGeneralCosts = selectedRootId
+    ? generalCosts.filter((gc) => gc.parent === selectedRootId)
+    : []
 
   if (loading) {
     return (
@@ -186,30 +219,67 @@ export default function KostenstellenvergleichPage() {
                   </button>
                 </div>
               </div>
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
-                  {groupType === 'aircraft' ? 'Flugzeug' : 'Kostengruppe'}
-                </label>
-                <select
-                  value={selectedId}
-                  onChange={(e) => handleSelectionChange(e.target.value)}
-                  className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-900"
-                >
-                  <option value="">Bitte auswählen...</option>
-                  {groupType === 'aircraft'
-                    ? aircraft.map((ac) => (
-                        <option key={ac.id} value={ac.id}>
-                          {ac.registration}
-                          {ac.name ? ` (${ac.name})` : ''}
-                        </option>
-                      ))
-                    : generalCosts.map((gc) => (
+              {groupType === 'aircraft' ? (
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                    Flugzeug
+                  </label>
+                  <select
+                    value={selectedId}
+                    onChange={(e) => handleAircraftSelectionChange(e.target.value)}
+                    className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-900"
+                  >
+                    <option value="">Bitte auswählen...</option>
+                    {aircraft.map((ac) => (
+                      <option key={ac.id} value={ac.id}>
+                        {ac.registration}
+                        {ac.name ? ` (${ac.name})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-3">
+                  <div>
+                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                      Obergruppe
+                    </label>
+                    <select
+                      value={selectedRootId}
+                      onChange={(e) => handleRootCostSelectionChange(e.target.value)}
+                      className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-900"
+                    >
+                      <option value="">Bitte auswählen...</option>
+                      {rootGeneralCosts.map((gc) => (
                         <option key={gc.id} value={gc.id}>
                           {gc.name}
                         </option>
                       ))}
-                </select>
-              </div>
+                    </select>
+                  </div>
+                  {selectedRootId && (
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-2">
+                        Detailgruppe
+                      </label>
+                      <select
+                        value={
+                          selectedId && selectedId !== selectedRootId ? selectedId : ''
+                        }
+                        onChange={(e) => handleDetailCostSelectionChange(e.target.value)}
+                        className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-900"
+                      >
+                        <option value="">Gesamt (alle Untergruppen)</option>
+                        {detailGeneralCosts.map((gc) => (
+                          <option key={gc.id} value={gc.id}>
+                            {gc.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                </div>
+              )}
               <div>
                 {selectedLabel && (
                   <div className="text-sm text-slate-500">
