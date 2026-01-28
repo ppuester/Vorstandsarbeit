@@ -579,14 +579,15 @@ export default function KostenstellenvergleichPage() {
                     .slice()
                     .sort((a, b) => b.year - a.year)
                     .map((s) => {
-                      const incomePercent =
-                        maxValue > 0 ? (s.income / maxValue) * 100 : 0
-                      const expensePercent =
-                        maxValue > 0 ? (s.expenses / maxValue) * 100 : 0
+                      const totalForYear = s.income + s.expenses
+                      const incomeShare =
+                        totalForYear > 0 ? (s.income / totalForYear) * 100 : 0
+                      const expenseShare =
+                        totalForYear > 0 ? (s.expenses / totalForYear) * 100 : 0
                       const incomeWidth =
-                        incomePercent > 0 ? Math.max(incomePercent, 4) : 0
+                        incomeShare > 0 ? Math.max(incomeShare, 4) : 0
                       const expenseWidth =
-                        expensePercent > 0 ? Math.max(expensePercent, 4) : 0
+                        expenseShare > 0 ? Math.max(expenseShare, 4) : 0
 
                       return (
                         <div key={s.year}>
@@ -596,10 +597,12 @@ export default function KostenstellenvergleichPage() {
                             </span>
                             <div className="flex gap-4 text-sm">
                               <span className="text-emerald-600">
-                                Einnahmen: {s.income.toFixed(2)} €
+                                Einnahmen: {s.income.toFixed(2)} € (
+                                {incomeShare.toFixed(1)}%)
                               </span>
                               <span className="text-red-600">
-                                Ausgaben: {s.expenses.toFixed(2)} €
+                                Ausgaben: {s.expenses.toFixed(2)} € (
+                                {expenseShare.toFixed(1)}%)
                               </span>
                             </div>
                           </div>
@@ -609,10 +612,10 @@ export default function KostenstellenvergleichPage() {
                                 className="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 flex items-center justify-end pr-3"
                                 style={{ width: `${incomeWidth}%` }}
                               >
-                                {incomePercent > 0 && (
+                                {incomeShare > 0 && (
                                   <span className="text-[11px] font-semibold text-white whitespace-nowrap drop-shadow-sm">
                                     {s.income.toFixed(0)} € (
-                                    {incomePercent.toFixed(1)}%)
+                                    {incomeShare.toFixed(1)}%)
                                   </span>
                                 )}
                               </div>
@@ -620,10 +623,10 @@ export default function KostenstellenvergleichPage() {
                                 className="h-full bg-gradient-to-r from-rose-400 to-rose-600 flex items-center justify-start pl-3"
                                 style={{ width: `${expenseWidth}%` }}
                               >
-                                {expensePercent > 0 && (
+                                {expenseShare > 0 && (
                                   <span className="text-[11px] font-semibold text-white whitespace-nowrap drop-shadow-sm">
                                     {s.expenses.toFixed(0)} € (
-                                    {expensePercent.toFixed(1)}%)
+                                    {expenseShare.toFixed(1)}%)
                                   </span>
                                 )}
                               </div>
