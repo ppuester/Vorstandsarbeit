@@ -81,8 +81,8 @@ export function DashboardContent() {
       description: 'Flugzeugstammdaten verwalten',
       href: '/flugzeuge',
       icon: Plane,
-      iconBg: 'bg-violet-100',
-      iconColor: 'text-violet-600',
+      iconBg: 'bg-slate-900/5',
+      iconColor: 'text-slate-900',
       enabled: isFeatureEnabled('aircraft'),
     },
     {
@@ -107,17 +107,15 @@ export function DashboardContent() {
               return (
                 <div
                   key={index}
-                  className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-6 hover:shadow-xl hover:border-violet-300 dark:hover:border-violet-600 transition-all duration-300"
+                  className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-6 hover:shadow-xl hover:border-slate-400 dark:hover:border-slate-500 transition-all duration-300"
                 >
                   <div className="flex items-start justify-between mb-4">
-                    <div
-                      className={`p-3 rounded-xl bg-gradient-to-br ${stat.gradient} shadow-lg`}
-                    >
+                    <div className="p-3 rounded-xl bg-slate-900 text-white shadow-lg">
                       <stat.icon className="w-6 h-6 text-white" />
                     </div>
                     <Link
                       href={stat.href}
-                      className="p-1 text-slate-400 dark:text-slate-500 hover:text-violet-500 dark:hover:text-violet-400 transition-colors"
+                      className="p-1 text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
                       title="Arbeitsstunden öffnen"
                     >
                       <ArrowRight className="w-5 h-5" />
@@ -157,22 +155,20 @@ export function DashboardContent() {
               <Link
                 key={index}
                 href={stat.href}
-                className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-6 hover:shadow-xl hover:border-violet-300 dark:hover:border-violet-600 transition-all duration-300 hover:-translate-y-1"
+                className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-6 hover:shadow-xl hover:border-slate-400 dark:hover:border-slate-500 transition-all duration-300 hover:-translate-y-1"
               >
                 <div className="flex items-start justify-between mb-4">
-                  <div
-                    className={`p-3 rounded-xl bg-gradient-to-br ${stat.gradient} shadow-lg group-hover:scale-110 transition-transform duration-300`}
-                  >
+                  <div className="p-3 rounded-xl bg-slate-900 text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
                     <stat.icon className="w-6 h-6 text-white" />
                   </div>
                   <ArrowRight className="w-5 h-5 text-slate-400 dark:text-slate-500 group-hover:text-violet-500 dark:group-hover:text-violet-400 group-hover:translate-x-1 transition-all duration-300" />
                 </div>
-                <h3 className="text-base font-semibold text-slate-700 dark:text-slate-200 mb-2 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
+                <h3 className="text-base font-semibold text-slate-700 dark:text-slate-200 mb-2 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors">
                   {stat.title}
                 </h3>
                 <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">{stat.value}</p>
                 <p className="text-sm text-slate-500 dark:text-slate-400">{stat.description}</p>
-                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-500/0 to-fuchsia-500/0 group-hover:from-violet-500/5 dark:group-hover:from-violet-500/10 group-hover:to-fuchsia-500/5 dark:group-hover:to-fuchsia-500/10 transition-all duration-300 pointer-events-none" />
+                <div className="absolute inset-0 rounded-2xl bg-slate-900/0 group-hover:bg-slate-900/5 dark:group-hover:bg-slate-100/5 transition-all duration-300 pointer-events-none" />
               </Link>
             )
           })}

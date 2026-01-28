@@ -101,10 +101,12 @@ export function Navigation() {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link href="/" className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-gradient-to-br from-violet-600 to-fuchsia-600 rounded-lg flex items-center justify-center">
-              <TrendingUp className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 bg-slate-900 dark:bg-slate-100 rounded-lg flex items-center justify-center">
+              <TrendingUp className="w-5 h-5 text-slate-100 dark:text-slate-900" />
             </div>
-            <span className="font-bold text-lg text-slate-900 dark:text-slate-100">Vorstandsarbeit</span>
+            <span className="font-semibold text-lg text-slate-900 dark:text-slate-100 tracking-tight">
+              Vorstandsarbeit
+            </span>
           </Link>
 
           {/* Desktop Navigation */}
@@ -123,7 +125,7 @@ export function Navigation() {
                     <button
                       className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
                         active
-                          ? 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300'
+                          ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
                           : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800'
                       }`}
                     >
@@ -140,7 +142,7 @@ export function Navigation() {
                               href={child.href}
                               className={`block px-4 py-2 text-sm transition-colors ${
                                 childActive
-                                  ? 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 font-medium'
+                                  ? 'bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-slate-100 font-medium'
                                   : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-slate-100'
                               }`}
                             >
@@ -160,7 +162,7 @@ export function Navigation() {
                   href={item.href}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors ${
                     active
-                      ? 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300'
+                      ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
                       : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
                 >
@@ -224,7 +226,7 @@ export function Navigation() {
                             onClick={() => setMobileMenuOpen(false)}
                             className={`block px-4 py-2 text-sm rounded-lg transition-colors ${
                               childActive
-                                ? 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300 font-medium'
+                                ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900 font-medium'
                                 : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                             }`}
                           >
@@ -244,7 +246,7 @@ export function Navigation() {
                   onClick={() => setMobileMenuOpen(false)}
                   className={`flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-colors mb-2 ${
                     active
-                      ? 'bg-violet-50 dark:bg-violet-900/30 text-violet-700 dark:text-violet-300'
+                      ? 'bg-slate-900 text-white dark:bg-slate-100 dark:text-slate-900'
                       : 'text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800'
                   }`}
                 >

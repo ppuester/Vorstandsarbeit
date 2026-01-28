@@ -311,30 +311,52 @@ export default function KostenstellenvergleichPage() {
                       {stats
                         .slice()
                         .sort((a, b) => b.year - a.year)
-                        .map((s) => (
-                          <tr key={s.year} className="border-b border-slate-100">
-                            <td className="py-3 px-4 text-sm font-medium text-slate-900">
-                              {s.year}
-                            </td>
-                            <td className="py-3 px-4 text-sm text-right text-emerald-600">
-                              {s.income.toFixed(2)} €
-                            </td>
-                            <td className="py-3 px-4 text-sm text-right text-red-600">
-                              {s.expenses.toFixed(2)} €
-                            </td>
-                            <td
-                              className={`py-3 px-4 text-sm text-right font-semibold ${
-                                s.balance >= 0 ? 'text-emerald-600' : 'text-red-600'
-                              }`}
-                            >
-                              {s.balance >= 0 ? '+' : ''}
-                              {s.balance.toFixed(2)} €
-                            </td>
-                            <td className="py-3 px-4 text-sm text-right text-slate-600">
-                              {s.transactionCount}
-                            </td>
-                          </tr>
-                        ))}
+                        .map((s, index, arr) => {
+                          const prev = index < arr.length - 1 ? arr[index + 1] : null
+                          const expenseChange =
+                            prev && prev.expenses !== 0
+                              ? ((s.expenses - prev.expenses) / prev.expenses) * 100
+                              : null
+
+                          return (
+                            <tr key={s.year} className="border-b border-slate-100">
+                              <td className="py-3 px-4 text-sm font-medium text-slate-900">
+                                {s.year}
+                              </td>
+                              <td className="py-3 px-4 text-sm text-right text-emerald-600">
+                                {s.income.toFixed(2)} €
+                              </td>
+                              <td className="py-3 px-4 text-sm text-right text-red-600">
+                                <div className="flex flex-col items-end gap-0.5">
+                                  <span>{s.expenses.toFixed(2)} €</span>
+                                  {expenseChange !== null && (
+                                    <span
+                                      className={`text-[11px] flex items-center gap-1 ${
+                                        expenseChange > 0
+                                          ? 'text-red-600'
+                                          : 'text-emerald-600'
+                                      }`}
+                                    >
+                                      {expenseChange > 0 ? '▲' : '▼'}{' '}
+                                      {Math.abs(expenseChange).toFixed(1)}% ggü. Vorjahr
+                                    </span>
+                                  )}
+                                </div>
+                              </td>
+                              <td
+                                className={`py-3 px-4 text-sm text-right font-semibold ${
+                                  s.balance >= 0 ? 'text-emerald-600' : 'text-red-600'
+                                }`}
+                              >
+                                {s.balance >= 0 ? '+' : ''}
+                                {s.balance.toFixed(2)} €
+                              </td>
+                              <td className="py-3 px-4 text-sm text-right text-slate-600">
+                                {s.transactionCount}
+                              </td>
+                            </tr>
+                          )
+                        })}
                     </tbody>
                   </table>
                 </div>

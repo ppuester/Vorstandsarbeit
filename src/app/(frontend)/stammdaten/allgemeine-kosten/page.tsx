@@ -194,7 +194,7 @@ export default function AllgemeineKostenPage() {
             {!editingId && (
               <button
                 onClick={handleCreate}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors font-medium"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors font-medium"
               >
                 <Plus className="w-5 h-5" />
                 Neue Kostengruppe
