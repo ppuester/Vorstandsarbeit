@@ -190,4 +190,28 @@ export const Reviews: CollectionConfig = {
     },
   ],
   timestamps: true,
+  hooks: {
+    beforeValidate: [
+      ({ data }: any) => {
+        // Normalisiere ratings Group-Feld
+        if (data && data.ratings) {
+          // Stelle sicher, dass alle number-Felder gültige Werte haben oder undefined sind
+          const ratingFields = ['theory', 'practice', 'friendliness', 'pricePerformance', 'flexibility']
+          
+          ratingFields.forEach((field) => {
+            if (data.ratings[field] !== undefined && data.ratings[field] !== null) {
+              // Stelle sicher, dass der Wert eine gültige Zahl ist
+              const numValue = Number(data.ratings[field])
+              if (isNaN(numValue)) {
+                data.ratings[field] = undefined
+              } else {
+                data.ratings[field] = numValue
+              }
+            }
+          })
+        }
+        return data
+      },
+    ],
+  },
 }

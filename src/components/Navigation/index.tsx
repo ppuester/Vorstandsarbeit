@@ -21,7 +21,7 @@ export function Navigation() {
   const pathname = usePathname()
   const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
-  const { isFeatureEnabled } = useOrganization()
+  const { isFeatureEnabled, setUser } = useOrganization()
 
   // Navigation auf Login-Seite ausblenden
   if (pathname === '/login') {
@@ -33,10 +33,12 @@ export function Navigation() {
       await fetch('/api/users/logout', {
         method: 'POST',
       })
+      setUser(null) // Entferne Benutzer aus Context
       router.push('/login')
       router.refresh()
     } catch (error) {
       console.error('Logout error:', error)
+      setUser(null) // Entferne Benutzer aus Context auch bei Fehler
       // Trotzdem zur Login-Seite weiterleiten
       router.push('/login')
       router.refresh()

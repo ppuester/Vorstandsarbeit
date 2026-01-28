@@ -2,6 +2,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { organizationConfigs, type OrganizationConfig } from '@/config/organizations'
+import type { User } from '@/payload-types'
 
 export type Organization = 'lsv-sauerland' | 'cdu-stadtverband' | 'cdu-fraktion'
 
@@ -11,6 +12,8 @@ interface OrganizationContextType {
   organizationName: string
   organizationConfig: OrganizationConfig
   isFeatureEnabled: (feature: keyof OrganizationConfig['features']) => boolean
+  user: User | null
+  setUser: (user: User | null) => void
 }
 
 const OrganizationContext = createContext<OrganizationContextType | undefined>(undefined)
@@ -26,6 +29,7 @@ const organizationNames: Record<Organization, string> = {
 export function OrganizationProvider({ children }: { children: React.ReactNode }) {
   const [organization, setOrganizationState] = useState<Organization>('lsv-sauerland')
   const [isHydrated, setIsHydrated] = useState(false)
+  const [user, setUser] = useState<User | null>(null)
 
   // Lade Organisation aus LocalStorage nach Hydration
   useEffect(() => {
@@ -38,6 +42,24 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
       console.error('Fehler beim Laden der Organisation:', e)
     }
     setIsHydrated(true)
+  }, [])
+
+  // Lade Benutzerdaten
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await fetch('/api/users/me', {
+          credentials: 'include',
+        })
+        if (response.ok) {
+          const data = await response.json()
+          setUser(data.user || null)
+        }
+      } catch (error) {
+        console.error('Fehler beim Laden der Benutzerdaten:', error)
+      }
+    }
+    fetchUser()
   }, [])
 
   // Speichere Organisation in LocalStorage
@@ -57,9 +79,27 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
 
   const isFeatureEnabled = useCallback(
     (feature: keyof OrganizationConfig['features']) => {
-      return organizationConfigs[organization]?.features[feature] ?? false
+      // Prüfe zuerst die Organisations-Features
+      const orgFeatureEnabled = organizationConfigs[organization]?.features[feature] ?? false
+      
+      // Wenn das Feature auf Organisationsebene deaktiviert ist, ist es auch für den Benutzer nicht verfügbar
+      if (!orgFeatureEnabled) {
+        return false
+      }
+
+      // Prüfe Benutzerberechtigungen, wenn ein Benutzer eingeloggt ist
+      if (user && user.permissions) {
+        const userPermission = (user.permissions as any)?.[feature]
+        // Wenn Benutzerberechtigung explizit gesetzt ist, verwende diese
+        if (userPermission !== undefined) {
+          return userPermission === true
+        }
+      }
+
+      // Wenn keine Benutzerberechtigung gesetzt ist, verwende die Organisationsberechtigung
+      return orgFeatureEnabled
     },
-    [organization]
+    [organization, user]
   )
 
   return (
@@ -70,6 +110,8 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
         organizationName: organizationNames[organization],
         organizationConfig: organizationConfigs[organization],
         isFeatureEnabled,
+        user,
+        setUser,
       }}
     >
       {children}

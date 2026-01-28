@@ -4,9 +4,11 @@ import React, { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { LogIn, Lock, Mail, AlertCircle } from 'lucide-react'
 import Link from 'next/link'
+import { useOrganization } from '@/providers/Organization'
 
 export default function LoginPage() {
   const router = useRouter()
+  const { setUser } = useOrganization()
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
@@ -52,6 +54,18 @@ export default function LoginPage() {
       })
 
       if (response.ok) {
+        // Lade Benutzerdaten nach erfolgreichem Login
+        try {
+          const userResponse = await fetch('/api/users/me', {
+            credentials: 'include',
+          })
+          if (userResponse.ok) {
+            const userData = await userResponse.json()
+            setUser(userData.user || null)
+          }
+        } catch (err) {
+          console.error('Fehler beim Laden der Benutzerdaten:', err)
+        }
         // Erfolgreich eingeloggt - weiterleiten zum Dashboard
         router.push('/')
         router.refresh()
