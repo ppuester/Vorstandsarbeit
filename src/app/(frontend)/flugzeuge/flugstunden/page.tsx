@@ -31,6 +31,7 @@ export default function FlugstundenPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [formData, setFormData] = useState<{
     aircraft: string
@@ -76,6 +77,7 @@ export default function FlugstundenPage() {
   }
 
   const handleCreate = () => {
+    setShowForm(true)
     setEditingId(null)
     setFormData({
       aircraft: '',
@@ -89,6 +91,7 @@ export default function FlugstundenPage() {
   }
 
   const handleEdit = (log: FlightLog) => {
+    setShowForm(true)
     setEditingId(log.id)
     const aircraftId = typeof log.aircraft === 'object' ? log.aircraft.id : log.aircraft || ''
     setFormData({
@@ -131,7 +134,7 @@ export default function FlugstundenPage() {
           setSuccess('Flugbuch erfolgreich aktualisiert')
           await fetchData()
           setEditingId(null)
-          handleCreate()
+          setShowForm(false)
         } else {
           const data = await response.json()
           setError(data.error || 'Fehler beim Aktualisieren')
@@ -149,7 +152,7 @@ export default function FlugstundenPage() {
         if (response.ok) {
           setSuccess('Flugbuch erfolgreich erstellt')
           await fetchData()
-          handleCreate()
+          setShowForm(false)
         } else {
           const data = await response.json()
           setError(data.error || 'Fehler beim Erstellen')
@@ -165,7 +168,14 @@ export default function FlugstundenPage() {
 
   const handleCancel = () => {
     setEditingId(null)
-    handleCreate()
+    setShowForm(false)
+    setFormData({
+      aircraft: '',
+      year: new Date().getFullYear(),
+      starts: 0,
+      flightHours: 0,
+      notes: '',
+    })
   }
 
   if (loading) {
@@ -202,7 +212,7 @@ export default function FlugstundenPage() {
               >
                 Auswertung & Vergleich
               </Link>
-              {!editingId && (
+              {!showForm && !editingId && (
                 <button
                   onClick={handleCreate}
                   className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 text-sm font-medium transition-colors"
@@ -230,7 +240,7 @@ export default function FlugstundenPage() {
           )}
 
           {/* Form */}
-          {editingId !== null || formData.aircraft ? (
+          {showForm || editingId !== null ? (
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 p-6 mb-6">
               <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">
                 {editingId ? 'Flugbuch bearbeiten' : 'Neuer Flugbucheintrag'}
