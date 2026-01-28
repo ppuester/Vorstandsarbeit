@@ -349,6 +349,10 @@ export default function JahresvergleichPage() {
                     const incomePercent = maxValue > 0 ? (stat.income / maxValue) * 100 : 0
                     const expensePercent = maxValue > 0 ? (stat.expenses / maxValue) * 100 : 0
 
+                    // Mindestbreite, damit auch kleinere Werte visuell sichtbar sind
+                    const incomeWidth = incomePercent > 0 ? Math.max(incomePercent, 4) : 0
+                    const expenseWidth = expensePercent > 0 ? Math.max(expensePercent, 4) : 0
+
                     return (
                       <div key={stat.year}>
                         <div className="flex items-center justify-between mb-2">
@@ -374,22 +378,22 @@ export default function JahresvergleichPage() {
                           {/* Income Bar */}
                           <div
                             className="absolute left-0 top-0 h-full bg-green-500 rounded-l-lg flex items-center justify-end pr-2"
-                            style={{ width: `${incomePercent}%` }}
+                            style={{ width: `${incomeWidth}%` }}
                           >
-                            {incomePercent > 10 && (
-                              <span className="text-xs font-medium text-white">
-                                {stat.income.toFixed(0)} €
+                            {incomePercent > 0 && (
+                              <span className="text-xs font-medium text-white whitespace-nowrap">
+                                {stat.income.toFixed(0)} € ({incomePercent.toFixed(1)}%)
                               </span>
                             )}
                           </div>
                           {/* Expense Bar */}
                           <div
                             className="absolute right-0 top-0 h-full bg-red-500 rounded-r-lg flex items-center justify-start pl-2"
-                            style={{ width: `${expensePercent}%` }}
+                            style={{ width: `${expenseWidth}%` }}
                           >
-                            {expensePercent > 10 && (
-                              <span className="text-xs font-medium text-white">
-                                {stat.expenses.toFixed(0)} €
+                            {expensePercent > 0 && (
+                              <span className="text-xs font-medium text-white whitespace-nowrap">
+                                {stat.expenses.toFixed(0)} € ({expensePercent.toFixed(1)}%)
                               </span>
                             )}
                           </div>
