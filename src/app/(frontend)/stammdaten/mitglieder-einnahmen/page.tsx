@@ -489,7 +489,23 @@ export default function MitgliederEinnahmenPage() {
                   </label>
                   <select
                     value={(formData.feeType as string) || ''}
-                    onChange={(e) => setFormData({ ...formData, feeType: e.target.value })}
+                    onChange={(e) => {
+                      const feeTypeId = e.target.value
+                      const selectedType = feeTypes.find((t) => t.id === feeTypeId)
+                      const amountPerMember =
+                        formData.amountPerMember && formData.amountPerMember > 0
+                          ? formData.amountPerMember
+                          : selectedType?.defaultAmount ?? 0
+                      const memberCount = formData.memberCount ?? 0
+                      const totalIncome = memberCount * amountPerMember
+
+                      setFormData({
+                        ...formData,
+                        feeType: feeTypeId,
+                        amountPerMember,
+                        totalIncome,
+                      })
+                    }}
                     className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100"
                   >
                     <option value="">Bitte auswählen...</option>
@@ -511,12 +527,16 @@ export default function MitgliederEinnahmenPage() {
                       type="number"
                       min={0}
                       value={formData.memberCount ?? 0}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const memberCount = Number(e.target.value) || 0
+                        const amountPerMember = formData.amountPerMember ?? 0
+                        const totalIncome = memberCount * amountPerMember
                         setFormData({
                           ...formData,
-                          memberCount: Number(e.target.value) || 0,
+                          memberCount,
+                          totalIncome,
                         })
-                      }
+                      }}
                       className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100"
                     />
                   </div>
@@ -529,12 +549,16 @@ export default function MitgliederEinnahmenPage() {
                       min={0}
                       step="0.01"
                       value={formData.amountPerMember ?? 0}
-                      onChange={(e) =>
+                      onChange={(e) => {
+                        const amountPerMember = Number(e.target.value) || 0
+                        const memberCount = formData.memberCount ?? 0
+                        const totalIncome = memberCount * amountPerMember
                         setFormData({
                           ...formData,
-                          amountPerMember: Number(e.target.value) || 0,
+                          amountPerMember,
+                          totalIncome,
                         })
-                      }
+                      }}
                       className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100"
                     />
                   </div>
