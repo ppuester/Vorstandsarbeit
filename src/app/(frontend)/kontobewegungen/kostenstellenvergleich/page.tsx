@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { BarChart3, ArrowLeft, ArrowUp, ArrowDown } from 'lucide-react'
+import { BarChart3, ArrowLeft, ArrowUp, ArrowDown, X } from 'lucide-react'
 import Link from 'next/link'
 
 interface YearStats {
@@ -28,6 +28,19 @@ interface GeneralCost {
   parent?: string | null
 }
 
+interface DetailItem {
+  id: string
+  source: 'transaction' | 'membershipFee'
+  year: number
+  date?: string
+  description: string
+  reference?: string
+  type: 'income' | 'expense'
+  amount: number
+  weightedAmount: number
+  allocationWeight?: number
+}
+
 type GroupType = 'aircraft' | 'generalCost'
 
 export default function KostenstellenvergleichPage() {
@@ -40,6 +53,10 @@ export default function KostenstellenvergleichPage() {
   const [stats, setStats] = useState<YearStats[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingStats, setLoadingStats] = useState(false)
+  const [detailType, setDetailType] = useState<'income' | 'expense' | null>(null)
+  const [detailItems, setDetailItems] = useState<DetailItem[]>([])
+  const [detailLoading, setDetailLoading] = useState(false)
+  const [showDetailModal, setShowDetailModal] = useState(false)
 
   useEffect(() => {
     fetchGroups()
@@ -152,6 +169,34 @@ export default function KostenstellenvergleichPage() {
   const detailGeneralCosts = selectedRootId
     ? generalCosts.filter((gc) => gc.parent === selectedRootId)
     : []
+
+  const openDetails = async (kind: 'income' | 'expense') => {
+    if (!selectedId) return
+    try {
+      setDetailType(kind)
+      setShowDetailModal(true)
+      setDetailLoading(true)
+
+      const params = new URLSearchParams({
+        groupType,
+        groupId: selectedId,
+        kind,
+      })
+
+      const response = await fetch(
+        `/api/transactions/group-details?${params.toString()}`,
+      )
+
+      if (response.ok) {
+        const data = await response.json()
+        setDetailItems(data || [])
+      }
+    } catch (error) {
+      console.error('Fehler beim Laden der Detailauswertung:', error)
+    } finally {
+      setDetailLoading(false)
+    }
+  }
 
   if (loading) {
     return (
@@ -303,9 +348,13 @@ export default function KostenstellenvergleichPage() {
                   </span>
                   <ArrowUp className="w-5 h-5 text-green-500" />
                 </div>
-                <p className="text-2xl font-bold text-green-600">
+                <button
+                  type="button"
+                  onClick={() => openDetails('income')}
+                  className="text-left text-2xl font-bold text-green-600 hover:text-green-700 hover:underline underline-offset-4"
+                >
                   {totalIncome.toFixed(2)} €
-                </p>
+                </button>
               </div>
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                 <div className="flex items-center justify-between mb-2">
@@ -314,9 +363,13 @@ export default function KostenstellenvergleichPage() {
                   </span>
                   <ArrowDown className="w-5 h-5 text-red-500" />
                 </div>
-                <p className="text-2xl font-bold text-red-600">
+                <button
+                  type="button"
+                  onClick={() => openDetails('expense')}
+                  className="text-left text-2xl font-bold text-red-600 hover:text-red-700 hover:underline underline-offset-4"
+                >
                   {totalExpenses.toFixed(2)} €
-                </p>
+                </button>
               </div>
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                 <div className="flex items-center justify-between mb-2">
@@ -494,6 +547,141 @@ export default function KostenstellenvergleichPage() {
               </div>
             )}
           </div>
+          {showDetailModal && detailType && (
+            <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-4">
+              <div className="bg-white rounded-2xl shadow-xl max-w-4xl w-full max-h-[90vh] overflow-hidden flex flex-col">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+                  <div>
+                    <h2 className="text-xl font-bold text-slate-900">
+                      {detailType === 'income' ? 'Details Einnahmen' : 'Details Ausgaben'}
+                    </h2>
+                    <p className="text-sm text-slate-500">
+                      {selectedLabel || 'Ausgewählte Kostenstelle'}
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDetailModal(false)
+                      setDetailItems([])
+                      setDetailType(null)
+                    }}
+                    className="p-2 rounded-full hover:bg-slate-100 text-slate-500"
+                    aria-label="Schließen"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="flex-1 overflow-y-auto">
+                  {detailLoading ? (
+                    <div className="p-6 text-slate-600">Lade Details...</div>
+                  ) : detailItems.length === 0 ? (
+                    <div className="p-6 text-slate-500">
+                      Für diese Auswahl liegen keine Detaildaten vor.
+                    </div>
+                  ) : (
+                    <div className="p-6 space-y-4">
+                      <div className="text-sm text-slate-600">
+                        Summe:{' '}
+                        <span
+                          className={`font-semibold ${
+                            detailType === 'income' ? 'text-emerald-600' : 'text-red-600'
+                          }`}
+                        >
+                          {detailItems
+                            .reduce((sum, item) => sum + item.weightedAmount, 0)
+                            .toFixed(2)}{' '}
+                          €
+                        </span>
+                      </div>
+                      <div className="overflow-x-auto">
+                        <table className="w-full text-sm">
+                          <thead className="bg-slate-50 border-b border-slate-200">
+                            <tr>
+                              <th className="text-left py-2 px-3 text-slate-700">Jahr</th>
+                              <th className="text-left py-2 px-3 text-slate-700">Datum</th>
+                              <th className="text-left py-2 px-3 text-slate-700">
+                                Beschreibung
+                              </th>
+                              <th className="text-left py-2 px-3 text-slate-700">Quelle</th>
+                              <th className="text-right py-2 px-3 text-slate-700">
+                                Betrag gesamt
+                              </th>
+                              <th className="text-right py-2 px-3 text-slate-700">
+                                Gewichtung
+                              </th>
+                              <th className="text-right py-2 px-3 text-slate-700">
+                                Beitrag zur Kostenstelle
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {detailItems.map((item) => (
+                              <tr key={item.id} className="border-b border-slate-100">
+                                <td className="py-2 px-3 text-slate-900">{item.year}</td>
+                                <td className="py-2 px-3 text-slate-600">
+                                  {item.date
+                                    ? new Date(item.date).toLocaleDateString('de-DE', {
+                                        day: '2-digit',
+                                        month: '2-digit',
+                                        year: 'numeric',
+                                      })
+                                    : '–'}
+                                </td>
+                                <td className="py-2 px-3 text-slate-900">
+                                  {item.description}
+                                  {item.reference && (
+                                    <span className="block text-xs text-slate-400">
+                                      Ref.: {item.reference}
+                                    </span>
+                                  )}
+                                </td>
+                                <td className="py-2 px-3 text-slate-600">
+                                  {item.source === 'membershipFee'
+                                    ? 'Mitgliedsbeitrag'
+                                    : 'Kontobewegung'}
+                                </td>
+                                <td className="py-2 px-3 text-right text-slate-900">
+                                  {item.amount.toFixed(2)} €
+                                </td>
+                                <td className="py-2 px-3 text-right text-slate-600">
+                                  {item.source === 'transaction' && item.allocationWeight != null
+                                    ? `${item.allocationWeight.toFixed(2)} %`
+                                    : '100 %'}
+                                </td>
+                                <td
+                                  className={`py-2 px-3 text-right font-semibold ${
+                                    detailType === 'income'
+                                      ? 'text-emerald-600'
+                                      : 'text-red-600'
+                                  }`}
+                                >
+                                  {item.weightedAmount.toFixed(2)} €
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  )}
+                </div>
+                <div className="px-6 py-3 border-t border-slate-200 flex justify-end">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowDetailModal(false)
+                      setDetailItems([])
+                      setDetailType(null)
+                    }}
+                    className="px-4 py-2 text-sm font-medium text-slate-700 hover:bg-slate-100 rounded-lg"
+                  >
+                    Schließen
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>
