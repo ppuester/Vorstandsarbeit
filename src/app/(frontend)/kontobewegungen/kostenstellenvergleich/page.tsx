@@ -221,9 +221,9 @@ export default function KostenstellenvergleichPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-violet-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-16 h-16 border-4 border-slate-900 border-t-transparent rounded-full animate-spin mx-auto mb-4" />
           <p className="text-slate-600">Lade Daten...</p>
         </div>
       </div>
@@ -231,22 +231,22 @@ export default function KostenstellenvergleichPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-slate-50">
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8 flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-slate-900 mb-4">
+              <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
                 Kostenstellenvergleich
               </h1>
-              <p className="text-lg text-slate-600">
+              <p className="text-sm md:text-base text-slate-600">
                 Vergleichen Sie die Kosten einer ausgewählten Kostenstelle über die Jahre.
               </p>
             </div>
             <Link
               href="/kontobewegungen/uebersicht"
-              className="inline-flex items-center gap-2 px-6 py-3 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 text-sm font-medium transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
               Zurück zur Übersicht
@@ -254,7 +254,7 @@ export default function KostenstellenvergleichPage() {
           </div>
 
           {/* Auswahl */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200/70 p-6 mb-8">
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-end">
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-2">
@@ -293,7 +293,7 @@ export default function KostenstellenvergleichPage() {
                   <select
                     value={selectedId}
                     onChange={(e) => handleAircraftSelectionChange(e.target.value)}
-                    className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-900"
+                    className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900"
                   >
                     <option value="">Bitte auswählen...</option>
                     {aircraft.map((ac) => (
@@ -313,7 +313,7 @@ export default function KostenstellenvergleichPage() {
                     <select
                       value={selectedRootId}
                       onChange={(e) => handleRootCostSelectionChange(e.target.value)}
-                      className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-900"
+                      className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900"
                     >
                       <option value="">Bitte auswählen...</option>
                       {rootGeneralCosts.map((gc) => (
@@ -333,7 +333,7 @@ export default function KostenstellenvergleichPage() {
                           selectedId && selectedId !== selectedRootId ? selectedId : ''
                         }
                         onChange={(e) => handleDetailCostSelectionChange(e.target.value)}
-                        className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 text-slate-900"
+                        className="w-full px-4 py-2 bg-white border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 text-slate-900"
                       >
                         <option value="">Gesamt (alle Untergruppen)</option>
                         {detailGeneralCosts.map((gc) => (
@@ -362,7 +362,7 @@ export default function KostenstellenvergleichPage() {
           {/* Summary Cards */}
           {selectedId && filteredStats.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200/70 p-6">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-slate-600">
                     Gesamt Einnahmen
@@ -385,7 +385,7 @@ export default function KostenstellenvergleichPage() {
                   </p>
                 )}
               </div>
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200/70 p-6">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-slate-600">
                     Gesamt Ausgaben
@@ -408,7 +408,7 @@ export default function KostenstellenvergleichPage() {
                   </p>
                 )}
               </div>
-              <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+              <div className="bg-white rounded-xl shadow-sm border border-slate-200/70 p-6">
                 <div className="flex items-center justify-between mb-2">
                   <span className="text-sm font-medium text-slate-600">
                     Saldo
@@ -435,7 +435,7 @@ export default function KostenstellenvergleichPage() {
           )}
 
           {/* Tabelle & Balken */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200/70 overflow-hidden">
             <div className="p-6 border-b border-slate-200 flex items-center gap-2">
               <BarChart3 className="w-5 h-5 text-slate-500" />
               <h2 className="text-xl font-bold text-slate-900">

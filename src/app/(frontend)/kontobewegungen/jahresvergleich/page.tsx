@@ -62,9 +62,9 @@ export default function JahresvergleichPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-violet-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <div className="w-16 h-16 border-4 border-slate-900 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
           <p className="text-slate-600">Lade Jahresstatistiken...</p>
         </div>
       </div>
@@ -72,22 +72,22 @@ export default function JahresvergleichPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-slate-50">
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8 flex items-center justify-between">
             <div>
-              <h1 className="text-4xl font-bold text-slate-900 mb-4">
+              <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
                 Jahresvergleich
               </h1>
-              <p className="text-lg text-slate-600">
+              <p className="text-sm md:text-base text-slate-600">
                 Vergleichen Sie Einnahmen, Ausgaben und Überschüsse über die Jahre
               </p>
             </div>
             <Link
               href="/kontobewegungen/uebersicht"
-              className="px-6 py-3 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors"
+              className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 text-sm font-medium transition-colors"
             >
               Zurück zur Übersicht
             </Link>
@@ -95,7 +95,7 @@ export default function JahresvergleichPage() {
 
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200/70 p-6">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-slate-600">Gesamt Einnahmen</span>
                 <ArrowUp className="w-5 h-5 text-green-500" />
@@ -109,7 +109,7 @@ export default function JahresvergleichPage() {
                 </p>
               )}
             </div>
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200/70 p-6">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-slate-600">Gesamt Ausgaben</span>
                 <ArrowDown className="w-5 h-5 text-red-500" />
@@ -123,7 +123,7 @@ export default function JahresvergleichPage() {
                 </p>
               )}
             </div>
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200/70 p-6">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-slate-600">Gesamt Saldo</span>
                 <span
@@ -142,7 +142,7 @@ export default function JahresvergleichPage() {
                 </p>
               )}
             </div>
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200/70 p-6">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-slate-600">Anzahl Jahre</span>
                 <Calendar className="w-5 h-5 text-slate-400" />
@@ -157,8 +157,8 @@ export default function JahresvergleichPage() {
           </div>
 
           {/* Year Selection */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mb-8">
-            <h2 className="text-xl font-bold text-slate-900 mb-4">Jahre auswählen</h2>
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200/70 p-6 mb-8">
+            <h2 className="text-xl font-semibold text-slate-900 mb-4">Jahre auswählen</h2>
             <div className="flex flex-wrap gap-3">
               {yearStats
                 .sort((a, b) => b.year - a.year)
@@ -166,9 +166,9 @@ export default function JahresvergleichPage() {
                   <button
                     key={stat.year}
                     onClick={() => toggleYear(stat.year)}
-                    className={`px-4 py-2 rounded-lg border-2 transition-colors ${
+                    className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
                       selectedYears.includes(stat.year)
-                        ? 'border-violet-600 bg-violet-50 text-violet-700 font-semibold'
+                        ? 'border-slate-900 bg-slate-900 text-white'
                         : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300'
                     }`}
                   >
@@ -180,10 +180,10 @@ export default function JahresvergleichPage() {
                   setSelectedYears(
                     selectedYears.length === yearStats.length
                       ? []
-                      : yearStats.map((s) => s.year)
+                      : yearStats.map((s) => s.year),
                   )
                 }
-                className="px-4 py-2 rounded-lg border-2 border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 text-sm"
+                className="px-4 py-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 text-sm"
               >
                 {selectedYears.length === yearStats.length ? 'Alle abwählen' : 'Alle auswählen'}
               </button>
@@ -191,7 +191,7 @@ export default function JahresvergleichPage() {
           </div>
 
           {/* Year Comparison Table */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+          <div className="bg-white rounded-xl shadow-sm border border-slate-200/70 overflow-hidden mb-8">
             <div className="p-6 border-b border-slate-200">
               <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
                 <BarChart3 className="w-5 h-5" />
