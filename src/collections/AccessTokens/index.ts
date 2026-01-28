@@ -57,7 +57,7 @@ export const AccessTokens: CollectionConfig = {
       name: 'permissions',
       type: 'select',
       hasMany: true,
-      required: true,
+      required: false, // Nicht required, damit es beim Erstellen optional ist
       label: 'Berechtigungen',
       options: [
         { label: 'Kraftstofferfassung', value: 'fuelTracking' },
@@ -114,12 +114,19 @@ export const AccessTokens: CollectionConfig = {
   ],
   hooks: {
     beforeValidate: [
-      ({ data }: any) => {
+      ({ data, operation }: any) => {
         // Normalisiere permissions-Feld
         if (data) {
           // Stelle sicher, dass permissions ein Array ist
           if (data.permissions === undefined || data.permissions === null) {
-            data.permissions = []
+            // Bei Update: Wenn permissions leer ist, behalte den bestehenden Wert
+            if (operation === 'update') {
+              // Bei Update wird der bestehende Wert beibehalten, wenn nichts gesetzt ist
+              // Lass Payload das Feld optional behandeln
+            } else {
+              // Bei Create: Setze leeres Array, wenn required ist
+              data.permissions = []
+            }
           } else if (!Array.isArray(data.permissions)) {
             // Falls es kein Array ist, konvertiere es
             data.permissions = [data.permissions].filter(Boolean)

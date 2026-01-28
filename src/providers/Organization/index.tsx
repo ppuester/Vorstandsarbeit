@@ -87,8 +87,25 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
         return false
       }
 
-      // Prüfe Benutzerberechtigungen, wenn ein Benutzer eingeloggt ist
-      if (user && (user as any).permissions) {
+      // Wenn kein Benutzer eingeloggt ist, keine Berechtigung
+      if (!user) {
+        return false
+      }
+
+      // Admin-Nutzer haben alle Berechtigungen
+      // Prüfe ob der Nutzer Admin ist (erster Nutzer oder spezielle E-Mail)
+      const userEmail = (user as any).email || ''
+      const isAdmin = 
+        userEmail === 'patrick.puester@gmail.com' || // Ihr Admin-Nutzer
+        (user as any).roles?.includes('admin') || // Payload Admin-Rolle
+        false
+
+      if (isAdmin) {
+        return orgFeatureEnabled
+      }
+
+      // Prüfe Benutzerberechtigungen
+      if ((user as any).permissions) {
         const userPermission = ((user as any).permissions as any)?.[feature]
         // Wenn Benutzerberechtigung explizit gesetzt ist, verwende diese
         if (userPermission !== undefined) {
@@ -96,8 +113,8 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
         }
       }
 
-      // Wenn keine Benutzerberechtigung gesetzt ist, verwende die Organisationsberechtigung
-      return orgFeatureEnabled
+      // Standard: Keine Berechtigung, wenn nicht explizit gesetzt
+      return false
     },
     [organization, user]
   )

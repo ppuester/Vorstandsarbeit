@@ -11,6 +11,7 @@ import {
   Fuel,
   FolderTree,
   Users,
+  Clock,
 } from 'lucide-react'
 import { useOrganization } from '@/providers/Organization'
 
@@ -53,6 +54,15 @@ export function DashboardContent() {
       description: 'Kraftstoff erfassen',
       href: '/flugzeuge/kraftstofferfassung',
       enabled: isFeatureEnabled('fuelTracking'),
+    },
+    {
+      title: 'Arbeitsstunden',
+      value: 'Übersicht',
+      icon: Clock,
+      gradient: 'from-amber-500 to-yellow-500',
+      description: 'Arbeitsstunden verwalten',
+      href: '/arbeitsstunden',
+      enabled: isFeatureEnabled('aircraft'),
     },
   ].filter((stat) => stat.enabled)
 
@@ -100,28 +110,81 @@ export function DashboardContent() {
       {/* Stats Grid */}
       {stats.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-12">
-          {stats.map((stat, index) => (
-            <Link
-              key={index}
-              href={stat.href}
-              className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-6 hover:shadow-xl hover:border-violet-300 dark:hover:border-violet-600 transition-all duration-300 hover:-translate-y-1"
-            >
-              <div className="flex items-start justify-between mb-4">
+          {stats.map((stat, index) => {
+            // Spezielle Kachel für Arbeitsstunden
+            if (stat.title === 'Arbeitsstunden') {
+              return (
                 <div
-                  className={`p-3 rounded-xl bg-gradient-to-br ${stat.gradient} shadow-lg group-hover:scale-110 transition-transform duration-300`}
+                  key={index}
+                  className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-6 hover:shadow-xl hover:border-violet-300 dark:hover:border-violet-600 transition-all duration-300"
                 >
-                  <stat.icon className="w-6 h-6 text-white" />
+                  <div className="flex items-start justify-between mb-4">
+                    <div
+                      className={`p-3 rounded-xl bg-gradient-to-br ${stat.gradient} shadow-lg`}
+                    >
+                      <stat.icon className="w-6 h-6 text-white" />
+                    </div>
+                    <Link
+                      href={stat.href}
+                      className="p-1 text-slate-400 dark:text-slate-500 hover:text-violet-500 dark:hover:text-violet-400 transition-colors"
+                      title="Arbeitsstunden öffnen"
+                    >
+                      <ArrowRight className="w-5 h-5" />
+                    </Link>
+                  </div>
+                  <h3 className="text-base font-semibold text-slate-700 dark:text-slate-200 mb-4">
+                    {stat.title}
+                  </h3>
+                  
+                  {/* Arbeitsstunden Bereiche */}
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between py-2 border-b border-slate-200 dark:border-slate-700">
+                      <span className="text-sm text-slate-600 dark:text-slate-400">Berechnung der Arbeitsstunden</span>
+                      <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">–</span>
+                    </div>
+                    <div className="flex items-center justify-between py-2 border-b border-slate-200 dark:border-slate-700">
+                      <span className="text-sm text-slate-600 dark:text-slate-400">Pflicht Arbeitsstunden</span>
+                      <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">–</span>
+                    </div>
+                    <div className="flex items-center justify-between py-2 border-b border-slate-200 dark:border-slate-700">
+                      <span className="text-sm text-slate-600 dark:text-slate-400">Ergebnis Segelflug</span>
+                      <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">–</span>
+                    </div>
+                    <div className="flex items-center justify-between py-2">
+                      <span className="text-sm text-slate-600 dark:text-slate-400">Ergebnis Motorflug</span>
+                      <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">–</span>
+                    </div>
+                  </div>
+                  
+                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-500/0 to-fuchsia-500/0 group-hover:from-violet-500/5 dark:group-hover:from-violet-500/10 group-hover:to-fuchsia-500/5 dark:group-hover:to-fuchsia-500/10 transition-all duration-300 pointer-events-none" />
                 </div>
-                <ArrowRight className="w-5 h-5 text-slate-400 dark:text-slate-500 group-hover:text-violet-500 dark:group-hover:text-violet-400 group-hover:translate-x-1 transition-all duration-300" />
-              </div>
-              <h3 className="text-base font-semibold text-slate-700 dark:text-slate-200 mb-2 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
-                {stat.title}
-              </h3>
-              <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">{stat.value}</p>
-              <p className="text-sm text-slate-500 dark:text-slate-400">{stat.description}</p>
-              <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-500/0 to-fuchsia-500/0 group-hover:from-violet-500/5 dark:group-hover:from-violet-500/10 group-hover:to-fuchsia-500/5 dark:group-hover:to-fuchsia-500/10 transition-all duration-300 pointer-events-none" />
-            </Link>
-          ))}
+              )
+            }
+            
+            // Standard-Kacheln
+            return (
+              <Link
+                key={index}
+                href={stat.href}
+                className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-6 hover:shadow-xl hover:border-violet-300 dark:hover:border-violet-600 transition-all duration-300 hover:-translate-y-1"
+              >
+                <div className="flex items-start justify-between mb-4">
+                  <div
+                    className={`p-3 rounded-xl bg-gradient-to-br ${stat.gradient} shadow-lg group-hover:scale-110 transition-transform duration-300`}
+                  >
+                    <stat.icon className="w-6 h-6 text-white" />
+                  </div>
+                  <ArrowRight className="w-5 h-5 text-slate-400 dark:text-slate-500 group-hover:text-violet-500 dark:group-hover:text-violet-400 group-hover:translate-x-1 transition-all duration-300" />
+                </div>
+                <h3 className="text-base font-semibold text-slate-700 dark:text-slate-200 mb-2 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
+                  {stat.title}
+                </h3>
+                <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">{stat.value}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">{stat.description}</p>
+                <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-500/0 to-fuchsia-500/0 group-hover:from-violet-500/5 dark:group-hover:from-violet-500/10 group-hover:to-fuchsia-500/5 dark:group-hover:to-fuchsia-500/10 transition-all duration-300 pointer-events-none" />
+              </Link>
+            )
+          })}
         </div>
       )}
 

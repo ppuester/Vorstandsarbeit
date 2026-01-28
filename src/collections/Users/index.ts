@@ -111,40 +111,43 @@ export const Users: CollectionConfig = {
   ],
   hooks: {
     beforeValidate: [
-      ({ data }: any) => {
+      ({ data, operation }: any) => {
         // Normalisiere permissions-Feld, falls es als leeres Objekt oder undefined kommt
-        if (data && data.permissions) {
-          // Stelle sicher, dass alle Checkbox-Felder boolean-Werte haben
-          const permissionFields = [
-            'transactions',
-            'aircraft',
-            'flightLogs',
-            'costCenters',
-            'costAllocations',
-            'yearlyComparison',
-            'costCalculation',
-            'fuelTracking',
-          ]
-          
-          permissionFields.forEach((field) => {
-            if (data.permissions[field] === undefined || data.permissions[field] === null) {
-              data.permissions[field] = false
-            } else {
-              // Stelle sicher, dass der Wert ein Boolean ist
-              data.permissions[field] = Boolean(data.permissions[field])
+        if (data) {
+          // Wenn permissions nicht vorhanden ist oder leer ist
+          if (!data.permissions || (typeof data.permissions === 'object' && Object.keys(data.permissions).length === 0)) {
+            // Erstelle ein leeres Objekt mit allen false-Werten
+            data.permissions = {
+              transactions: false,
+              aircraft: false,
+              flightLogs: false,
+              costCenters: false,
+              costAllocations: false,
+              yearlyComparison: false,
+              costCalculation: false,
+              fuelTracking: false,
             }
-          })
-        } else if (data && !data.permissions) {
-          // Wenn permissions nicht vorhanden ist, erstelle ein leeres Objekt mit allen false-Werten
-          data.permissions = {
-            transactions: false,
-            aircraft: false,
-            flightLogs: false,
-            costCenters: false,
-            costAllocations: false,
-            yearlyComparison: false,
-            costCalculation: false,
-            fuelTracking: false,
+          } else if (data.permissions && typeof data.permissions === 'object') {
+            // Stelle sicher, dass alle Checkbox-Felder boolean-Werte haben
+            const permissionFields = [
+              'transactions',
+              'aircraft',
+              'flightLogs',
+              'costCenters',
+              'costAllocations',
+              'yearlyComparison',
+              'costCalculation',
+              'fuelTracking',
+            ]
+            
+            permissionFields.forEach((field) => {
+              if (data.permissions[field] === undefined || data.permissions[field] === null) {
+                data.permissions[field] = false
+              } else {
+                // Stelle sicher, dass der Wert ein Boolean ist
+                data.permissions[field] = Boolean(data.permissions[field])
+              }
+            })
           }
         }
         return data
