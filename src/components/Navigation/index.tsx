@@ -83,7 +83,7 @@ export function Navigation() {
       children: [
         { label: 'Allgemeine Kosten', href: '/stammdaten/allgemeine-kosten', enabled: true },
         { label: 'Mitglieder', href: '/stammdaten/mitglieder', enabled: true },
-        { label: 'Mitglieder-Einnahmen', href: '/stammdaten/mitglieder-einnahmen', enabled: true },
+        { label: 'Fix-Einnahmen', href: '/stammdaten/mitglieder-einnahmen', enabled: true },
         { label: 'Zugänge', href: '/stammdaten/zugange', enabled: true },
       ],
     },

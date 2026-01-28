@@ -40,7 +40,7 @@ export default function MitgliederEinnahmenPage() {
   const [filterYear, setFilterYear] = useState<string>('')
   const [formData, setFormData] = useState<Partial<MembershipFeeStat>>({
     year: new Date().getFullYear(),
-    snapshotDate: new Date().toISOString().split('T')[0],
+    snapshotDate: `${new Date().getFullYear()}-12-31`,
     feeType: '',
     memberCount: 0,
     amountPerMember: 0,
@@ -105,7 +105,7 @@ export default function MitgliederEinnahmenPage() {
     setEditingId(null)
     setFormData({
       year: new Date().getFullYear(),
-      snapshotDate: new Date().toISOString().split('T')[0],
+      snapshotDate: `${new Date().getFullYear()}-12-31`,
       feeType: '',
       memberCount: 0,
       amountPerMember: 0,
@@ -139,8 +139,8 @@ export default function MitgliederEinnahmenPage() {
   }
 
   const handleSave = async () => {
-    if (!formData.year || !formData.snapshotDate || !formData.feeType) {
-      setError('Bitte Jahr, Stichtag und Beitragsart ausfüllen.')
+    if (!formData.year || !formData.feeType) {
+      setError('Bitte Jahr und Beitragsart ausfüllen.')
       return
     }
 
@@ -154,9 +154,16 @@ export default function MitgliederEinnahmenPage() {
         ? formData.totalIncome
         : (formData.memberCount || 0) * (formData.amountPerMember || 0)
 
+    const yearNumber = Number(formData.year)
+    const snapshotDate =
+      formData.snapshotDate && String(formData.snapshotDate).trim().length > 0
+        ? formData.snapshotDate
+        : `${yearNumber}-12-31`
+
     const payloadData = {
       ...formData,
-      year: Number(formData.year),
+      year: yearNumber,
+      snapshotDate,
       memberCount: Number(formData.memberCount),
       amountPerMember: Number(formData.amountPerMember),
       totalIncome: Number(totalIncome),
@@ -278,7 +285,7 @@ export default function MitgliederEinnahmenPage() {
           <div className="mb-8 flex items-center justify-between">
             <div>
               <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-                Mitglieder-Einnahmen
+                Fix-Einnahmen
               </h1>
               <p className="text-lg text-slate-600 dark:text-slate-400">
                 Erfassen Sie Mitgliederzahlen und feste Einnahmen je Sparte und Jahr.
@@ -456,31 +463,18 @@ export default function MitgliederEinnahmenPage() {
                   </div>
                 )}
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      Jahr
-                    </label>
-                    <input
-                      type="number"
-                      value={formData.year ?? ''}
-                      onChange={(e) =>
-                        setFormData({ ...formData, year: Number(e.target.value) || undefined })
-                      }
-                      className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100"
-                    />
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                      Stichtag
-                    </label>
-                    <input
-                      type="date"
-                      value={formData.snapshotDate ?? ''}
-                      onChange={(e) => setFormData({ ...formData, snapshotDate: e.target.value })}
-                      className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100"
-                    />
-                  </div>
+                <div className="mb-4">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Jahr
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.year ?? ''}
+                    onChange={(e) =>
+                      setFormData({ ...formData, year: Number(e.target.value) || undefined })
+                    }
+                    className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100"
+                  />
                 </div>
 
                 <div className="mb-4">
