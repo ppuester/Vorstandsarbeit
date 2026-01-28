@@ -28,6 +28,7 @@ export async function GET(request: Request) {
       where: Object.keys(where).length > 0 ? where : undefined,
       depth: 0,
       sort: 'name',
+      limit: 1000, // Alle (praktisch) relevanten Kostengruppen laden, nicht nur die ersten 10
     })
 
     return NextResponse.json(result)
