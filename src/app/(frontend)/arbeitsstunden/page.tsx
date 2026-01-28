@@ -36,7 +36,14 @@ export default function ArbeitsstundenPage() {
   const [success, setSuccess] = useState<string | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
-  const [formData, setFormData] = useState<Partial<WorkingHour>>({
+  const [formData, setFormData] = useState<{
+    member: string
+    date: string
+    hours: number
+    type: 'glider' | 'motor' | 'administration' | 'maintenance' | 'other'
+    description: string
+    notes: string
+  }>({
     member: '',
     date: new Date().toISOString().split('T')[0],
     hours: 0,
