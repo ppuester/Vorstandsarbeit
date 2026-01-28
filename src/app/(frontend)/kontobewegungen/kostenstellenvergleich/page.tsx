@@ -53,6 +53,7 @@ export default function KostenstellenvergleichPage() {
   const [stats, setStats] = useState<YearStats[]>([])
   const [loading, setLoading] = useState(true)
   const [loadingStats, setLoadingStats] = useState(false)
+  const [selectedYears, setSelectedYears] = useState<number[]>([])
   const [detailType, setDetailType] = useState<'income' | 'expense' | null>(null)
   const [detailItems, setDetailItems] = useState<DetailItem[]>([])
   const [detailLoading, setDetailLoading] = useState(false)
@@ -104,6 +105,10 @@ export default function KostenstellenvergleichPage() {
       if (response.ok) {
         const data = await response.json()
         setStats(data || [])
+        // Standardmäßig alle Jahre auswählen
+        const years = (data || []).map((s: YearStats) => s.year)
+        const uniqueYears = Array.from(new Set(years)).sort((a, b) => b - a)
+        setSelectedYears(uniqueYears)
       }
     } catch (error) {
       console.error('Fehler beim Laden der Gruppenauswertung:', error)
@@ -118,6 +123,7 @@ export default function KostenstellenvergleichPage() {
     setSelectedId('')
     setSelectedLabel('')
     setStats([])
+    setSelectedYears([])
   }
 
   const handleAircraftSelectionChange = (id: string) => {
@@ -160,10 +166,21 @@ export default function KostenstellenvergleichPage() {
   const totalExpenses = stats.reduce((sum, s) => sum + s.expenses, 0)
   const totalBalance = totalIncome - totalExpenses
 
+  const filteredStats =
+    selectedYears.length > 0
+      ? stats.filter((s) => selectedYears.includes(s.year))
+      : stats
+
+  const totalIncomeFiltered = filteredStats.reduce((sum, s) => sum + s.income, 0)
+  const totalExpensesFiltered = filteredStats.reduce((sum, s) => sum + s.expenses, 0)
+  const totalBalanceFiltered = totalIncomeFiltered - totalExpensesFiltered
+
   const maxValue = Math.max(
-    ...stats.map((s) => Math.max(s.income, s.expenses)),
+    ...filteredStats.map((s) => Math.max(s.income, s.expenses)),
     0,
   )
+
+  const yearOptions = Array.from(new Set(stats.map((s) => s.year))).sort((a, b) => b - a)
 
   const rootGeneralCosts = generalCosts.filter((gc) => !gc.parent)
   const detailGeneralCosts = selectedRootId
@@ -339,7 +356,7 @@ export default function KostenstellenvergleichPage() {
           </div>
 
           {/* Summary Cards */}
-          {selectedId && stats.length > 0 && (
+          {selectedId && filteredStats.length > 0 && (
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                 <div className="flex items-center justify-between mb-2">
@@ -353,8 +370,16 @@ export default function KostenstellenvergleichPage() {
                   onClick={() => openDetails('income')}
                   className="text-left text-2xl font-bold text-green-600 hover:text-green-700 hover:underline underline-offset-4"
                 >
-                  {totalIncome.toFixed(2)} €
+                  {totalIncomeFiltered.toFixed(2)} €
                 </button>
+                {selectedYears.length > 1 && (
+                  <p className="mt-1 text-xs text-slate-500">
+                    Durchschnitt pro Jahr:{' '}
+                    <span className="font-semibold">
+                      {(totalIncomeFiltered / selectedYears.length).toFixed(2)} €
+                    </span>
+                  </p>
+                )}
               </div>
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                 <div className="flex items-center justify-between mb-2">
@@ -368,8 +393,16 @@ export default function KostenstellenvergleichPage() {
                   onClick={() => openDetails('expense')}
                   className="text-left text-2xl font-bold text-red-600 hover:text-red-700 hover:underline underline-offset-4"
                 >
-                  {totalExpenses.toFixed(2)} €
+                  {totalExpensesFiltered.toFixed(2)} €
                 </button>
+                {selectedYears.length > 1 && (
+                  <p className="mt-1 text-xs text-slate-500">
+                    Durchschnitt pro Jahr:{' '}
+                    <span className="font-semibold">
+                      {(totalExpensesFiltered / selectedYears.length).toFixed(2)} €
+                    </span>
+                  </p>
+                )}
               </div>
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
                 <div className="flex items-center justify-between mb-2">
@@ -379,12 +412,20 @@ export default function KostenstellenvergleichPage() {
                 </div>
                 <p
                   className={`text-2xl font-bold ${
-                    totalBalance >= 0 ? 'text-green-600' : 'text-red-600'
+                    totalBalanceFiltered >= 0 ? 'text-green-600' : 'text-red-600'
                   }`}
                 >
-                  {totalBalance >= 0 ? '+' : ''}
-                  {totalBalance.toFixed(2)} €
+                  {totalBalanceFiltered >= 0 ? '+' : ''}
+                  {totalBalanceFiltered.toFixed(2)} €
                 </p>
+                {selectedYears.length > 1 && (
+                  <p className="mt-1 text-xs text-slate-500">
+                    Durchschnitt pro Jahr:{' '}
+                    <span className="font-semibold">
+                      {(totalBalanceFiltered / selectedYears.length).toFixed(2)} €
+                    </span>
+                  </p>
+                )}
               </div>
             </div>
           )}
@@ -397,6 +438,50 @@ export default function KostenstellenvergleichPage() {
                 Jahresübersicht der ausgewählten Kostenstelle
               </h2>
             </div>
+            {yearOptions.length > 0 && (
+              <div className="px-6 pt-4 pb-2 border-b border-slate-200">
+                <div className="flex flex-wrap items-center gap-2 text-sm">
+                  <span className="text-slate-600 mr-2">Berücksichtigte Jahre:</span>
+                  {yearOptions.map((year) => {
+                    const active = selectedYears.includes(year)
+                    return (
+                      <button
+                        key={year}
+                        type="button"
+                        onClick={() =>
+                          setSelectedYears((prev) =>
+                            prev.includes(year)
+                              ? prev.filter((y) => y !== year)
+                              : [...prev, year],
+                          )
+                        }
+                        className={`px-2 py-1 rounded-full border text-xs font-medium ${
+                          active
+                            ? 'bg-slate-900 text-white border-slate-900'
+                            : 'bg-white text-slate-700 border-slate-300 hover:bg-slate-50'
+                        }`}
+                      >
+                        {year}
+                      </button>
+                    )
+                  })}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedYears(yearOptions)}
+                    className="ml-2 px-2 py-1 rounded-full border border-slate-300 bg-white text-xs text-slate-600 hover:bg-slate-50"
+                  >
+                    Alle
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedYears([])}
+                    className="px-2 py-1 rounded-full border border-slate-300 bg-white text-xs text-slate-600 hover:bg-slate-50"
+                  >
+                    Keine
+                  </button>
+                </div>
+              </div>
+            )}
             {loadingStats ? (
               <div className="p-6 text-slate-600">Lade Auswertungen...</div>
             ) : !selectedId ? (
@@ -431,7 +516,7 @@ export default function KostenstellenvergleichPage() {
                       </tr>
                     </thead>
                     <tbody>
-                      {stats
+                      {filteredStats
                         .slice()
                         .sort((a, b) => b.year - a.year)
                         .map((s, index, arr) => {
@@ -486,7 +571,7 @@ export default function KostenstellenvergleichPage() {
 
                 {/* Visueller Vergleich */}
                 <div className="space-y-4">
-                  {stats
+                  {filteredStats
                     .slice()
                     .sort((a, b) => b.year - a.year)
                     .map((s) => {
@@ -573,26 +658,53 @@ export default function KostenstellenvergleichPage() {
                   </button>
                 </div>
                 <div className="flex-1 overflow-y-auto">
-                  {detailLoading ? (
+                  {(() => {
+                    const visibleDetails =
+                      selectedYears.length > 0
+                        ? detailItems.filter((d) => selectedYears.includes(d.year))
+                        : detailItems
+
+                    return detailLoading ? (
                     <div className="p-6 text-slate-600">Lade Details...</div>
-                  ) : detailItems.length === 0 ? (
+                  ) : visibleDetails.length === 0 ? (
                     <div className="p-6 text-slate-500">
                       Für diese Auswahl liegen keine Detaildaten vor.
                     </div>
                   ) : (
                     <div className="p-6 space-y-4">
                       <div className="text-sm text-slate-600">
-                        Summe:{' '}
+                        Summe (gefilterte Jahre):{' '}
                         <span
                           className={`font-semibold ${
                             detailType === 'income' ? 'text-emerald-600' : 'text-red-600'
                           }`}
                         >
-                          {detailItems
+                          {visibleDetails
                             .reduce((sum, item) => sum + item.weightedAmount, 0)
                             .toFixed(2)}{' '}
                           €
                         </span>
+                        {selectedYears.length > 1 && (
+                          <>
+                            {' '}
+                            · Durchschnitt/Jahr:{' '}
+                            <span
+                              className={`font-semibold ${
+                                detailType === 'income'
+                                  ? 'text-emerald-600'
+                                  : 'text-red-600'
+                              }`}
+                            >
+                              {(
+                                visibleDetails.reduce(
+                                  (sum, item) => sum + item.weightedAmount,
+                                  0,
+                                ) / selectedYears.length
+                              ).toFixed(2)}{' '}
+                              €
+                            </span>
+                          </>
+                        )}
                       </div>
                       <div className="overflow-x-auto">
                         <table className="w-full text-sm">
@@ -616,7 +728,7 @@ export default function KostenstellenvergleichPage() {
                             </tr>
                           </thead>
                           <tbody>
-                            {detailItems.map((item) => (
+                            {visibleDetails.map((item) => (
                               <tr key={item.id} className="border-b border-slate-100">
                                 <td className="py-2 px-3 text-slate-900">{item.year}</td>
                                 <td className="py-2 px-3 text-slate-600">
@@ -664,7 +776,8 @@ export default function KostenstellenvergleichPage() {
                         </table>
                       </div>
                     </div>
-                  )}
+                  )
+                  })()}
                 </div>
                 <div className="px-6 py-3 border-t border-slate-200 flex justify-end">
                   <button
