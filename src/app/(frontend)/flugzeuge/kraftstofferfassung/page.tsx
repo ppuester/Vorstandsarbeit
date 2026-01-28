@@ -8,6 +8,8 @@ import {
   AlertCircle,
   CheckCircle,
   FileText,
+  Edit,
+  X,
 } from 'lucide-react'
 import { useOrganization } from '@/providers/Organization'
 import { useSearchParams } from 'next/navigation'
@@ -40,6 +42,29 @@ interface FuelEntryRow {
   notes: string
 }
 
+interface SavedFuelEntry {
+  id: string
+  date: string
+  name: string
+  member?: {
+    id: string
+    name: string
+  } | string
+  aircraft: {
+    id: string
+    registration: string
+  } | string
+  fuelType: 'avgas' | 'mogas'
+  meterReadingOld: number
+  meterReadingNew: number
+  liters: number
+  pricePerLiter: number
+  totalPrice: number
+  notes?: string
+  createdAt?: string
+  updatedAt?: string
+}
+
 function KraftstofferfassungContent() {
   const { isFeatureEnabled } = useOrganization()
   const searchParams = useSearchParams()
@@ -51,6 +76,11 @@ function KraftstofferfassungContent() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [duplicateWarnings, setDuplicateWarnings] = useState<Record<string, string>>({})
+  const [savedEntries, setSavedEntries] = useState<SavedFuelEntry[]>([])
+  const [editingEntry, setEditingEntry] = useState<SavedFuelEntry | null>(null)
+  const [showEditModal, setShowEditModal] = useState(false)
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null)
+  const [deleting, setDeleting] = useState(false)
 
   const [rows, setRows] = useState<FuelEntryRow[]>([
     {
@@ -86,9 +116,12 @@ function KraftstofferfassungContent() {
         ? `/api/members?token=${encodeURIComponent(accessToken)}&activeOnly=true`
         : '/api/members?activeOnly=true'
       
-      const [aircraftRes, membersRes] = await Promise.all([
+      const [aircraftRes, membersRes, entriesRes] = await Promise.all([
         fetch(`/api/aircraft${tokenParam}`),
         fetch(membersUrl),
+        fetch(`/api/fuel-entries${tokenParam}`, {
+          headers: accessToken ? { Authorization: `Bearer ${accessToken}` } : {},
+        }),
       ])
 
       if (aircraftRes.ok) {
@@ -101,6 +134,11 @@ function KraftstofferfassungContent() {
       if (membersRes.ok) {
         const data = await membersRes.json()
         setMembers(data.docs || [])
+      }
+
+      if (entriesRes.ok) {
+        const data = await entriesRes.json()
+        setSavedEntries(data.docs || [])
       }
     } catch (error) {
       console.error('Fehler beim Laden der Daten:', error)
@@ -290,6 +328,8 @@ function KraftstofferfassungContent() {
           notes: '',
         },
       ])
+      // Lade Einträge neu
+      await fetchData()
     }
 
     if (skippedCount > 0 && savedCount === 0) {
@@ -297,6 +337,107 @@ function KraftstofferfassungContent() {
     }
 
     setSaving(false)
+  }
+
+  const handleEdit = (entry: SavedFuelEntry) => {
+    setEditingEntry(entry)
+    setShowEditModal(true)
+  }
+
+  const handleSaveEdit = async () => {
+    if (!editingEntry) return
+
+    setError(null)
+    setSaving(true)
+
+    try {
+      const aircraftId = typeof editingEntry.aircraft === 'object' ? editingEntry.aircraft.id : editingEntry.aircraft
+      const memberId = typeof editingEntry.member === 'object' ? editingEntry.member.id : undefined
+      
+      // Finde Mitgliedsname, falls memberId vorhanden
+      let memberName = editingEntry.name
+      if (memberId) {
+        const member = members.find((m) => m.id === memberId)
+        if (member) {
+          memberName = member.name.toUpperCase()
+        }
+      }
+
+      const submitData = {
+        date: editingEntry.date,
+        name: memberName,
+        aircraft: aircraftId,
+        fuelType: editingEntry.fuelType,
+        meterReadingOld: editingEntry.meterReadingOld,
+        meterReadingNew: editingEntry.meterReadingNew,
+        liters: editingEntry.liters,
+        pricePerLiter: editingEntry.pricePerLiter || 0,
+        totalPrice: editingEntry.totalPrice || 0,
+        notes: editingEntry.notes || '',
+      }
+
+      const url = accessToken 
+        ? `/api/fuel-entries/${editingEntry.id}?token=${encodeURIComponent(accessToken)}`
+        : `/api/fuel-entries/${editingEntry.id}`
+      
+      const response = await fetch(url, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+        body: JSON.stringify(submitData),
+      })
+
+      if (response.ok) {
+        setSuccess('Eintrag erfolgreich aktualisiert.')
+        setShowEditModal(false)
+        setEditingEntry(null)
+        await fetchData()
+      } else {
+        const data = await response.json()
+        setError(data.error || 'Fehler beim Aktualisieren des Eintrags')
+      }
+    } catch (error) {
+      console.error('Fehler beim Aktualisieren:', error)
+      setError('Fehler beim Aktualisieren des Eintrags')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const handleDelete = async () => {
+    if (!deleteConfirmId) return
+
+    setError(null)
+    setDeleting(true)
+
+    try {
+      const url = accessToken 
+        ? `/api/fuel-entries/${deleteConfirmId}?token=${encodeURIComponent(accessToken)}`
+        : `/api/fuel-entries/${deleteConfirmId}`
+      
+      const response = await fetch(url, {
+        method: 'DELETE',
+        headers: {
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+      })
+
+      if (response.ok) {
+        setSuccess('Eintrag erfolgreich gelöscht.')
+        setDeleteConfirmId(null)
+        await fetchData()
+      } else {
+        const data = await response.json()
+        setError(data.error || 'Fehler beim Löschen des Eintrags')
+      }
+    } catch (error) {
+      console.error('Fehler beim Löschen:', error)
+      setError('Fehler beim Löschen des Eintrags')
+    } finally {
+      setDeleting(false)
+    }
   }
 
   // Prüfe ob Feature aktiviert ist oder Token vorhanden
@@ -574,6 +715,321 @@ function KraftstofferfassungContent() {
             </div>
           </div>
 
+          {/* Gespeicherte Einträge */}
+          {savedEntries.length > 0 && (
+            <div className="mt-8">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-4">
+                Gespeicherte Einträge
+              </h2>
+              <div className="bg-slate-50 dark:bg-slate-800 rounded-xl shadow-lg border border-slate-200 dark:border-slate-700 overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-slate-100 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600">
+                      <tr>
+                        <th className="text-left py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                          Datum
+                        </th>
+                        <th className="text-left py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                          Name
+                        </th>
+                        <th className="text-left py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                          Flugzeug
+                        </th>
+                        <th className="text-left py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                          Kraftstoff
+                        </th>
+                        <th className="text-right py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                          Liter
+                        </th>
+                        <th className="text-left py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                          Notizen
+                        </th>
+                        <th className="text-right py-3 px-4 text-xs font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
+                          Aktionen
+                        </th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                      {savedEntries.map((entry) => {
+                        const aircraftName = typeof entry.aircraft === 'object' ? entry.aircraft.registration : 'Unbekannt'
+                        return (
+                          <tr
+                            key={entry.id}
+                            className="bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                          >
+                            <td className="py-2 px-4 text-sm text-slate-900 dark:text-slate-100">
+                              {new Date(entry.date).toLocaleDateString('de-DE')}
+                            </td>
+                            <td className="py-2 px-4 text-sm text-slate-900 dark:text-slate-100">
+                              {entry.name}
+                            </td>
+                            <td className="py-2 px-4 text-sm text-slate-900 dark:text-slate-100">
+                              {aircraftName}
+                            </td>
+                            <td className="py-2 px-4 text-sm text-slate-900 dark:text-slate-100">
+                              {entry.fuelType === 'avgas' ? 'Avgas' : 'Mogas'}
+                            </td>
+                            <td className="py-2 px-4 text-sm text-right text-slate-900 dark:text-slate-100">
+                              {entry.liters.toFixed(2)} L
+                            </td>
+                            <td className="py-2 px-4 text-sm text-slate-600 dark:text-slate-400">
+                              {entry.notes || '–'}
+                            </td>
+                            <td className="py-2 px-4">
+                              <div className="flex items-center justify-end gap-2">
+                                <button
+                                  onClick={() => handleEdit(entry)}
+                                  className="p-1.5 text-violet-600 dark:text-violet-400 hover:bg-violet-50 dark:hover:bg-violet-900/20 rounded transition-colors"
+                                  title="Bearbeiten"
+                                >
+                                  <Edit className="w-4 h-4" />
+                                </button>
+                                <button
+                                  onClick={() => setDeleteConfirmId(entry.id)}
+                                  className="p-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors"
+                                  title="Löschen"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
+                            </td>
+                          </tr>
+                        )
+                      })}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Bearbeitungs-Modal */}
+          {showEditModal && editingEntry && (
+            <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
+              <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+                <div className="sticky top-0 bg-white dark:bg-slate-800 border-b border-slate-200 dark:border-slate-700 px-6 py-4 flex items-center justify-between">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                    Eintrag bearbeiten
+                  </h3>
+                  <button
+                    onClick={() => {
+                      setShowEditModal(false)
+                      setEditingEntry(null)
+                    }}
+                    className="p-2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+                  >
+                    <X className="w-5 h-5" />
+                  </button>
+                </div>
+                <div className="p-6 space-y-4">
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                      Datum *
+                    </label>
+                    <input
+                      type="date"
+                      value={editingEntry.date ? new Date(editingEntry.date).toISOString().split('T')[0] : ''}
+                      onChange={(e) =>
+                        setEditingEntry({
+                          ...editingEntry,
+                          date: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                      Mitglied
+                    </label>
+                    <input
+                      type="text"
+                      value={editingEntry.name}
+                      onChange={(e) =>
+                        setEditingEntry({
+                          ...editingEntry,
+                          name: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                      Flugzeug *
+                    </label>
+                    <select
+                      value={typeof editingEntry.aircraft === 'object' ? editingEntry.aircraft.id : editingEntry.aircraft}
+                      onChange={(e) =>
+                        setEditingEntry({
+                          ...editingEntry,
+                          aircraft: e.target.value,
+                        })
+                      }
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400"
+                    >
+                      <option value="">–</option>
+                      {activeAircraft.map((ac) => (
+                        <option key={ac.id} value={ac.id}>
+                          {ac.registration}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                      Kraftstoff *
+                    </label>
+                    <select
+                      value={editingEntry.fuelType}
+                      onChange={(e) =>
+                        setEditingEntry({
+                          ...editingEntry,
+                          fuelType: e.target.value as 'avgas' | 'mogas',
+                        })
+                      }
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400"
+                    >
+                      <option value="avgas">Avgas</option>
+                      <option value="mogas">Mogas</option>
+                    </select>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                        Zählerstand alt
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={editingEntry.meterReadingOld || ''}
+                        onChange={(e) => {
+                          const oldValue = parseFloat(e.target.value) || 0
+                          const newValue = editingEntry.meterReadingNew || 0
+                          const liters = Math.max(0, newValue - oldValue)
+                          setEditingEntry({
+                            ...editingEntry,
+                            meterReadingOld: oldValue,
+                            liters,
+                          })
+                        }}
+                        className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400"
+                      />
+                    </div>
+                    <div>
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                        Zählerstand neu
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0"
+                        value={editingEntry.meterReadingNew || ''}
+                        onChange={(e) => {
+                          const newValue = parseFloat(e.target.value) || 0
+                          const oldValue = editingEntry.meterReadingOld || 0
+                          const liters = Math.max(0, newValue - oldValue)
+                          setEditingEntry({
+                            ...editingEntry,
+                            meterReadingNew: newValue,
+                            liters,
+                          })
+                        }}
+                        className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400"
+                      />
+                    </div>
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                      Liter (automatisch berechnet)
+                    </label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={editingEntry.liters.toFixed(2)}
+                      readOnly
+                      className="w-full px-3 py-2 bg-slate-100 dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-600 dark:text-slate-400 cursor-not-allowed"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
+                      Notizen
+                    </label>
+                    <textarea
+                      value={editingEntry.notes || ''}
+                      onChange={(e) =>
+                        setEditingEntry({
+                          ...editingEntry,
+                          notes: e.target.value,
+                        })
+                      }
+                      rows={3}
+                      className="w-full px-3 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400"
+                    />
+                  </div>
+                </div>
+                <div className="sticky bottom-0 bg-white dark:bg-slate-800 border-t border-slate-200 dark:border-slate-700 px-6 py-4 flex items-center justify-end gap-3">
+                  <button
+                    onClick={() => {
+                      setShowEditModal(false)
+                      setEditingEntry(null)
+                    }}
+                    className="px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                  >
+                    Abbrechen
+                  </button>
+                  <button
+                    onClick={handleSaveEdit}
+                    disabled={saving}
+                    className="px-6 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                  >
+                    {saving ? 'Speichere...' : 'Speichern'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Lösch-Bestätigungsdialog */}
+          {deleteConfirmId && (
+            <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
+              <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl max-w-md w-full">
+                <div className="p-6">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="p-3 bg-red-100 dark:bg-red-900/20 rounded-full">
+                      <AlertCircle className="w-6 h-6 text-red-600 dark:text-red-400" />
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                        Eintrag löschen?
+                      </h3>
+                      <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
+                        Möchten Sie diesen Eintrag wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center justify-end gap-3">
+                    <button
+                      onClick={() => setDeleteConfirmId(null)}
+                      disabled={deleting}
+                      className="px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50"
+                    >
+                      Abbrechen
+                    </button>
+                    <button
+                      onClick={handleDelete}
+                      disabled={deleting}
+                      className="px-6 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+                    >
+                      {deleting ? 'Lösche...' : 'Löschen'}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Info Box */}
           <div className="mt-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
             <div className="flex items-start gap-3">
@@ -586,6 +1042,7 @@ function KraftstofferfassungContent() {
                   <li>Verwenden Sie die Tab-Taste für schnelle Navigation zwischen Feldern</li>
                   <li>Duplikate werden automatisch erkannt und übersprungen</li>
                   <li>Mehrere Einträge können auf einmal gespeichert werden</li>
+                  <li>Gespeicherte Einträge können bearbeitet oder gelöscht werden</li>
                 </ul>
               </div>
             </div>
