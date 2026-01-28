@@ -11,6 +11,7 @@ interface GeneralCost {
   availableForIncome: boolean
   availableForExpense: boolean
   active: boolean
+  parent?: string | null
 }
 
 export default function AllgemeineKostenPage() {
@@ -27,6 +28,7 @@ export default function AllgemeineKostenPage() {
     availableForIncome: false,
     availableForExpense: true,
     active: true,
+    parent: null,
   })
 
   useEffect(() => {
@@ -57,6 +59,7 @@ export default function AllgemeineKostenPage() {
       availableForIncome: false,
       availableForExpense: true,
       active: true,
+      parent: null,
     })
     setError(null)
     setSuccess(null)
@@ -71,6 +74,7 @@ export default function AllgemeineKostenPage() {
       availableForIncome: item.availableForIncome,
       availableForExpense: item.availableForExpense,
       active: item.active,
+      parent: item.parent ?? null,
     })
     setError(null)
     setSuccess(null)
@@ -113,6 +117,7 @@ export default function AllgemeineKostenPage() {
             availableForIncome: false,
             availableForExpense: true,
             active: true,
+            parent: null,
           })
         } else {
           const data = await response.json()
@@ -138,6 +143,7 @@ export default function AllgemeineKostenPage() {
             availableForIncome: false,
             availableForExpense: true,
             active: true,
+            parent: null,
           })
         } else {
           const data = await response.json()
@@ -161,6 +167,7 @@ export default function AllgemeineKostenPage() {
       availableForIncome: false,
       availableForExpense: true,
       active: true,
+      parent: null,
     })
     setError(null)
     setSuccess(null)
@@ -325,6 +332,33 @@ export default function AllgemeineKostenPage() {
                     Abbrechen
                   </button>
                 </div>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                  Übergeordnete Kostengruppe (optional)
+                </label>
+                <select
+                  value={formData.parent || ''}
+                  onChange={(e) =>
+                    setFormData({
+                      ...formData,
+                      parent: e.target.value || null,
+                    })
+                  }
+                  className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100"
+                >
+                  <option value="">Keine Obergruppe</option>
+                  {generalCosts
+                    .filter((gc) => !editingId || gc.id !== editingId)
+                    .map((gc) => (
+                      <option key={gc.id} value={gc.id}>
+                        {gc.name}
+                      </option>
+                    ))}
+                </select>
+                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                  Beispiel: Obergruppe „Fixkosten“ mit Untergruppen wie „Pacht“, „Versicherung“.
+                </p>
               </div>
             </div>
           ) : null}

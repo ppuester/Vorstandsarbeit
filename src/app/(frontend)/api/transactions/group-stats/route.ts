@@ -19,6 +19,49 @@ export async function GET(request: Request) {
 
     const payload = await getPayload({ config: configPromise })
 
+    // Für allgemeine Kosten: alle Untergruppen (mehrstufig) mit einbeziehen
+    let generalCostIds: Set<string> | null = null
+
+    if (groupType === 'generalCost') {
+      const generalCosts = await payload.find({
+        collection: 'general-costs' as CollectionSlug,
+        limit: 1000,
+        depth: 0,
+      })
+
+      generalCostIds = new Set<string>()
+      const childrenByParent = new Map<string, string[]>()
+
+      generalCosts.docs.forEach((gc: any) => {
+        const id = gc.id as string
+        const parent =
+          typeof gc.parent === 'object' && gc.parent !== null
+            ? gc.parent.id
+            : (gc.parent as string | undefined)
+
+        if (parent) {
+          if (!childrenByParent.has(parent)) {
+            childrenByParent.set(parent, [])
+          }
+          childrenByParent.get(parent)!.push(id)
+        }
+      })
+
+      const queue: string[] = [groupId]
+      generalCostIds.add(groupId)
+
+      while (queue.length > 0) {
+        const current = queue.shift()!
+        const children = childrenByParent.get(current) || []
+        for (const childId of children) {
+          if (!generalCostIds.has(childId)) {
+            generalCostIds.add(childId)
+            queue.push(childId)
+          }
+        }
+      }
+    }
+
     // Alle Transaktionen laden (ähnlich yearly-stats)
     const result = await payload.find({
       collection: 'transactions' as CollectionSlug,
@@ -42,7 +85,7 @@ export async function GET(request: Request) {
       const date = new Date(transaction.date)
       const year = date.getFullYear()
 
-      // Finde die relevante Zuordnung für dieses groupId
+      // Finde die relevante Zuordnung für dieses groupId (inkl. Untergruppen)
       const allocation = transaction.costAllocations.find((alloc: any) => {
         const allocationType =
           alloc.allocationType || (alloc.aircraft ? 'aircraft' : 'generalCost')
@@ -61,7 +104,10 @@ export async function GET(request: Request) {
           typeof alloc.generalCost === 'object' && alloc.generalCost !== null
             ? alloc.generalCost.id
             : alloc.generalCost
-        return generalCostId === groupId
+
+        if (!generalCostId) return false
+
+        return generalCostIds ? generalCostIds.has(generalCostId) : generalCostId === groupId
       })
 
       if (!allocation) return

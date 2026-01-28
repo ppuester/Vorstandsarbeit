@@ -20,6 +20,16 @@ export const GeneralCosts: CollectionConfig = {
   },
   fields: [
     {
+      name: 'parent',
+      type: 'relationship',
+      relationTo: 'general-costs',
+      label: 'Übergeordnete Kostengruppe',
+      admin: {
+        description:
+          'Optional: ordnet diese Kostenstelle einer Obergruppe zu (z.B. Fixkosten → Pacht)',
+      },
+    },
+    {
       name: 'name',
       type: 'text',
       required: true,
