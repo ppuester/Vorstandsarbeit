@@ -173,6 +173,28 @@ export default function KostenermittlungPage() {
     }
   }
 
+  // Wenn noch kein sinnvolles Jahr gewählt ist, automatisch das neueste vorhandene Jahr auswählen
+  useEffect(() => {
+    const years = Array.from(
+      new Set([
+        ...flightLogs.map((log: FlightLog) => log.year),
+        ...transactions.map((t: TransactionData) => new Date(t.date).getFullYear()),
+        ...fuelEntries.map((fe: FuelEntry) => new Date(fe.date).getFullYear()),
+      ])
+    ).sort((a: number, b: number) => b - a)
+
+    if (years.length === 0) return
+
+    const currentYear = new Date().getFullYear()
+
+    // Falls das aktuell gewählte Jahr keine Daten hat, wähle automatisch das neueste Jahr mit Daten
+    const hasSelectedYearWithData = selectedYears.some((y: number) => years.includes(y))
+
+    if (!hasSelectedYearWithData) {
+      setSelectedYears([years[0]])
+    }
+  }, [flightLogs, transactions, fuelEntries])
+
   // Get available years
   const availableYears = Array.from(
     new Set([

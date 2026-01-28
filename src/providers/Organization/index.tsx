@@ -93,10 +93,11 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
       }
 
       // Admin-Nutzer haben alle Berechtigungen
-      // Prüfe ob der Nutzer Admin ist (erster Nutzer oder spezielle E-Mail)
-      const userEmail = (user as any).email || ''
-      const isAdmin = 
-        userEmail === 'patrick.puester@gmail.com' || // Ihr Admin-Nutzer
+      // Prüfe ob der Nutzer Admin ist (spezielle Admin-E-Mails oder Payload-Rolle)
+      const userEmail = ((user as any).email || '').toLowerCase()
+      const adminEmails = ['ppuester@gmail.com', 'patrick.puester@gmail.com']
+      const isAdmin =
+        adminEmails.includes(userEmail) || // Ihre Admin-Nutzer
         (user as any).roles?.includes('admin') || // Payload Admin-Rolle
         false
 
