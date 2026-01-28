@@ -31,7 +31,6 @@ export function DashboardContent() {
       title: 'Kontobewegungen',
       value: 'Übersicht',
       icon: FileText,
-      gradient: 'from-blue-500 to-cyan-500',
       description: 'Einnahmen & Ausgaben verwalten',
       href: '/kontobewegungen/uebersicht',
       enabled: isFeatureEnabled('transactions'),
@@ -40,7 +39,6 @@ export function DashboardContent() {
       title: 'Flugzeuge',
       value: 'Verwaltung',
       icon: Plane,
-      gradient: 'from-violet-500 to-purple-500',
       description: 'Flugzeugstammdaten & Flugbücher',
       href: '/flugzeuge',
       enabled: isFeatureEnabled('aircraft'),
@@ -49,7 +47,6 @@ export function DashboardContent() {
       title: 'Kostenermittlung',
       value: 'Berechnung',
       icon: Calculator,
-      gradient: 'from-emerald-500 to-teal-500',
       description: 'Kosten pro Flugzeug',
       href: '/flugzeuge/kostenermittlung',
       enabled: isFeatureEnabled('costCalculation'),
@@ -58,7 +55,6 @@ export function DashboardContent() {
       title: 'Kraftstofferfassung',
       value: 'Tankvorgänge',
       icon: Fuel,
-      gradient: 'from-orange-500 to-red-500',
       description: 'Kraftstoff erfassen',
       href: '/flugzeuge/kraftstofferfassung',
       enabled: isFeatureEnabled('fuelTracking'),
@@ -67,7 +63,6 @@ export function DashboardContent() {
       title: 'Arbeitsstunden',
       value: 'Übersicht',
       icon: Clock,
-      gradient: 'from-amber-500 to-yellow-500',
       description: 'Arbeitsstunden verwalten',
       href: '/arbeitsstunden',
       enabled: isFeatureEnabled('aircraft'),
@@ -76,7 +71,6 @@ export function DashboardContent() {
       title: 'Mitglieder & Fix-Einnahmen',
       value: '',
       icon: Users,
-      gradient: '',
       description: 'Verlauf der Mitgliederzahlen und Fix-Einnahmen',
       href: '/stammdaten/mitglieder-einnahmen',
       enabled: true,
@@ -301,20 +295,23 @@ export function DashboardContent() {
               <Link
                 key={index}
                 href={stat.href}
-                className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-6 hover:shadow-xl hover:border-slate-400 dark:hover:border-slate-500 transition-all duration-300 hover:-translate-y-1"
+                className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 p-6 hover:shadow-md hover:border-slate-400 dark:hover:border-slate-500 transition-all duration-200 hover:-translate-y-0.5"
               >
                 <div className="flex items-start justify-between mb-4">
-                  <div className="p-3 rounded-xl bg-slate-900 text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <div className="p-3 rounded-xl bg-slate-900 text-white shadow-sm">
                     <stat.icon className="w-6 h-6 text-white" />
                   </div>
-                  <ArrowRight className="w-5 h-5 text-slate-400 dark:text-slate-500 group-hover:text-violet-500 dark:group-hover:text-violet-400 group-hover:translate-x-1 transition-all duration-300" />
+                  <ArrowRight className="w-5 h-5 text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-200 group-hover:translate-x-0.5 transition-all duration-200" />
                 </div>
-                <h3 className="text-base font-semibold text-slate-700 dark:text-slate-200 mb-2 group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors">
+                <h3 className="text-base font-semibold text-slate-800 dark:text-slate-100 mb-1">
                   {stat.title}
                 </h3>
-                <p className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">{stat.value}</p>
-                <p className="text-sm text-slate-500 dark:text-slate-400">{stat.description}</p>
-                <div className="absolute inset-0 rounded-2xl bg-slate-900/0 group-hover:bg-slate-900/5 dark:group-hover:bg-slate-100/5 transition-all duration-300 pointer-events-none" />
+                <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">{stat.description}</p>
+                {stat.value && (
+                  <p className="text-xs font-medium text-slate-400 dark:text-slate-500">
+                    {stat.value}
+                  </p>
+                )}
               </Link>
             )
           })}
@@ -323,27 +320,29 @@ export function DashboardContent() {
 
       {/* Quick Actions */}
       {quickActions.length > 0 && (
-        <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-6 md:p-8">
+        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 p-6 md:p-8">
           <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-lg">
-              <BarChart3 className="w-5 h-5 text-white" />
+            <div className="p-2 rounded-lg bg-slate-900 text-white">
+              <BarChart3 className="w-5 h-5" />
             </div>
-            <h2 className="text-2xl md:text-3xl font-bold text-slate-900 dark:text-slate-100">Stammdaten</h2>
+            <h2 className="text-xl md:text-2xl font-semibold text-slate-900 dark:text-slate-100">
+              Stammdaten
+            </h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
             {quickActions.map((action, index) => (
               <Link
                 key={index}
                 href={action.href}
-                className="group relative p-5 border-2 border-slate-200 dark:border-slate-700 rounded-xl hover:border-violet-400 dark:hover:border-violet-600 hover:bg-gradient-to-br hover:from-violet-50 dark:hover:from-violet-900/20 hover:to-fuchsia-50 dark:hover:to-fuchsia-900/20 transition-all duration-300 hover:shadow-md"
+                className="group relative p-5 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-slate-400 dark:hover:border-slate-500 hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-all duration-200 hover:shadow-sm"
               >
                 <div className="flex items-start justify-between mb-3">
-                  <div className={`p-2 ${action.iconBg} dark:opacity-80 rounded-lg group-hover:opacity-80 transition-colors`}>
+                  <div className={`p-2 ${action.iconBg} rounded-lg`}>
                     <action.icon className={`w-5 h-5 ${action.iconColor}`} />
                   </div>
-                  <ArrowRight className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-violet-500 dark:group-hover:text-violet-400 group-hover:translate-x-1 transition-all duration-300" />
+                  <ArrowRight className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-200 group-hover:translate-x-0.5 transition-all duration-200" />
                 </div>
-                <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-1 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors">
+                <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">
                   {action.title}
                 </h3>
                 <p className="text-sm text-slate-600 dark:text-slate-400">{action.description}</p>
