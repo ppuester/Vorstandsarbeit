@@ -106,6 +106,7 @@ export default function AllgemeineKostenPage() {
           setSuccess('Allgemeine Kosten erfolgreich aktualisiert')
           await fetchData()
           setEditingId(null)
+          setShowForm(false)
           setFormData({
             name: '',
             description: '',
@@ -130,6 +131,7 @@ export default function AllgemeineKostenPage() {
         if (response.ok) {
           setSuccess('Allgemeine Kosten erfolgreich erstellt')
           await fetchData()
+          setShowForm(false)
           setFormData({
             name: '',
             description: '',

@@ -266,8 +266,10 @@ export default function KontobewegungenUebersichtPage() {
       })
 
       if (response.ok) {
+        const json = await response.json()
+        const updated = (json as any).doc ?? json
         setTransactions((prev) =>
-          prev.map((t) => (t.id === id ? { ...t, processed: !currentStatus } : t))
+          prev.map((t) => (t.id === id ? { ...t, ...updated } : t))
         )
       }
     } catch (error) {
@@ -329,7 +331,8 @@ export default function KontobewegungenUebersichtPage() {
       })
 
       if (response.ok) {
-        const updated = await response.json()
+        const json = await response.json()
+        const updated = (json as any).doc ?? json
         setTransactions((prev) =>
           prev.map((t) => (t.id === editingTransaction.id ? updated : t))
         )
@@ -363,7 +366,8 @@ export default function KontobewegungenUebersichtPage() {
       })
 
       if (response.ok) {
-        const updated = await response.json()
+        const json = await response.json()
+        const updated = (json as any).doc ?? json
         setTransactions((prev) =>
           prev.map((t) => (t.id === transactionId ? updated : t))
         )
