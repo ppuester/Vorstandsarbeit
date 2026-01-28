@@ -47,7 +47,8 @@ export const MembershipFeeTypes: CollectionConfig = {
     {
       name: 'generalCost',
       type: 'relationship',
-      relationTo: 'general-costs',
+      // Verweis auf Allgemeine Kosten (Fixkosten etc.)
+      relationTo: 'general-costs' as any,
       label: 'Zuordnung zu Allgemeiner Kostenstelle',
       admin: {
         description:

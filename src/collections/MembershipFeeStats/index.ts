@@ -49,7 +49,7 @@ export const MembershipFeeStats: CollectionConfig = {
     {
       name: 'feeType',
       type: 'relationship',
-      relationTo: 'membership-fee-types',
+      relationTo: 'membership-fee-types' as any,
       required: true,
       label: 'Beitragsart',
     },
@@ -83,7 +83,7 @@ export const MembershipFeeStats: CollectionConfig = {
     {
       name: 'generalCost',
       type: 'relationship',
-      relationTo: 'general-costs',
+      relationTo: 'general-costs' as any,
       label: 'Zuordnung zu Allgemeiner Kostenstelle',
       admin: {
         description:

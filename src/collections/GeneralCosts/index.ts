@@ -22,7 +22,8 @@ export const GeneralCosts: CollectionConfig = {
     {
       name: 'parent',
       type: 'relationship',
-      relationTo: 'general-costs',
+      // cast to avoid issues with CollectionSlug typing during build
+      relationTo: 'general-costs' as any,
       label: 'Übergeordnete Kostengruppe',
       admin: {
         description:
