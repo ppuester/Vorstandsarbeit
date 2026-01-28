@@ -22,6 +22,7 @@ export default function AllgemeineKostenPage() {
   const [success, setSuccess] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
+  const [expandedIds, setExpandedIds] = useState<string[]>([])
   const [formData, setFormData] = useState<Partial<GeneralCost>>({
     name: '',
     description: '',
@@ -42,6 +43,11 @@ export default function AllgemeineKostenPage() {
       if (response.ok) {
         const data = await response.json()
         setGeneralCosts(data.docs || [])
+        // Standardmäßig alle Obergruppen aufklappen
+        const roots = (data.docs || [])
+          .filter((gc: any) => !gc.parent)
+          .map((gc: any) => gc.id as string)
+        setExpandedIds(roots)
       }
     } catch (error) {
       console.error('Fehler beim Laden:', error)
@@ -80,6 +86,46 @@ export default function AllgemeineKostenPage() {
     setSuccess(null)
     setShowForm(true)
   }
+
+  const toggleExpanded = (id: string) => {
+    setExpandedIds((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    )
+  }
+
+  const buildTree = () => {
+    const byParent: Record<string, GeneralCost[]> = {}
+    const roots: GeneralCost[] = []
+
+    generalCosts.forEach((gc) => {
+      const parentId = gc.parent || null
+      if (parentId) {
+        if (!byParent[parentId]) byParent[parentId] = []
+        byParent[parentId].push(gc)
+      } else {
+        roots.push(gc)
+      }
+    })
+
+    const result: Array<{ item: GeneralCost; depth: number }> = []
+
+    const visit = (node: GeneralCost, depth: number) => {
+      result.push({ item: node, depth })
+      const children = byParent[node.id] || []
+      if (!expandedIds.includes(node.id)) return
+      children
+        .sort((a, b) => a.name.localeCompare(b.name))
+        .forEach((child) => visit(child, depth + 1))
+    }
+
+    roots
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .forEach((root) => visit(root, 0))
+
+    return result
+  }
+
+  const treeRows = buildTree()
 
   const handleSave = async () => {
     if (!formData.name?.trim()) {
@@ -378,20 +424,48 @@ export default function AllgemeineKostenPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                  {generalCosts.length === 0 ? (
+                  {treeRows.length === 0 ? (
                     <tr>
                       <td colSpan={6} className="py-12 text-center text-slate-500 dark:text-slate-400">
                         Noch keine allgemeinen Kosten vorhanden. Erstellen Sie die erste!
                       </td>
                     </tr>
                   ) : (
-                    generalCosts.map((item) => (
+                    treeRows.map(({ item, depth }) => (
                       <tr
                         key={item.id}
                         className="hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                       >
                         <td className="py-4 px-6 font-medium text-slate-900 dark:text-slate-100">
-                          {item.name}
+                          <div className="flex items-center gap-2">
+                            {/* Indent je Ebene */}
+                            <div style={{ width: depth * 16 }} />
+                            {/* Toggle-Pfeil nur für Einträge mit Kindern */}
+                            {generalCosts.some((gc) => gc.parent === item.id) ? (
+                              <button
+                                type="button"
+                                onClick={() => toggleExpanded(item.id)}
+                                className="w-5 h-5 flex items-center justify-center rounded-full border border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400 text-[10px] bg-white dark:bg-slate-800"
+                                aria-label={
+                                  expandedIds.includes(item.id)
+                                    ? 'Untergruppen einklappen'
+                                    : 'Untergruppen ausklappen'
+                                }
+                              >
+                                {expandedIds.includes(item.id) ? '–' : '+'}
+                              </button>
+                            ) : (
+                              <span className="w-5 h-5" />
+                            )}
+                            <span>
+                              {item.name}
+                              {item.parent && (
+                                <span className="ml-2 text-xs text-slate-400">
+                                  (untergeordnet)
+                                </span>
+                              )}
+                            </span>
+                          </div>
                         </td>
                         <td className="py-4 px-6 text-slate-600 dark:text-slate-400">
                           {item.description || '–'}
