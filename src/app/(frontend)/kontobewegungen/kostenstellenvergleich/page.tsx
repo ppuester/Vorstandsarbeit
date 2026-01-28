@@ -103,11 +103,13 @@ export default function KostenstellenvergleichPage() {
       })
       const response = await fetch(`/api/transactions/group-stats?${params.toString()}`)
       if (response.ok) {
-        const data = await response.json()
+        const data: YearStats[] = await response.json()
         setStats(data || [])
         // Standardmäßig alle Jahre auswählen
-        const years = (data || []).map((s: YearStats) => s.year)
-        const uniqueYears = Array.from(new Set(years)).sort((a, b) => b - a)
+        const years = (data || []).map((s) => s.year)
+        const uniqueYears = Array.from(new Set<number>(years)).sort(
+          (a, b) => b - a,
+        )
         setSelectedYears(uniqueYears)
       }
     } catch (error) {
@@ -180,7 +182,9 @@ export default function KostenstellenvergleichPage() {
     0,
   )
 
-  const yearOptions = Array.from(new Set(stats.map((s) => s.year))).sort((a, b) => b - a)
+  const yearOptions = Array.from(
+    new Set<number>(stats.map((s) => s.year)),
+  ).sort((a, b) => b - a)
 
   const rootGeneralCosts = generalCosts.filter((gc) => !gc.parent)
   const detailGeneralCosts = selectedRootId
