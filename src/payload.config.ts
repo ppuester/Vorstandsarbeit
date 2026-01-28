@@ -14,6 +14,7 @@ import { GeneralCosts } from './collections/GeneralCosts'
 import { Members } from './collections/Members'
 import { MembershipFeeTypes } from './collections/MembershipFeeTypes'
 import { MembershipFeeStats } from './collections/MembershipFeeStats'
+import { WorkingHours } from './collections/WorkingHours'
 import { Media } from './collections/Media'
 import { Transactions } from './collections/Transactions'
 import { TransactionCategories } from './collections/TransactionCategories'
@@ -111,6 +112,7 @@ export default buildConfig({
     Members,
     MembershipFeeTypes,
     MembershipFeeStats,
+    WorkingHours,
   ],
   cors: [getServerSideURL()].filter(Boolean),
   plugins,
