@@ -438,6 +438,12 @@ export default function KontobewegungenUebersichtPage() {
             </div>
             <div className="flex gap-3">
               <Link
+                href="/kontobewegungen/kostenstellenvergleich"
+                className="px-6 py-3 bg-slate-500 text-white rounded-lg hover:bg-slate-600 transition-colors"
+              >
+                Kostenstellenvergleich
+              </Link>
+              <Link
                 href="/kontobewegungen/jahresvergleich"
                 className="px-6 py-3 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors"
               >
