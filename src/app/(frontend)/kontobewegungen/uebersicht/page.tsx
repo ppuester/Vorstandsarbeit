@@ -113,6 +113,8 @@ export default function KontobewegungenUebersichtPage() {
   const [totalDocs, setTotalDocs] = useState(0)
   const [limit] = useState(50)
   const [totals, setTotals] = useState({ income: 0, expenses: 0, balance: 0 })
+  const [selectedTransactions, setSelectedTransactions] = useState<string[]>([])
+  const [isBulkAllocation, setIsBulkAllocation] = useState(false)
 
   useEffect(() => {
     fetchAircraftAndCostCenters()
@@ -198,6 +200,10 @@ export default function KontobewegungenUebersichtPage() {
         setTotalPages(data.totalPages || 1)
         setTotalDocs(data.totalDocs || 0)
         setCurrentPage(page)
+        // Auswahl auf diese Seite beschränken (verwaiste IDs entfernen)
+        setSelectedTransactions((prev) =>
+          prev.filter((id) => (data.docs || []).some((t: Transaction) => t.id === id)),
+        )
       }
     } catch (error) {
       console.error('Fehler beim Laden der Transaktionen:', error)
@@ -278,6 +284,7 @@ export default function KontobewegungenUebersichtPage() {
   }
 
   const handleEditAllocation = (transaction: Transaction) => {
+    setIsBulkAllocation(false)
     setEditingTransaction(transaction)
     // Initialize form with existing allocations or empty
     if (transaction.costAllocations && transaction.costAllocations.length > 0) {
@@ -301,44 +308,93 @@ export default function KontobewegungenUebersichtPage() {
     }
   }
 
+  const handleBulkEditAllocation = () => {
+    if (!isFeatureEnabled('costAllocations')) return
+    if (selectedTransactions.length === 0) {
+      alert('Bitte wählen Sie zuerst mindestens eine Kontobewegung aus.')
+      return
+    }
+
+    const first = transactions.find((t) => t.id === selectedTransactions[0])
+    if (!first) return
+
+    setIsBulkAllocation(true)
+    handleEditAllocation(first)
+  }
+
+  const toggleSelectTransaction = (id: string) => {
+    setSelectedTransactions((prev) =>
+      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
+    )
+  }
+
+  const toggleSelectAllVisible = () => {
+    const visibleIds = sortedTransactions.map((t) => t.id)
+    const allVisibleSelected = visibleIds.every((id) => selectedTransactions.includes(id))
+
+    setSelectedTransactions((prev) => {
+      if (allVisibleSelected) {
+        // Nur die auf dieser Seite entfernen
+        return prev.filter((id) => !visibleIds.includes(id))
+      }
+      // Sichtbare hinzufügen (ohne Duplikate)
+      const set = new Set(prev)
+      visibleIds.forEach((id) => set.add(id))
+      return Array.from(set)
+    })
+  }
+
   const handleSaveAllocation = async () => {
-    if (!editingTransaction) return
+    if (!editingTransaction && !isBulkAllocation) return
 
     // Calculate total weight
-    const totalWeight = allocationForm.reduce((sum, alloc) => sum + alloc.weight, 0)
+    const totalWeightLocal = allocationForm.reduce((sum, alloc) => sum + alloc.weight, 0)
 
-    if (Math.abs(totalWeight - 100) > 0.01) {
+    if (Math.abs(totalWeightLocal - 100) > 0.01) {
       alert(
-        `Die Gesamtgewichtung beträgt ${totalWeight.toFixed(2)}% statt 100%. Bitte korrigieren Sie die Gewichtungen.`
+        `Die Gesamtgewichtung beträgt ${totalWeightLocal.toFixed(
+          2,
+        )}% statt 100%. Bitte korrigieren Sie die Gewichtungen.`,
       )
       return
     }
 
-    try {
-      const response = await fetch(`/api/transactions/${editingTransaction.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          costAllocations: allocationForm.map((alloc) => ({
-            allocationType: alloc.allocationType,
-            aircraft: alloc.allocationType === 'aircraft' ? alloc.aircraft : undefined,
-            generalCost: alloc.allocationType === 'generalCost' ? alloc.generalCost : undefined,
-            weight: alloc.weight,
-          })),
-        }),
-      })
+    const targetIds = isBulkAllocation
+      ? selectedTransactions
+      : editingTransaction
+      ? [editingTransaction.id]
+      : []
 
-      if (response.ok) {
-        const json = await response.json()
-        const updated = (json as any).doc ?? json
-        setTransactions((prev) =>
-          prev.map((t) => (t.id === editingTransaction.id ? updated : t))
-        )
-        setEditingTransaction(null)
-        setAllocationForm([])
+    if (targetIds.length === 0) return
+
+    try {
+      for (const id of targetIds) {
+        const response = await fetch(`/api/transactions/${id}`, {
+          method: 'PATCH',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            costAllocations: allocationForm.map((alloc) => ({
+              allocationType: alloc.allocationType,
+              aircraft: alloc.allocationType === 'aircraft' ? alloc.aircraft : undefined,
+              generalCost:
+                alloc.allocationType === 'generalCost' ? alloc.generalCost : undefined,
+              weight: alloc.weight,
+            })),
+          }),
+        })
+
+        if (response.ok) {
+          const json = await response.json()
+          const updated = (json as any).doc ?? json
+          setTransactions((prev) => prev.map((t) => (t.id === id ? updated : t)))
+        }
       }
+
+      setEditingTransaction(null)
+      setAllocationForm([])
+      setIsBulkAllocation(false)
     } catch (error) {
       console.error('Fehler beim Speichern der Zuordnung:', error)
       alert('Fehler beim Speichern der Zuordnung')
@@ -410,6 +466,10 @@ export default function KontobewegungenUebersichtPage() {
 
   // Transactions are already sorted by the API
   const sortedTransactions = transactions
+
+  const allVisibleSelected =
+    sortedTransactions.length > 0 &&
+    sortedTransactions.every((t) => selectedTransactions.includes(t.id))
 
   if (loading) {
     return (
@@ -654,11 +714,37 @@ export default function KontobewegungenUebersichtPage() {
 
           {/* Transactions Table */}
           <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+            {isFeatureEnabled('costAllocations') && (
+              <div className="flex items-center justify-between px-4 py-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/80">
+                <div className="text-sm text-slate-600 dark:text-slate-400">
+                  Ausgewählt: <span className="font-medium">{selectedTransactions.length}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleBulkEditAllocation}
+                  className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg bg-slate-900 text-white hover:bg-slate-800 disabled:bg-slate-300 disabled:text-slate-600 disabled:cursor-not-allowed transition-colors"
+                  disabled={selectedTransactions.length === 0}
+                >
+                  <LinkIcon className="w-4 h-4" />
+                  Ausgewählte zuordnen
+                </button>
+              </div>
+            )}
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead className="bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600">
                   <tr>
-                    <th className="text-center py-4 px-4 font-semibold text-slate-700 dark:text-slate-300 w-32">Aktion</th>
+                    <th className="text-center py-4 px-4 font-semibold text-slate-700 dark:text-slate-300 w-10">
+                      <input
+                        type="checkbox"
+                        checked={allVisibleSelected}
+                        onChange={toggleSelectAllVisible}
+                        className="w-4 h-4 text-violet-600 dark:text-violet-400 border-slate-300 dark:border-slate-600 rounded"
+                      />
+                    </th>
+                    <th className="text-center py-4 px-4 font-semibold text-slate-700 dark:text-slate-300 w-32">
+                      Aktion
+                    </th>
                     <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Zuordnung</th>
                     <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Datum</th>
                     <th className="text-right py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Betrag</th>
@@ -676,7 +762,7 @@ export default function KontobewegungenUebersichtPage() {
                     <tr>
                       <td
                         colSpan={
-                          6 +
+                          7 +
                           (isFeatureEnabled('costCenters') ? 1 : 0) +
                           (isFeatureEnabled('costAllocations') ? 1 : 0) +
                           1
@@ -694,6 +780,14 @@ export default function KontobewegungenUebersichtPage() {
                         key={transaction.id}
                         className="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
                       >
+                        <td className="py-4 px-4 text-center">
+                          <input
+                            type="checkbox"
+                            checked={selectedTransactions.includes(transaction.id)}
+                            onChange={() => toggleSelectTransaction(transaction.id)}
+                            className="w-4 h-4 text-violet-600 dark:text-violet-400 border-slate-300 dark:border-slate-600 rounded"
+                          />
+                        </td>
                         <td className="py-4 px-4 text-center">
                           {isFeatureEnabled('costAllocations') ? (
                             <button
@@ -1213,6 +1307,7 @@ export default function KontobewegungenUebersichtPage() {
                 onClick={() => {
                   setEditingTransaction(null)
                   setAllocationForm([])
+                  setIsBulkAllocation(false)
                 }}
                 className="px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
               >

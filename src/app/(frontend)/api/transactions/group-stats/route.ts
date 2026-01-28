@@ -128,6 +128,52 @@ export async function GET(request: Request) {
       }
     })
 
+    // Statische Mitgliedsbeitrags-Stände ebenfalls berücksichtigen,
+    // wenn nach Allgemeine Kosten ausgewertet wird.
+    if (groupType === 'generalCost') {
+      const membershipStats = await payload.find({
+        collection: 'membership-fee-stats' as CollectionSlug,
+        limit: 1000,
+        depth: 1,
+      })
+
+      membershipStats.docs.forEach((doc: any) => {
+        if (!doc.totalIncome) return
+
+        const year = Number(doc.year)
+        if (Number.isNaN(year)) return
+
+        let targetGeneralCostId: string | null = null
+
+        if (doc.generalCost) {
+          targetGeneralCostId =
+            typeof doc.generalCost === 'object' && doc.generalCost !== null
+              ? doc.generalCost.id
+              : doc.generalCost
+        } else if (doc.feeType && doc.feeType.generalCost) {
+          const gcRel = doc.feeType.generalCost
+          targetGeneralCostId =
+            typeof gcRel === 'object' && gcRel !== null ? gcRel.id : gcRel
+        }
+
+        if (!targetGeneralCostId) return
+
+        const matchesGroup =
+          generalCostIds && generalCostIds.size > 0
+            ? generalCostIds.has(targetGeneralCostId)
+            : targetGeneralCostId === groupId
+
+        if (!matchesGroup) return
+
+        if (!yearMap.has(year)) {
+          yearMap.set(year, { income: 0, expenses: 0, count: 0 })
+        }
+
+        const yearData = yearMap.get(year)!
+        yearData.income += Number(doc.totalIncome) || 0
+      })
+    }
+
     const stats = Array.from(yearMap.entries())
       .map(([year, data]) => ({
         year,
@@ -147,4 +193,5 @@ export async function GET(request: Request) {
     )
   }
 }
+
 

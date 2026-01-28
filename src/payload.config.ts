@@ -12,6 +12,8 @@ import { FlightLogs } from './collections/FlightLogs'
 import { FuelEntries } from './collections/FuelEntries'
 import { GeneralCosts } from './collections/GeneralCosts'
 import { Members } from './collections/Members'
+import { MembershipFeeTypes } from './collections/MembershipFeeTypes'
+import { MembershipFeeStats } from './collections/MembershipFeeStats'
 import { Media } from './collections/Media'
 import { Transactions } from './collections/Transactions'
 import { TransactionCategories } from './collections/TransactionCategories'
@@ -95,7 +97,21 @@ export default buildConfig({
       }
     },
   }),
-  collections: [Users, Media, Transactions, TransactionCategories, CostCenters, Aircraft, FlightLogs, FuelEntries, GeneralCosts, AccessTokens, Members],
+  collections: [
+    Users,
+    Media,
+    Transactions,
+    TransactionCategories,
+    CostCenters,
+    Aircraft,
+    FlightLogs,
+    FuelEntries,
+    GeneralCosts,
+    AccessTokens,
+    Members,
+    MembershipFeeTypes,
+    MembershipFeeStats,
+  ],
   cors: [getServerSideURL()].filter(Boolean),
   plugins,
   secret: process.env.PAYLOAD_SECRET,
