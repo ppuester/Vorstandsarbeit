@@ -88,8 +88,8 @@ export function OrganizationProvider({ children }: { children: React.ReactNode }
       }
 
       // Prüfe Benutzerberechtigungen, wenn ein Benutzer eingeloggt ist
-      if (user && user.permissions) {
-        const userPermission = (user.permissions as any)?.[feature]
+      if (user && (user as any).permissions) {
+        const userPermission = ((user as any).permissions as any)?.[feature]
         // Wenn Benutzerberechtigung explizit gesetzt ist, verwende diese
         if (userPermission !== undefined) {
           return userPermission === true
