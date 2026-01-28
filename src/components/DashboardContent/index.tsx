@@ -86,15 +86,6 @@ export function DashboardContent() {
       enabled: isFeatureEnabled('aircraft'),
     },
     {
-      title: 'Gruppen',
-      description: 'Flugzeuggruppen verwalten',
-      href: '/stammdaten/gruppen',
-      icon: FolderTree,
-      iconBg: 'bg-indigo-100',
-      iconColor: 'text-indigo-600',
-      enabled: isFeatureEnabled('aircraft'),
-    },
-    {
       title: 'Mitglieder',
       description: 'Mitglieder verwalten',
       href: '/stammdaten/mitglieder',

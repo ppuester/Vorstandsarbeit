@@ -7,7 +7,6 @@ import { fileURLToPath } from 'url'
 
 import { AccessTokens } from './collections/AccessTokens'
 import { Aircraft } from './collections/Aircraft'
-import { AircraftGroups } from './collections/AircraftGroups'
 import { CostCenters } from './collections/CostCenters'
 import { FlightLogs } from './collections/FlightLogs'
 import { FuelEntries } from './collections/FuelEntries'
@@ -96,7 +95,7 @@ export default buildConfig({
       }
     },
   }),
-  collections: [Users, Media, Transactions, TransactionCategories, CostCenters, Aircraft, AircraftGroups, FlightLogs, FuelEntries, GeneralCosts, AccessTokens, Members],
+  collections: [Users, Media, Transactions, TransactionCategories, CostCenters, Aircraft, FlightLogs, FuelEntries, GeneralCosts, AccessTokens, Members],
   cors: [getServerSideURL()].filter(Boolean),
   plugins,
   secret: process.env.PAYLOAD_SECRET,

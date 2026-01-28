@@ -20,6 +20,7 @@ export default function AllgemeineKostenPage() {
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [showForm, setShowForm] = useState(false)
   const [formData, setFormData] = useState<Partial<GeneralCost>>({
     name: '',
     description: '',
@@ -59,6 +60,7 @@ export default function AllgemeineKostenPage() {
     })
     setError(null)
     setSuccess(null)
+    setShowForm(true)
   }
 
   const handleEdit = (item: GeneralCost) => {
@@ -72,6 +74,7 @@ export default function AllgemeineKostenPage() {
     })
     setError(null)
     setSuccess(null)
+    setShowForm(true)
   }
 
   const handleSave = async () => {
@@ -149,6 +152,7 @@ export default function AllgemeineKostenPage() {
 
   const handleCancel = () => {
     setEditingId(null)
+    setShowForm(false)
     setFormData({
       name: '',
       description: '',
@@ -191,7 +195,7 @@ export default function AllgemeineKostenPage() {
                 className="inline-flex items-center gap-2 px-6 py-3 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors font-medium"
               >
                 <Plus className="w-5 h-5" />
-                Neue allgemeine Kosten
+                Neue Kostengruppe
               </button>
             )}
           </div>
@@ -212,7 +216,7 @@ export default function AllgemeineKostenPage() {
           )}
 
           {/* Form */}
-          {editingId !== null || formData.name ? (
+          {editingId !== null || showForm ? (
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 mb-6">
               <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">
                 {editingId ? 'Allgemeine Kosten bearbeiten' : 'Neue allgemeine Kosten'}
