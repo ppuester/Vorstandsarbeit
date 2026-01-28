@@ -14,9 +14,9 @@
   }
 
   :root {
-    /* FahrschulFinder Design System - Premium Violet/Fuchsia Theme */
-    
-    --background: 0 0% 100%;
+    /* Vorstandsarbeit Design System – ruhiges, professionelles Blau/Grau-Schema */
+
+    --background: 210 40% 98%;
     --foreground: 222 47% 11%;
 
     --card: 0 0% 100%;
@@ -25,70 +25,70 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
 
-    /* Primary: Violet */
-    --primary: 262 83% 58%;
+    /* Primary: gedämpftes Blau (Indigo) */
+    --primary: 222 60% 45%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Fuchsia */
-    --secondary: 292 84% 61%;
+    /* Secondary: ruhiges Graublau */
+    --secondary: 215 20% 60%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    --muted-foreground: 215 16% 40%;
 
-    /* Accent */
-    --accent: 262 83% 97%;
-    --accent-foreground: 262 83% 40%;
+    /* Subtiles Accent */
+    --accent: 210 40% 94%;
+    --accent-foreground: 222 47% 25%;
 
-    --destructive: 0 84% 60%;
+    --destructive: 0 65% 50%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 214 32% 91%;
-    --input: 214 32% 91%;
-    --ring: 262 83% 58%;
+    --border: 214 32% 88%;
+    --input: 214 32% 88%;
+    --ring: 222 60% 45%;
 
     --radius: 0.75rem;
 
-    --success: 142 76% 36%;
-    --warning: 38 92% 50%;
-    --error: 0 84% 60%;
+    --success: 152 35% 38%;
+    --warning: 32 90% 50%;
+    --error: 0 65% 50%;
   }
 
   [data-theme='dark'] {
-    --background: 222 47% 11%;
+    --background: 222 47% 12%;
     --foreground: 0 0% 98%;
 
-    --card: 222 47% 15%;
+    --card: 222 47% 16%;
     --card-foreground: 0 0% 98%;
 
-    --popover: 222 47% 15%;
+    --popover: 222 47% 16%;
     --popover-foreground: 0 0% 98%;
 
-    /* Primary: Violet (heller für Dark Mode) */
-    --primary: 262 83% 65%;
+    /* Primary: etwas helleres Blau für Dark Mode */
+    --primary: 222 70% 60%;
     --primary-foreground: 0 0% 100%;
 
-    /* Secondary: Fuchsia (heller für Dark Mode) */
-    --secondary: 292 84% 68%;
+    /* Secondary: gedecktes Graublau */
+    --secondary: 215 25% 70%;
     --secondary-foreground: 0 0% 100%;
 
-    --muted: 222 47% 20%;
-    --muted-foreground: 215 16% 65%;
+    --muted: 222 25% 22%;
+    --muted-foreground: 215 16% 70%;
 
     /* Accent */
-    --accent: 262 83% 25%;
-    --accent-foreground: 262 83% 85%;
+    --accent: 222 30% 24%;
+    --accent-foreground: 0 0% 98%;
 
-    --destructive: 0 84% 65%;
+    --destructive: 0 70% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 222 47% 25%;
-    --input: 222 47% 25%;
-    --ring: 262 83% 65%;
+    --border: 222 32% 26%;
+    --input: 222 32% 26%;
+    --ring: 222 70% 60%;
 
-    --success: 142 76% 45%;
-    --warning: 38 92% 60%;
-    --error: 0 84% 65%;
+    --success: 152 35% 45%;
+    --warning: 32 90% 55%;
+    --error: 0 70% 60%;
   }
 }
 
@@ -253,8 +253,8 @@
   }
 
   .card-hover:hover {
-    transform: translateY(-8px) scale(1.02);
-    box-shadow: 0 25px 50px -12px rgba(139, 92, 246, 0.25);
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 18px 35px -14px rgba(15, 23, 42, 0.18);
   }
 
   .card-3d {
