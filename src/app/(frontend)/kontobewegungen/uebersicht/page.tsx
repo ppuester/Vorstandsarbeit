@@ -89,7 +89,10 @@ export default function KontobewegungenUebersichtPage() {
   const [loading, setLoading] = useState(true)
   const [editingCostCenter, setEditingCostCenter] = useState<{ transactionId: string; costCenterId: string | null } | null>(null)
   const [activeTab, setActiveTab] = useState<'all' | 'income' | 'expense'>('all')
+  // Suchbegriff, der tatsächlich für die Filterung verwendet wird
   const [searchTerm, setSearchTerm] = useState('')
+  // Eingabe im Textfeld (wird erst bei Klick auf „Suchen“ übernommen)
+  const [searchInput, setSearchInput] = useState('')
   const [filterProcessed, setFilterProcessed] = useState<'all' | 'processed' | 'unprocessed'>('all')
   const [dateFrom, setDateFrom] = useState('')
   const [dateTo, setDateTo] = useState('')
@@ -526,11 +529,24 @@ export default function KontobewegungenUebersichtPage() {
                   <input
                     type="text"
                     placeholder="Suchen nach Beschreibung, Referenz oder Kategorie..."
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault()
+                        setSearchTerm(searchInput)
+                      }
+                    }}
                     className="w-full pl-10 pr-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500"
                   />
                 </div>
+                <button
+                  type="button"
+                  onClick={() => setSearchTerm(searchInput)}
+                  className="px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors text-sm font-medium"
+                >
+                  Suchen
+                </button>
                 <div className="flex items-center gap-2">
                   <Filter className="w-5 h-5 text-slate-400 dark:text-slate-500" />
                   <select
