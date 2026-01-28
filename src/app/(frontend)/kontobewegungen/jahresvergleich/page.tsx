@@ -377,22 +377,22 @@ export default function JahresvergleichPage() {
                         <div className="relative h-8 bg-slate-100 rounded-lg overflow-hidden">
                           {/* Income Bar */}
                           <div
-                            className="absolute left-0 top-0 h-full bg-green-500 rounded-l-lg flex items-center justify-end pr-2"
+                            className="absolute left-0 top-0 h-full bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-l-lg flex items-center justify-end pr-3"
                             style={{ width: `${incomeWidth}%` }}
                           >
                             {incomePercent > 0 && (
-                              <span className="text-xs font-medium text-white whitespace-nowrap">
+                              <span className="text-[11px] font-semibold text-white whitespace-nowrap drop-shadow-sm">
                                 {stat.income.toFixed(0)} € ({incomePercent.toFixed(1)}%)
                               </span>
                             )}
                           </div>
                           {/* Expense Bar */}
                           <div
-                            className="absolute right-0 top-0 h-full bg-red-500 rounded-r-lg flex items-center justify-start pl-2"
+                            className="absolute right-0 top-0 h-full bg-gradient-to-l from-rose-400 to-rose-600 rounded-r-lg flex items-center justify-start pl-3"
                             style={{ width: `${expenseWidth}%` }}
                           >
                             {expensePercent > 0 && (
-                              <span className="text-xs font-medium text-white whitespace-nowrap">
+                              <span className="text-[11px] font-semibold text-white whitespace-nowrap drop-shadow-sm">
                                 {stat.expenses.toFixed(0)} € ({expensePercent.toFixed(1)}%)
                               </span>
                             )}
