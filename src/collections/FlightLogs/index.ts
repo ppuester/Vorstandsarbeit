@@ -1,4 +1,5 @@
 import type { CollectionConfig } from 'payload'
+import { APIError } from 'payload' // Laufzeit-Error-Typ, TS-Warnung ist bekannt und ungefährlich
 
 import { authenticated } from '@/access/authenticated'
 
@@ -73,11 +74,50 @@ export const FlightLogs: CollectionConfig = {
   timestamps: true,
   hooks: {
     beforeValidate: [
-      ({ data }: any) => {
+      async ({ data, req, originalDoc, operation }: any) => {
         // Ensure year is set to current year if not provided
         if (data && !data.year) {
           data.year = new Date().getFullYear()
         }
+
+        // Verhindere doppelte Einträge pro Flugzeug und Jahr
+        if (data && data.aircraft && data.year && req?.payload) {
+          const aircraftId =
+            typeof data.aircraft === 'object' && data.aircraft !== null
+              ? data.aircraft.id
+              : data.aircraft
+
+          if (aircraftId) {
+            const where: any = {
+              and: [
+                { aircraft: { equals: aircraftId } },
+                { year: { equals: data.year } },
+              ],
+            }
+
+            // Beim Update aktuellen Datensatz von der Duplikatsprüfung ausschließen
+            if (operation === 'update' && originalDoc?.id) {
+              where.and.push({ id: { not_equals: originalDoc.id } })
+            }
+
+            const existing = await req.payload.find({
+              collection: 'flight-logs',
+              where,
+              limit: 1,
+              depth: 0,
+              req,
+              overrideAccess: false,
+            })
+
+            if (existing.totalDocs > 0) {
+              throw new APIError(
+                'Für dieses Flugzeug existiert bereits ein Eintrag für dieses Jahr. Bitte passen Sie den bestehenden Eintrag an oder wählen Sie ein anderes Jahr.',
+                400,
+              )
+            }
+          }
+        }
+
         return data
       },
     ],
