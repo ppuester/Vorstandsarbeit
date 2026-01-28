@@ -346,12 +346,14 @@ export default function JahresvergleichPage() {
                 {selectedStats
                   .sort((a, b) => b.year - a.year)
                   .map((stat) => {
-                    const incomePercent = maxValue > 0 ? (stat.income / maxValue) * 100 : 0
-                    const expensePercent = maxValue > 0 ? (stat.expenses / maxValue) * 100 : 0
+                    // Relativer Anteil innerhalb des Jahres (Einnahmen vs. Ausgaben)
+                    const totalForYear = stat.income + stat.expenses
+                    const incomeShare = totalForYear > 0 ? (stat.income / totalForYear) * 100 : 0
+                    const expenseShare = totalForYear > 0 ? (stat.expenses / totalForYear) * 100 : 0
 
-                    // Mindestbreite, damit auch kleinere Werte visuell sichtbar sind
-                    const incomeWidth = incomePercent > 0 ? Math.max(incomePercent, 4) : 0
-                    const expenseWidth = expensePercent > 0 ? Math.max(expensePercent, 4) : 0
+                    // Mindestbreite, damit Segmente sichtbar bleiben
+                    const incomeWidth = incomeShare > 0 ? Math.max(incomeShare, 4) : 0
+                    const expenseWidth = expenseShare > 0 ? Math.max(expenseShare, 4) : 0
 
                     return (
                       <div key={stat.year}>
@@ -375,27 +377,29 @@ export default function JahresvergleichPage() {
                           </div>
                         </div>
                         <div className="relative h-8 bg-slate-100 rounded-lg overflow-hidden">
-                          {/* Income Bar */}
-                          <div
-                            className="absolute left-0 top-0 h-full bg-gradient-to-r from-emerald-400 to-emerald-600 rounded-l-lg flex items-center justify-end pr-3"
-                            style={{ width: `${incomeWidth}%` }}
-                          >
-                            {incomePercent > 0 && (
-                              <span className="text-[11px] font-semibold text-white whitespace-nowrap drop-shadow-sm">
-                                {stat.income.toFixed(0)} € ({incomePercent.toFixed(1)}%)
-                              </span>
-                            )}
-                          </div>
-                          {/* Expense Bar */}
-                          <div
-                            className="absolute right-0 top-0 h-full bg-gradient-to-l from-rose-400 to-rose-600 rounded-r-lg flex items-center justify-start pl-3"
-                            style={{ width: `${expenseWidth}%` }}
-                          >
-                            {expensePercent > 0 && (
-                              <span className="text-[11px] font-semibold text-white whitespace-nowrap drop-shadow-sm">
-                                {stat.expenses.toFixed(0)} € ({expensePercent.toFixed(1)}%)
-                              </span>
-                            )}
+                          <div className="flex h-full w-full">
+                            {/* Anteil Einnahmen */}
+                            <div
+                              className="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 flex items-center justify-end pr-3"
+                              style={{ width: `${incomeWidth}%` }}
+                            >
+                              {incomeShare > 0 && (
+                                <span className="text-[11px] font-semibold text-white whitespace-nowrap drop-shadow-sm">
+                                  {stat.income.toFixed(0)} € ({incomeShare.toFixed(1)}%)
+                                </span>
+                              )}
+                            </div>
+                            {/* Anteil Ausgaben */}
+                            <div
+                              className="h-full bg-gradient-to-r from-rose-400 to-rose-600 flex items-center justify-start pl-3"
+                              style={{ width: `${expenseWidth}%` }}
+                            >
+                              {expenseShare > 0 && (
+                                <span className="text-[11px] font-semibold text-white whitespace-nowrap drop-shadow-sm">
+                                  {stat.expenses.toFixed(0)} € ({expenseShare.toFixed(1)}%)
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
