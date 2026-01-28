@@ -2,15 +2,13 @@ import { NextResponse } from 'next/server'
 import { getPayload, type CollectionSlug } from 'payload'
 import configPromise from '@payload-config'
 
-interface RouteContext {
-  params: {
-    id: string
-  }
-}
-
 // Einzelnes Flugzeug laden (wird vom Payload-Admin beim Bearbeiten verwendet)
-export async function GET(request: Request, { params }: RouteContext) {
+export async function GET(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   try {
+    const { id } = await params
     const payload = await getPayload({ config: configPromise })
 
     const { searchParams } = new URL(request.url)
@@ -19,7 +17,7 @@ export async function GET(request: Request, { params }: RouteContext) {
 
     const doc = await payload.findByID({
       collection: 'aircraft' as CollectionSlug,
-      id: params.id,
+      id,
       depth,
     })
 
@@ -38,8 +36,12 @@ export async function GET(request: Request, { params }: RouteContext) {
 }
 
 // Flugzeug aktualisieren (Admin-Speichern)
-export async function PATCH(request: Request, { params }: RouteContext) {
+export async function PATCH(
+  request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   try {
+    const { id } = await params
     const payload = await getPayload({ config: configPromise })
     const body = await request.json()
 
@@ -49,7 +51,7 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 
     const updated = await payload.update({
       collection: 'aircraft' as CollectionSlug,
-      id: params.id,
+      id,
       data: body as any,
       depth,
     })
@@ -69,13 +71,17 @@ export async function PATCH(request: Request, { params }: RouteContext) {
 }
 
 // Flugzeug löschen (Admin)
-export async function DELETE(_request: Request, { params }: RouteContext) {
+export async function DELETE(
+  _request: Request,
+  { params }: { params: Promise<{ id: string }> },
+) {
   try {
+    const { id } = await params
     const payload = await getPayload({ config: configPromise })
 
     await payload.delete({
       collection: 'aircraft' as CollectionSlug,
-      id: params.id,
+      id,
     })
 
     return NextResponse.json({ success: true })
