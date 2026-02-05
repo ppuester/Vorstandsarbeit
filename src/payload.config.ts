@@ -8,6 +8,7 @@ import { fileURLToPath } from 'url'
 import { AccessTokens } from './collections/AccessTokens'
 import { Aircraft } from './collections/Aircraft'
 import { CostCenters } from './collections/CostCenters'
+import { Flights } from './collections/Flights'
 import { FlightLogs } from './collections/FlightLogs'
 import { FuelEntries } from './collections/FuelEntries'
 import { GeneralCosts } from './collections/GeneralCosts'
@@ -105,6 +106,7 @@ export default buildConfig({
     TransactionCategories,
     CostCenters,
     Aircraft,
+    Flights,
     FlightLogs,
     FuelEntries,
     GeneralCosts,

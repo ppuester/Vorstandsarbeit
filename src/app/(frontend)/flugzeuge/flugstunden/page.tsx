@@ -1,7 +1,7 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
-import { Plus, Save, X, AlertCircle, CheckCircle, Edit2 } from 'lucide-react'
+import React, { useState, useEffect, useCallback } from 'react'
+import { Plus, Save, X, AlertCircle, CheckCircle, Edit2, Upload, Users } from 'lucide-react'
 import Link from 'next/link'
 
 interface Aircraft {
@@ -24,15 +24,28 @@ interface FlightLog {
   notes?: string
 }
 
+interface MemberStat {
+  memberId: string
+  memberName: string
+  flights: number
+  starts: number
+  flightHours: number
+}
+
 export default function FlugstundenPage() {
   const [aircraft, setAircraft] = useState<Aircraft[]>([])
   const [flightLogs, setFlightLogs] = useState<FlightLog[]>([])
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [importing, setImporting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  const [selectedAircraft, setSelectedAircraft] = useState<string>('')
+  const [selectedYear, setSelectedYear] = useState<string>('')
+  const [memberStats, setMemberStats] = useState<MemberStat[]>([])
+  const [showMemberStats, setShowMemberStats] = useState(false)
   const [formData, setFormData] = useState<{
     aircraft: string
     year: number
@@ -178,6 +191,75 @@ export default function FlugstundenPage() {
     })
   }
 
+  const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+
+    try {
+      setImporting(true)
+      setError(null)
+      setSuccess(null)
+
+      const formData = new FormData()
+      formData.append('file', file)
+
+      const response = await fetch('/api/flights/import', {
+        method: 'POST',
+        body: formData,
+      })
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Fehler beim Importieren')
+      }
+
+      setSuccess(
+        `Import erfolgreich: ${result.imported} Flüge importiert, ${result.aggregated} Flugbücher aktualisiert, ${result.skipped} übersprungen`
+      )
+
+      if (result.errors && result.errors.length > 0) {
+        console.warn('Import-Warnungen:', result.errors)
+      }
+
+      await fetchData()
+    } catch (error) {
+      console.error('Import error:', error)
+      setError(error instanceof Error ? error.message : 'Fehler beim Importieren')
+    } finally {
+      setImporting(false)
+      // Reset file input
+      e.target.value = ''
+    }
+  }
+
+  const fetchMemberStats = useCallback(async () => {
+    if (!selectedAircraft && !selectedYear) {
+      setMemberStats([])
+      return
+    }
+
+    try {
+      const params = new URLSearchParams()
+      if (selectedAircraft) params.append('aircraftId', selectedAircraft)
+      if (selectedYear) params.append('year', selectedYear)
+
+      const response = await fetch(`/api/flights/member-stats?${params.toString()}`)
+      if (response.ok) {
+        const data = await response.json()
+        setMemberStats(data.stats || [])
+      }
+    } catch (error) {
+      console.error('Fehler beim Laden der Mitgliedsstatistiken:', error)
+    }
+  }, [selectedAircraft, selectedYear])
+
+  useEffect(() => {
+    if (showMemberStats) {
+      fetchMemberStats()
+    }
+  }, [showMemberStats, fetchMemberStats])
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
@@ -205,7 +287,7 @@ export default function FlugstundenPage() {
                 Erfassen Sie jährliche Starts und Flugstunden pro Flugzeug
               </p>
             </div>
-            <div className="flex gap-3">
+            <div className="flex gap-3 flex-wrap">
               <Link
                 href="/flugzeuge/flugstunden/auswertung"
                 className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 text-sm font-medium transition-colors"
@@ -213,13 +295,26 @@ export default function FlugstundenPage() {
                 Auswertung & Vergleich
               </Link>
               {!showForm && !editingId && (
-                <button
-                  onClick={handleCreate}
-                  className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 text-sm font-medium transition-colors"
-                >
-                  <Plus className="w-5 h-5" />
-                  Neuer Eintrag
-                </button>
+                <>
+                  <label className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 text-sm font-medium transition-colors cursor-pointer">
+                    <Upload className="w-5 h-5" />
+                    Importieren
+                    <input
+                      type="file"
+                      accept=".csv,.txt,.xlsx,.xls"
+                      onChange={handleImport}
+                      disabled={importing}
+                      className="hidden"
+                    />
+                  </label>
+                  <button
+                    onClick={handleCreate}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 text-sm font-medium transition-colors"
+                  >
+                    <Plus className="w-5 h-5" />
+                    Neuer Eintrag
+                  </button>
+                </>
               )}
             </div>
           </div>
@@ -343,6 +438,108 @@ export default function FlugstundenPage() {
               </div>
             </div>
           ) : null}
+
+          {/* Member Stats Filter */}
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 p-6 mb-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100">
+                Flugstunden nach Mitglied
+              </h2>
+              <button
+                onClick={() => setShowMemberStats(!showMemberStats)}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 text-sm font-medium transition-colors"
+              >
+                <Users className="w-4 h-4" />
+                {showMemberStats ? 'Ausblenden' : 'Anzeigen'}
+              </button>
+            </div>
+            {showMemberStats && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Flugzeug filtern
+                  </label>
+                  <select
+                    value={selectedAircraft}
+                    onChange={(e) => setSelectedAircraft(e.target.value)}
+                    className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 text-slate-900 dark:text-slate-100"
+                  >
+                    <option value="">Alle Flugzeuge</option>
+                    {activeAircraft.map((ac) => (
+                      <option key={ac.id} value={ac.id}>
+                        {ac.registration} {ac.name ? `(${ac.name})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                    Jahr filtern
+                  </label>
+                  <select
+                    value={selectedYear}
+                    onChange={(e) => setSelectedYear(e.target.value)}
+                    className="w-full px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 text-slate-900 dark:text-slate-100"
+                  >
+                    <option value="">Alle Jahre</option>
+                    {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - i).map((year) => (
+                      <option key={year} value={year.toString()}>
+                        {year}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+            )}
+            {showMemberStats && memberStats.length > 0 && (
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead className="bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600">
+                    <tr>
+                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                        Mitglied
+                      </th>
+                      <th className="text-center py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                        Flüge
+                      </th>
+                      <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                        Starts
+                      </th>
+                      <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                        Flugstunden
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                    {memberStats.map((stat) => (
+                      <tr
+                        key={stat.memberId}
+                        className="hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                      >
+                        <td className="py-3 px-4 font-medium text-slate-900 dark:text-slate-100">
+                          {stat.memberName}
+                        </td>
+                        <td className="py-3 px-4 text-center text-slate-900 dark:text-slate-100">
+                          {stat.flights}
+                        </td>
+                        <td className="py-3 px-4 text-right text-slate-900 dark:text-slate-100">
+                          {stat.starts.toLocaleString('de-DE')}
+                        </td>
+                        <td className="py-3 px-4 text-right text-slate-900 dark:text-slate-100">
+                          {stat.flightHours.toFixed(2).replace('.', ',')}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {showMemberStats && memberStats.length === 0 && (selectedAircraft || selectedYear) && (
+              <p className="text-center text-slate-500 dark:text-slate-400 py-4">
+                Keine Daten für die ausgewählten Filter gefunden.
+              </p>
+            )}
+          </div>
 
           {/* List */}
           <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 overflow-hidden">
