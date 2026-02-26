@@ -98,24 +98,38 @@ function buildHeaderToIndex(rawHeaders: string[]): Record<string, number> {
   return headerToIndex
 }
 
-/** Hash für Dedupe: datum(ISO)|lfz|pilot|start(HH:MM)|landung(HH:MM)|zeit|schleppzeit|schleppLfz|startort|landeort */
+/** Normalisiert Pilot-String (trim, mehrfache Leerzeichen kollabieren) für stabilen Hash */
+function normalizePilotForHash(pilot: string): string {
+  return (pilot ?? '')
+    .trim()
+    .replace(/\s+/g, ' ')
+}
+
+/** Hash für Dedupe: nur normalisierte Werte, damit gleiche Flüge immer denselben Hash liefern (Delta-Import). */
 function buildRowHash(
-  values: Pick<
-    ParsedRow,
-    'lfz' | 'pilot' | 'start' | 'landung' | 'zeit' | 'schleppzeit' | 'schleppLfz' | 'startort' | 'landeort'
-  >,
+  values: {
+    lfz: string
+    pilot: string
+    start: string
+    landung: string
+    startort: string
+    landeort: string
+    schleppLfz: string
+    timeMinutes: number
+    towTimeMinutes: number
+  },
   date: Date | null
 ): string {
   const isoDate = date ? date.toISOString().slice(0, 10) : ''
   const s = [
     isoDate,
-    (values.lfz ?? '').trim(),
-    (values.pilot ?? '').trim(),
+    (values.lfz ?? '').trim().toUpperCase(),
+    normalizePilotForHash(values.pilot ?? ''),
     normalizeTimeHHMM(values.start ?? ''),
     normalizeTimeHHMM(values.landung ?? ''),
-    values.zeit ?? '',
-    values.schleppzeit ?? '',
-    (values.schleppLfz ?? '').trim(),
+    String(values.timeMinutes),
+    String(values.towTimeMinutes),
+    (values.schleppLfz ?? '').trim().toUpperCase(),
     (values.startort ?? '').trim(),
     (values.landeort ?? '').trim(),
   ].join('|')
@@ -321,7 +335,20 @@ export async function POST(request: Request) {
       }
 
       const year = date.getFullYear()
-      const rowHash = buildRowHash(raw, date)
+      const rowHash = buildRowHash(
+        {
+          lfz: raw.lfz,
+          pilot: raw.pilot,
+          start: raw.start,
+          landung: raw.landung,
+          startort: raw.startort,
+          landeort: raw.landeort,
+          schleppLfz: raw.schleppLfz,
+          timeMinutes,
+          towTimeMinutes,
+        },
+        date
+      )
 
       const existingByHash = await payload.find({
         collection: 'flights' as CollectionSlug,
@@ -332,6 +359,7 @@ export async function POST(request: Request) {
           ],
         },
         limit: 1,
+        overrideAccess: true,
       })
       if (existingByHash.totalDocs > 0) {
         skipped++
@@ -385,6 +413,23 @@ export async function POST(request: Request) {
       const sourceAircraftReg = (raw.lfz ?? '').trim().toUpperCase() || undefined
       const sourceTowReg = towReg ? towReg.toUpperCase() : undefined
 
+      // Kurz vor dem Anlegen erneut prüfen (Delta: verhindert Duplikate bei parallelen Importen)
+      const duplicateCheck = await payload.find({
+        collection: 'flights' as CollectionSlug,
+        where: {
+          and: [
+            { sourceRowHash: { equals: rowHash } },
+            { sourceYear: { equals: year } },
+          ],
+        },
+        limit: 1,
+        overrideAccess: true,
+      })
+      if (duplicateCheck.totalDocs > 0) {
+        skipped++
+        continue
+      }
+
       try {
         await payload.create({
           collection: 'flights' as CollectionSlug,
@@ -426,11 +471,18 @@ export async function POST(request: Request) {
           })
         }
       } catch (err) {
-        skipped++
-        if (errors.length < 50)
-          errors.push(
-            `Zeile ${i + 2}: ${err instanceof Error ? err.message : 'Unbekannter Fehler'}`
-          )
+        const isDuplicate =
+          (err as { status?: number })?.status === 409 ||
+          (err instanceof Error && err.message.includes('Duplikat'))
+        if (isDuplicate) {
+          skipped++
+        } else {
+          skipped++
+          if (errors.length < 50)
+            errors.push(
+              `Zeile ${i + 2}: ${err instanceof Error ? err.message : 'Unbekannter Fehler'}`
+            )
+        }
       }
     }
 
@@ -447,6 +499,7 @@ export async function POST(request: Request) {
             ],
           },
           limit: 1,
+          overrideAccess: true,
         })
         if (existing.docs.length > 0) {
           const doc = existing.docs[0] as { id: string; starts: number; flightHours: number }
@@ -457,6 +510,7 @@ export async function POST(request: Request) {
               starts: doc.starts + stats.starts,
               flightHours: doc.flightHours + stats.flightHours,
             } as any,
+            overrideAccess: true,
           })
         } else {
           await payload.create({
@@ -467,6 +521,7 @@ export async function POST(request: Request) {
               starts: stats.starts,
               flightHours: stats.flightHours,
             } as any,
+            overrideAccess: true,
           })
         }
       } catch (_err) {
@@ -481,6 +536,10 @@ export async function POST(request: Request) {
       unmatchedMembers,
       aggregated: flightLogsMap.size,
       errors: errors.slice(0, 50),
+      message:
+        created > 0 || skipped > 0
+          ? `Import abgeschlossen: ${created} neue Flüge angelegt, ${skipped} Zeilen übersprungen (bereits vorhanden oder ungültig). Es werden nur neue Flüge importiert (Delta).`
+          : undefined,
     })
   } catch (error) {
     console.error('Import error:', error)

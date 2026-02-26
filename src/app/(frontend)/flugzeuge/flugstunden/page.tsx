@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { Plus, Save, X, AlertCircle, CheckCircle, Edit2, Upload, Users } from 'lucide-react'
+import { Plus, Save, X, AlertCircle, CheckCircle, Edit2, Upload, Users, RefreshCw } from 'lucide-react'
 import Link from 'next/link'
 
 interface Aircraft {
@@ -38,6 +38,7 @@ export default function FlugstundenPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [importing, setImporting] = useState(false)
+  const [syncing, setSyncing] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
@@ -233,6 +234,25 @@ export default function FlugstundenPage() {
     }
   }
 
+  const handleSyncFlightLogs = async () => {
+    try {
+      setSyncing(true)
+      setError(null)
+      setSuccess(null)
+      const res = await fetch('/api/flight-logs/sync', { method: 'POST' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Sync fehlgeschlagen')
+      setSuccess(
+        `Flugbücher aktualisiert: ${data.created} neu, ${data.updated} aktualisiert (${data.synced} Einträge aus Flügen).`
+      )
+      await fetchData()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Fehler beim Aktualisieren der Flugbücher')
+    } finally {
+      setSyncing(false)
+    }
+  }
+
   const fetchMemberStats = useCallback(async () => {
     if (!selectedAircraft && !selectedYear) {
       setMemberStats([])
@@ -299,6 +319,16 @@ export default function FlugstundenPage() {
               </Link>
               {!showForm && !editingId && (
                 <>
+                  <button
+                    type="button"
+                    onClick={handleSyncFlightLogs}
+                    disabled={syncing}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 text-sm font-medium transition-colors disabled:opacity-50"
+                    title="Flugbücher aus importierten Flügen befüllen"
+                  >
+                    <RefreshCw className={`w-5 h-5 ${syncing ? 'animate-spin' : ''}`} />
+                    Flugbücher aktualisieren
+                  </button>
                   <label className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 text-sm font-medium transition-colors cursor-pointer">
                     <Upload className="w-5 h-5" />
                     Importieren

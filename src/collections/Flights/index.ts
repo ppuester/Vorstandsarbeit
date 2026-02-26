@@ -1,5 +1,7 @@
 import type { CollectionConfig } from 'payload'
+import { APIError } from 'payload'
 import { authenticated } from '@/access/authenticated'
+
 
 export const Flights: CollectionConfig = {
   slug: 'flights',
@@ -278,6 +280,31 @@ export const Flights: CollectionConfig = {
         // Konvertiere Flugdauer von Minuten zu Stunden, falls vorhanden
         if (data.flightMinutes && !data.flightHours) {
           data.flightHours = data.flightMinutes / 60
+        }
+        return data
+      },
+    ],
+    beforeChange: [
+      async ({ data, operation, req }) => {
+        if (operation !== 'create' || !data?.sourceRowHash || data?.sourceYear == null) return data
+        if (!req?.payload) return data
+        const existing = await req.payload.find({
+          collection: 'flights',
+          where: {
+            and: [
+              { sourceRowHash: { equals: data.sourceRowHash } },
+              { sourceYear: { equals: data.sourceYear } },
+            ],
+          },
+          limit: 1,
+          depth: 0,
+          overrideAccess: true,
+        })
+        if (existing.totalDocs > 0) {
+          throw new APIError(
+            'Ein Flug mit denselben Importdaten (Duplikat) existiert bereits.',
+            409
+          )
         }
         return data
       },
