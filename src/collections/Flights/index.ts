@@ -158,6 +158,107 @@ export const Flights: CollectionConfig = {
         description: 'Zusätzliche Informationen zum Flug',
       },
     },
+    // Felder für Import & Arbeitsstunden-Auswertung aus Flugbewegungen
+    {
+      name: 'sourceYear',
+      type: 'number',
+      label: 'Quell-Jahr (Import)',
+      admin: {
+        description: 'Jahr aus Import-Datum',
+      },
+    },
+    {
+      name: 'sourceImportId',
+      type: 'text',
+      label: 'Import-ID (Debug)',
+      admin: {
+        description: 'Optional für Dedupe/Debug',
+      },
+    },
+    {
+      name: 'sourceRowHash',
+      type: 'text',
+      label: 'Zeilen-Hash',
+      admin: {
+        description: 'Hash zur Duplikaterkennung',
+      },
+    },
+    {
+      name: 'sourceTowAircraftRegistration',
+      type: 'text',
+      label: 'Schlepp-LFZ (Kennzeichen)',
+      admin: {
+        description: 'Inhalt aus Spalte Schlepp-LFZ',
+      },
+    },
+    {
+      name: 'sourceTowMinutes',
+      type: 'number',
+      label: 'Schleppzeit (Minuten)',
+      admin: {
+        description: 'Aus Spalte Schleppzeit',
+      },
+    },
+    {
+      name: 'sourceMinutes',
+      type: 'number',
+      label: 'Zeit (Minuten)',
+      admin: {
+        description: 'Aus Spalte Zeit',
+      },
+    },
+    {
+      name: 'workingMinutesGlider',
+      type: 'number',
+      label: 'Arbeitsmin. Segelflug',
+      admin: {
+        description: 'Berechnete Segelflug-Arbeitsminuten',
+      },
+    },
+    {
+      name: 'workingMinutesMotor',
+      type: 'number',
+      label: 'Arbeitsmin. Motorflug',
+      admin: {
+        description: 'Berechnete Motorflug-Arbeitsminuten',
+      },
+    },
+    {
+      name: 'workingMinutesTow',
+      type: 'number',
+      label: 'Arbeitsmin. Schlepp',
+      admin: {
+        description: 'Berechnete Schlepp-Arbeitsminuten',
+      },
+    },
+    {
+      name: 'memberMatchStatus',
+      type: 'select',
+      label: 'Mitglied-Match',
+      options: [
+        { label: 'Zugeordnet', value: 'matched' },
+        { label: 'Nicht zugeordnet', value: 'unmatched' },
+        { label: 'Mehrdeutig', value: 'ambiguous' },
+      ],
+      admin: {
+        description: 'Status der Pilot-Zuordnung',
+      },
+    },
+    {
+      name: 'memberMatchCandidates',
+      type: 'array',
+      label: 'Match-Kandidaten',
+      fields: [
+        {
+          name: 'name',
+          type: 'text',
+          label: 'Name',
+        },
+      ],
+      admin: {
+        description: 'Top-Kandidaten bei ambiguous/unmatched',
+      },
+    },
   ],
   timestamps: true,
   hooks: {

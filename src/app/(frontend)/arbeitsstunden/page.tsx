@@ -1,7 +1,8 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Plus, Edit2, Save, X, AlertCircle, CheckCircle, Trash2, Clock } from 'lucide-react'
+import Link from 'next/link'
+import { Plus, Edit2, Save, X, AlertCircle, CheckCircle, Trash2, Clock, BarChart3 } from 'lucide-react'
 
 interface Member {
   id: string
@@ -237,13 +238,22 @@ export default function ArbeitsstundenPage() {
                 </p>
               </div>
             </div>
-            <button
-              onClick={handleCreate}
-              className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors font-medium shadow-sm"
-            >
-              <Plus className="w-5 h-5" />
-              Neuer Eintrag
-            </button>
+            <div className="flex items-center gap-3">
+              <Link
+                href="/arbeitsstunden/flugbewegungen-auswertung"
+                className="inline-flex items-center gap-2 px-4 py-3 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors font-medium shadow-sm"
+              >
+                <BarChart3 className="w-5 h-5" />
+                Aus Flugbewegungen
+              </Link>
+              <button
+                onClick={handleCreate}
+                className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors font-medium shadow-sm"
+              >
+                <Plus className="w-5 h-5" />
+                Neuer Eintrag
+              </button>
+            </div>
           </div>
 
           {/* Messages */}

@@ -67,21 +67,24 @@ export interface Config {
   };
   blocks: {};
   collections: {
-    pages: Page;
-    posts: Post;
-    'driving-schools': DrivingSchool;
-    reviews: Review;
-    inquiries: Inquiry;
-    'inquiry-responses': InquiryResponse;
-    media: Media;
-    categories: Category;
     users: User;
-    redirects: Redirect;
+    media: Media;
+    transactions: Transaction;
+    'transaction-categories': TransactionCategory;
+    'cost-centers': CostCenter;
+    aircraft: Aircraft;
+    flights: Flight;
+    'flight-logs': FlightLog;
+    'fuel-entries': FuelEntry;
+    'general-costs': GeneralCost;
+    'access-tokens': AccessToken;
+    members: Member;
+    'membership-fee-types': MembershipFeeType;
+    'membership-fee-stats': MembershipFeeStat;
+    'working-hours': WorkingHour;
     forms: Form;
     'form-submissions': FormSubmission;
-    search: Search;
     'payload-kv': PayloadKv;
-    'payload-jobs': PayloadJob;
     'payload-folders': FolderInterface;
     'payload-locked-documents': PayloadLockedDocument;
     'payload-preferences': PayloadPreference;
@@ -93,21 +96,24 @@ export interface Config {
     };
   };
   collectionsSelect: {
-    pages: PagesSelect<false> | PagesSelect<true>;
-    posts: PostsSelect<false> | PostsSelect<true>;
-    'driving-schools': DrivingSchoolsSelect<false> | DrivingSchoolsSelect<true>;
-    reviews: ReviewsSelect<false> | ReviewsSelect<true>;
-    inquiries: InquiriesSelect<false> | InquiriesSelect<true>;
-    'inquiry-responses': InquiryResponsesSelect<false> | InquiryResponsesSelect<true>;
-    media: MediaSelect<false> | MediaSelect<true>;
-    categories: CategoriesSelect<false> | CategoriesSelect<true>;
     users: UsersSelect<false> | UsersSelect<true>;
-    redirects: RedirectsSelect<false> | RedirectsSelect<true>;
+    media: MediaSelect<false> | MediaSelect<true>;
+    transactions: TransactionsSelect<false> | TransactionsSelect<true>;
+    'transaction-categories': TransactionCategoriesSelect<false> | TransactionCategoriesSelect<true>;
+    'cost-centers': CostCentersSelect<false> | CostCentersSelect<true>;
+    aircraft: AircraftSelect<false> | AircraftSelect<true>;
+    flights: FlightsSelect<false> | FlightsSelect<true>;
+    'flight-logs': FlightLogsSelect<false> | FlightLogsSelect<true>;
+    'fuel-entries': FuelEntriesSelect<false> | FuelEntriesSelect<true>;
+    'general-costs': GeneralCostsSelect<false> | GeneralCostsSelect<true>;
+    'access-tokens': AccessTokensSelect<false> | AccessTokensSelect<true>;
+    members: MembersSelect<false> | MembersSelect<true>;
+    'membership-fee-types': MembershipFeeTypesSelect<false> | MembershipFeeTypesSelect<true>;
+    'membership-fee-stats': MembershipFeeStatsSelect<false> | MembershipFeeStatsSelect<true>;
+    'working-hours': WorkingHoursSelect<false> | WorkingHoursSelect<true>;
     forms: FormsSelect<false> | FormsSelect<true>;
     'form-submissions': FormSubmissionsSelect<false> | FormSubmissionsSelect<true>;
-    search: SearchSelect<false> | SearchSelect<true>;
     'payload-kv': PayloadKvSelect<false> | PayloadKvSelect<true>;
-    'payload-jobs': PayloadJobsSelect<false> | PayloadJobsSelect<true>;
     'payload-folders': PayloadFoldersSelect<false> | PayloadFoldersSelect<true>;
     'payload-locked-documents': PayloadLockedDocumentsSelect<false> | PayloadLockedDocumentsSelect<true>;
     'payload-preferences': PayloadPreferencesSelect<false> | PayloadPreferencesSelect<true>;
@@ -117,26 +123,14 @@ export interface Config {
     defaultIDType: string;
   };
   fallbackLocale: null;
-  globals: {
-    header: Header;
-    footer: Footer;
-  };
-  globalsSelect: {
-    header: HeaderSelect<false> | HeaderSelect<true>;
-    footer: FooterSelect<false> | FooterSelect<true>;
-  };
+  globals: {};
+  globalsSelect: {};
   locale: null;
   user: User & {
     collection: 'users';
   };
   jobs: {
-    tasks: {
-      schedulePublish: TaskSchedulePublish;
-      inline: {
-        input: unknown;
-        output: unknown;
-      };
-    };
+    tasks: unknown;
     workflows: unknown;
   };
 }
@@ -160,130 +154,65 @@ export interface UserAuthOperations {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "pages".
+ * via the `definition` "users".
  */
-export interface Page {
+export interface User {
   id: string;
-  title: string;
-  hero: {
-    type: 'none' | 'videoHero' | 'highImpact' | 'mediumImpact' | 'lowImpact';
-    richText?: {
-      root: {
-        type: string;
-        children: {
-          type: any;
-          version: number;
-          [k: string]: unknown;
-        }[];
-        direction: ('ltr' | 'rtl') | null;
-        format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-        indent: number;
-        version: number;
-      };
-      [k: string]: unknown;
-    } | null;
-    links?:
-      | {
-          link: {
-            type?: ('reference' | 'custom') | null;
-            newTab?: boolean | null;
-            reference?:
-              | ({
-                  relationTo: 'pages';
-                  value: string | Page;
-                } | null)
-              | ({
-                  relationTo: 'posts';
-                  value: string | Post;
-                } | null);
-            url?: string | null;
-            label: string;
-            /**
-             * Wählen Sie, wie der Link dargestellt werden soll.
-             */
-            appearance?: ('default' | 'outline') | null;
-          };
-          id?: string | null;
-        }[]
-      | null;
-    media?: (string | null) | Media;
-    /**
-     * URL zum Hero-Video (MP4). Leer lassen für Standard-Video.
-     */
-    videoUrl?: string | null;
-    /**
-     * URL zum Vorschaubild während das Video lädt.
-     */
-    videoPoster?: string | null;
-  };
-  layout: (CallToActionBlock | ContentBlock | MediaBlock | ArchiveBlock | FormBlock)[];
-  meta?: {
-    title?: string | null;
-    /**
-     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
-     */
-    image?: (string | null) | Media;
-    description?: string | null;
-  };
-  publishedAt?: string | null;
+  name?: string | null;
   /**
-   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   * Aktivieren Sie die Funktionen, auf die dieser Benutzer zugreifen kann
    */
-  generateSlug?: boolean | null;
-  slug: string;
+  permissions?: {
+    /**
+     * Zugriff auf Kontobewegungen (Import, Übersicht, Jahresvergleich)
+     */
+    transactions?: boolean | null;
+    /**
+     * Zugriff auf Flugzeugverwaltung und Übersicht
+     */
+    aircraft?: boolean | null;
+    /**
+     * Zugriff auf Flugstunden & Starts
+     */
+    flightLogs?: boolean | null;
+    /**
+     * Zugriff auf Kostenstellen-Verwaltung
+     */
+    costCenters?: boolean | null;
+    /**
+     * Zugriff auf Zuordnung von Kosten zu Flugzeugen
+     */
+    costAllocations?: boolean | null;
+    /**
+     * Zugriff auf Jahresvergleich der Kontobewegungen
+     */
+    yearlyComparison?: boolean | null;
+    /**
+     * Zugriff auf Kostenermittlung pro Flugzeug
+     */
+    costCalculation?: boolean | null;
+    /**
+     * Zugriff auf Kraftstofferfassung
+     */
+    fuelTracking?: boolean | null;
+  };
   updatedAt: string;
   createdAt: string;
-  _status?: ('draft' | 'published') | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "posts".
- */
-export interface Post {
-  id: string;
-  title: string;
-  heroImage?: (string | null) | Media;
-  content: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  };
-  relatedPosts?: (string | Post)[] | null;
-  categories?: (string | Category)[] | null;
-  meta?: {
-    title?: string | null;
-    /**
-     * Maximum upload file size: 12MB. Recommended file size for images is <500KB.
-     */
-    image?: (string | null) | Media;
-    description?: string | null;
-  };
-  publishedAt?: string | null;
-  authors?: (string | User)[] | null;
-  populatedAuthors?:
+  email: string;
+  resetPasswordToken?: string | null;
+  resetPasswordExpiration?: string | null;
+  salt?: string | null;
+  hash?: string | null;
+  loginAttempts?: number | null;
+  lockUntil?: string | null;
+  sessions?:
     | {
-        id?: string | null;
-        name?: string | null;
+        id: string;
+        createdAt?: string | null;
+        expiresAt: string;
       }[]
     | null;
-  /**
-   * When enabled, the slug will auto-generate from the title field on save and autosave.
-   */
-  generateSlug?: boolean | null;
-  slug: string;
-  updatedAt: string;
-  createdAt: string;
-  _status?: ('draft' | 'published') | null;
+  password?: string | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -406,22 +335,61 @@ export interface FolderInterface {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "categories".
+ * via the `definition` "transactions".
  */
-export interface Category {
+export interface Transaction {
   id: string;
-  title: string;
+  date: string;
+  description: string;
   /**
-   * When enabled, the slug will auto-generate from the title field on save and autosave.
+   * Betrag in Euro (negativ für Ausgaben, positiv für Einnahmen)
    */
-  generateSlug?: boolean | null;
-  slug: string;
-  parent?: (string | null) | Category;
-  breadcrumbs?:
+  amount: number;
+  /**
+   * Wird automatisch basierend auf dem Betrag gesetzt, kann aber manuell geändert werden
+   */
+  type: 'income' | 'expense';
+  /**
+   * Optional: Kategorie für diese Bewegung
+   */
+  category?: (string | null) | TransactionCategory;
+  /**
+   * Optional: Kostenstelle für diese Bewegung (z.B. Verwaltung, Flugbetrieb)
+   */
+  costCenter?: (string | null) | CostCenter;
+  /**
+   * Zusätzliche Referenznummer oder Verwendungszweck
+   */
+  reference?: string | null;
+  /**
+   * Markieren Sie diese Bewegung als verarbeitet/kategorisiert
+   */
+  processed?: boolean | null;
+  /**
+   * Zusätzliche Notizen zu dieser Bewegung
+   */
+  notes?: string | null;
+  /**
+   * Ordnen Sie diese Kosten mehreren Stellen zu (Flugzeugen oder allgemeinen Kosten) mit Gewichtung
+   */
+  costAllocations?:
     | {
-        doc?: (string | null) | Category;
-        url?: string | null;
-        label?: string | null;
+        /**
+         * Wählen Sie, ob Sie einem Flugzeug oder allgemeinen Kosten zuordnen möchten
+         */
+        allocationType: 'aircraft' | 'generalCost';
+        /**
+         * Flugzeug, dem diese Kosten zugeordnet werden
+         */
+        aircraft?: (string | null) | Aircraft;
+        /**
+         * Allgemeine Kostenstelle, der diese Kosten zugeordnet werden
+         */
+        generalCost?: (string | null) | GeneralCost;
+        /**
+         * Prozentualer Anteil dieser Kostenstelle (z.B. 50 für 50%)
+         */
+        weight: number;
         id?: string | null;
       }[]
     | null;
@@ -430,196 +398,535 @@ export interface Category {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users".
+ * via the `definition` "transaction-categories".
  */
-export interface User {
+export interface TransactionCategory {
   id: string;
-  name?: string | null;
+  name: string;
+  type: 'income' | 'expense';
+  /**
+   * Hex-Farbcode für die Anzeige (z.B. #3B82F6)
+   */
+  color?: string | null;
+  description?: string | null;
   updatedAt: string;
   createdAt: string;
-  email: string;
-  resetPasswordToken?: string | null;
-  resetPasswordExpiration?: string | null;
-  salt?: string | null;
-  hash?: string | null;
-  loginAttempts?: number | null;
-  lockUntil?: string | null;
-  sessions?:
-    | {
-        id: string;
-        createdAt?: string | null;
-        expiresAt: string;
-      }[]
-    | null;
-  password?: string | null;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "CallToActionBlock".
+ * via the `definition` "cost-centers".
  */
-export interface CallToActionBlock {
-  richText?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  links?:
+export interface CostCenter {
+  id: string;
+  /**
+   * Bezeichnung der Kostenstelle (z.B. "Verwaltung", "Flugbetrieb", "Marketing")
+   */
+  name: string;
+  /**
+   * Optional: Kurzcode für die Kostenstelle (z.B. "VW", "FB", "MK")
+   */
+  code?: string | null;
+  /**
+   * Zusätzliche Informationen zur Kostenstelle
+   */
+  description?: string | null;
+  /**
+   * Ist diese Kostenstelle aktiv und kann zugeordnet werden?
+   */
+  active?: boolean | null;
+  /**
+   * Optional: Hex-Code für die Anzeige der Kostenstelle (z.B. #FF0000)
+   */
+  color?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "aircraft".
+ */
+export interface Aircraft {
+  id: string;
+  /**
+   * Offizielles Kennzeichen des Flugzeugs (z.B. D-ABCD)
+   */
+  registration: string;
+  /**
+   * Optional: Zusätzliche Bezeichnung oder Name
+   */
+  name?: string | null;
+  /**
+   * Hauptkategorie des Flugzeugs
+   */
+  aircraftGroup: 'ul' | 'glider' | 'motor' | 'motor-glider' | 'helicopter' | 'other';
+  /**
+   * Hersteller des Flugzeugs (z.B. Cessna, Piper, etc.)
+   */
+  manufacturer?: string | null;
+  /**
+   * Modellbezeichnung (z.B. C172, PA-28, etc.)
+   */
+  model?: string | null;
+  /**
+   * Datum des Erwerbs
+   */
+  purchaseDate?: string | null;
+  /**
+   * Anschaffungspreis des Flugzeugs
+   */
+  purchasePrice?: number | null;
+  /**
+   * Jährliche Versicherungskosten
+   */
+  insurance?: number | null;
+  /**
+   * Jährliche Kosten für Hangar oder Standplatz
+   */
+  hangar?: number | null;
+  /**
+   * Durchschnittliche Kosten für jährliche Inspektion
+   */
+  annualInspection?: number | null;
+  /**
+   * Sonstige jährliche Fixkosten
+   */
+  fixedCosts?: number | null;
+  /**
+   * Aktuelle Gesamtmotorstunden
+   */
+  engineHours?: number | null;
+  /**
+   * Aktuelle Gesamtflugstunden
+   */
+  totalFlightHours?: number | null;
+  /**
+   * Durchschnittlicher Kraftstoffverbrauch pro Stunde
+   */
+  fuelConsumption?: number | null;
+  /**
+   * Aktueller Kraftstoffpreis pro Liter
+   */
+  fuelPrice?: number | null;
+  /**
+   * Durchschnittliche Wartungskosten pro Flugstunde
+   */
+  maintenanceCostPerHour?: number | null;
+  /**
+   * Zusätzliche Informationen zum Flugzeug
+   */
+  notes?: string | null;
+  /**
+   * Flugzeug ist aktiv im Betrieb
+   */
+  active?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "general-costs".
+ */
+export interface GeneralCost {
+  id: string;
+  /**
+   * Optional: ordnet diese Kostenstelle einer Obergruppe zu (z.B. Fixkosten → Pacht)
+   */
+  parent?: (string | null) | GeneralCost;
+  /**
+   * Bezeichnung der allgemeinen Kosten (z.B. "Pacht", "Versicherung", "Wartung")
+   */
+  name: string;
+  /**
+   * Zusätzliche Informationen zu diesen Kosten
+   */
+  description?: string | null;
+  /**
+   * Kann diese allgemeine Kostenstelle für Einnahmen zugeordnet werden?
+   */
+  availableForIncome?: boolean | null;
+  /**
+   * Kann diese allgemeine Kostenstelle für Ausgaben zugeordnet werden?
+   */
+  availableForExpense?: boolean | null;
+  /**
+   * Ist diese allgemeine Kostenstelle aktiv und kann zugeordnet werden?
+   */
+  active?: boolean | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "flights".
+ */
+export interface Flight {
+  id: string;
+  /**
+   * Datum des Flugs
+   */
+  date: string;
+  aircraft: string | Aircraft;
+  /**
+   * Hauptpilot des Flugs
+   */
+  pilot?: (string | null) | Member;
+  /**
+   * Name des Piloten (falls nicht als Mitglied zugeordnet)
+   */
+  pilotName?: string | null;
+  /**
+   * Begleiter/Begleitpilot
+   */
+  copilot?: (string | null) | Member;
+  /**
+   * Name des Begleiters (falls nicht als Mitglied zugeordnet)
+   */
+  copilotName?: string | null;
+  /**
+   * Startzeit im Format HH:MM
+   */
+  startTime?: string | null;
+  /**
+   * Landezeit im Format HH:MM
+   */
+  landingTime?: string | null;
+  /**
+   * Flugdauer in Stunden
+   */
+  flightHours: number;
+  /**
+   * Flugdauer in Minuten (wird automatisch in Stunden umgerechnet)
+   */
+  flightMinutes?: number | null;
+  /**
+   * Anzahl der Starts (meist 1)
+   */
+  starts: number;
+  /**
+   * Abflugort
+   */
+  departureLocation?: string | null;
+  /**
+   * Landeort
+   */
+  landingLocation?: string | null;
+  /**
+   * Anzahl und Art der Landungen
+   */
+  landings?: string | null;
+  flightType?: ('P' | 'S' | 'N') | null;
+  /**
+   * Zusätzliche Informationen zum Flug
+   */
+  notes?: string | null;
+  /**
+   * Jahr aus Import-Datum
+   */
+  sourceYear?: number | null;
+  /**
+   * Optional für Dedupe/Debug
+   */
+  sourceImportId?: string | null;
+  /**
+   * Hash zur Duplikaterkennung
+   */
+  sourceRowHash?: string | null;
+  /**
+   * Inhalt aus Spalte Schlepp-LFZ
+   */
+  sourceTowAircraftRegistration?: string | null;
+  /**
+   * Aus Spalte Schleppzeit
+   */
+  sourceTowMinutes?: number | null;
+  /**
+   * Aus Spalte Zeit
+   */
+  sourceMinutes?: number | null;
+  /**
+   * Berechnete Segelflug-Arbeitsminuten
+   */
+  workingMinutesGlider?: number | null;
+  /**
+   * Berechnete Motorflug-Arbeitsminuten
+   */
+  workingMinutesMotor?: number | null;
+  /**
+   * Berechnete Schlepp-Arbeitsminuten
+   */
+  workingMinutesTow?: number | null;
+  /**
+   * Status der Pilot-Zuordnung
+   */
+  memberMatchStatus?: ('matched' | 'unmatched' | 'ambiguous') | null;
+  /**
+   * Top-Kandidaten bei ambiguous/unmatched
+   */
+  memberMatchCandidates?:
     | {
-        link: {
-          type?: ('reference' | 'custom') | null;
-          newTab?: boolean | null;
-          reference?:
-            | ({
-                relationTo: 'pages';
-                value: string | Page;
-              } | null)
-            | ({
-                relationTo: 'posts';
-                value: string | Post;
-              } | null);
-          url?: string | null;
-          label: string;
-          /**
-           * Wählen Sie, wie der Link dargestellt werden soll.
-           */
-          appearance?: ('default' | 'outline') | null;
-        };
+        name?: string | null;
         id?: string | null;
       }[]
     | null;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'cta';
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "ContentBlock".
+ * via the `definition` "members".
  */
-export interface ContentBlock {
-  columns?:
-    | {
-        size?: ('oneThird' | 'half' | 'twoThirds' | 'full') | null;
-        richText?: {
-          root: {
-            type: string;
-            children: {
-              type: any;
-              version: number;
-              [k: string]: unknown;
-            }[];
-            direction: ('ltr' | 'rtl') | null;
-            format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-            indent: number;
-            version: number;
-          };
-          [k: string]: unknown;
-        } | null;
-        enableLink?: boolean | null;
-        link?: {
-          type?: ('reference' | 'custom') | null;
-          newTab?: boolean | null;
-          reference?:
-            | ({
-                relationTo: 'pages';
-                value: string | Page;
-              } | null)
-            | ({
-                relationTo: 'posts';
-                value: string | Post;
-              } | null);
-          url?: string | null;
-          label: string;
-          /**
-           * Wählen Sie, wie der Link dargestellt werden soll.
-           */
-          appearance?: ('default' | 'outline') | null;
-        };
-        id?: string | null;
-      }[]
-    | null;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'content';
+export interface Member {
+  id: string;
+  /**
+   * Vollständiger Name des Mitglieds
+   */
+  name: string;
+  /**
+   * Eindeutige Mitgliedsnummer
+   */
+  memberNumber?: string | null;
+  /**
+   * E-Mail-Adresse des Mitglieds
+   */
+  email?: string | null;
+  /**
+   * Telefonnummer
+   */
+  phone?: string | null;
+  /**
+   * Vollständige Adresse
+   */
+  address?: string | null;
+  /**
+   * Ist das Mitglied aktiv?
+   */
+  active?: boolean | null;
+  /**
+   * Zusätzliche Informationen
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "MediaBlock".
+ * via the `definition` "flight-logs".
  */
-export interface MediaBlock {
-  media: string | Media;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'mediaBlock';
+export interface FlightLog {
+  id: string;
+  aircraft: string | Aircraft;
+  /**
+   * Jahr für das diese Daten gelten
+   */
+  year: number;
+  /**
+   * Anzahl der Starts in diesem Jahr
+   */
+  starts: number;
+  /**
+   * Gesamte Flugstunden in diesem Jahr
+   */
+  flightHours: number;
+  /**
+   * Zusätzliche Informationen zu diesem Jahr
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "ArchiveBlock".
+ * via the `definition` "fuel-entries".
  */
-export interface ArchiveBlock {
-  introContent?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  populateBy?: ('collection' | 'selection') | null;
-  relationTo?: 'posts' | null;
-  categories?: (string | Category)[] | null;
-  limit?: number | null;
-  selectedDocs?:
-    | {
-        relationTo: 'posts';
-        value: string | Post;
-      }[]
-    | null;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'archive';
+export interface FuelEntry {
+  id: string;
+  date: string;
+  /**
+   * Flugzeug, für das der Kraftstoff getankt wurde
+   */
+  aircraft: string | Aircraft;
+  /**
+   * Art des Kraftstoffs
+   */
+  fuelType: 'avgas' | 'mogas';
+  /**
+   * Name der Person, die getankt hat
+   */
+  name: string;
+  /**
+   * Zählerstand vor dem Tanken
+   */
+  meterReadingOld: number;
+  /**
+   * Zählerstand nach dem Tanken
+   */
+  meterReadingNew: number;
+  /**
+   * Getankte Liter (wird automatisch berechnet: Zählerstand neu - Zählerstand alt)
+   */
+  liters: number;
+  /**
+   * Preis pro Liter in Euro
+   */
+  pricePerLiter: number;
+  /**
+   * Gesamtpreis (wird automatisch berechnet)
+   */
+  totalPrice: number;
+  /**
+   * Name der Tankstelle
+   */
+  gasStation?: string | null;
+  /**
+   * Rechnungsnummer der Tankstelle
+   */
+  invoiceNumber?: string | null;
+  /**
+   * Hochgeladene Rechnung
+   */
+  invoice?: (string | null) | Media;
+  /**
+   * Zusätzliche Notizen
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "FormBlock".
+ * via the `definition` "access-tokens".
  */
-export interface FormBlock {
-  form: string | Form;
-  enableIntro?: boolean | null;
-  introContent?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'formBlock';
+export interface AccessToken {
+  id: string;
+  /**
+   * Bezeichnung für diesen Zugang (z.B. "Kraftstofferfassung - Hangar 1")
+   */
+  name: string;
+  /**
+   * Eindeutiger Zugangstoken (wird automatisch generiert)
+   */
+  token: string;
+  /**
+   * Welche Bereiche sind mit diesem Token zugänglich?
+   */
+  permissions?: 'fuelTracking'[] | null;
+  /**
+   * Optional: Ab wann ist dieser Zugang nicht mehr gültig?
+   */
+  expiresAt?: string | null;
+  /**
+   * Ist dieser Zugang aktiv und kann verwendet werden?
+   */
+  active?: boolean | null;
+  /**
+   * Wann wurde dieser Zugang zuletzt verwendet?
+   */
+  lastUsedAt?: string | null;
+  /**
+   * Wie oft wurde dieser Zugang verwendet?
+   */
+  usageCount?: number | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "membership-fee-types".
+ */
+export interface MembershipFeeType {
+  id: string;
+  /**
+   * z.B. „Aktives Mitglied“, „Passives Mitglied“, „Fördermitglied“
+   */
+  name: string;
+  /**
+   * Optionale technische Kennung (z.B. AKTIV, PASSIV)
+   */
+  code?: string | null;
+  /**
+   * Vorgabewert, der bei neuen Ständen vorbelegt werden kann
+   */
+  defaultAmount?: number | null;
+  active?: boolean | null;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "membership-fee-stats".
+ */
+export interface MembershipFeeStat {
+  id: string;
+  /**
+   * Wird automatisch aus Jahr und Beitragsart berechnet.
+   */
+  adminLabel?: string | null;
+  /**
+   * Geschäftsjahr, für das der Stand gilt (z.B. 2024).
+   */
+  year: number;
+  /**
+   * Datum, zu dem der Mitgliederbestand bewertet wurde.
+   */
+  snapshotDate: string;
+  feeType: string | MembershipFeeType;
+  /**
+   * z.B. 10 aktive Mitglieder.
+   */
+  memberCount: number;
+  /**
+   * z.B. 700 € pro aktivem Mitglied.
+   */
+  amountPerMember: number;
+  /**
+   * Wird automatisch als Anzahl * Beitrag berechnet, kann bei Bedarf aber manuell angepasst werden.
+   */
+  totalIncome?: number | null;
+  /**
+   * Optional: Kostengruppe, der diese Beitragseinnahmen gutgeschrieben werden (z.B. „Fixkosten“). Ist nichts gesetzt, wird die Zuordnung der Beitragsart verwendet.
+   */
+  generalCost?: (string | null) | GeneralCost;
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "working-hours".
+ */
+export interface WorkingHour {
+  id: string;
+  /**
+   * Wird automatisch generiert.
+   */
+  adminLabel?: string | null;
+  /**
+   * Mitglied, das die Arbeitsstunden geleistet hat
+   */
+  member: string | Member;
+  /**
+   * Datum, an dem die Arbeitsstunden geleistet wurden
+   */
+  date: string;
+  /**
+   * Anzahl der geleisteten Arbeitsstunden
+   */
+  hours: number;
+  /**
+   * Art der geleisteten Arbeitsstunden
+   */
+  type: 'glider' | 'motor' | 'administration' | 'maintenance' | 'other';
+  /**
+   * Zusätzliche Informationen zu den geleisteten Arbeitsstunden
+   */
+  description?: string | null;
+  /**
+   * Interne Notizen
+   */
+  notes?: string | null;
+  updatedAt: string;
+  createdAt: string;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -797,379 +1104,6 @@ export interface Form {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "driving-schools".
- */
-export interface DrivingSchool {
-  id: string;
-  name: string;
-  logo?: (string | null) | Media;
-  images?:
-    | {
-        image: string | Media;
-        id?: string | null;
-      }[]
-    | null;
-  street: string;
-  postalCode: string;
-  city: string;
-  state: 'BW' | 'BY' | 'BE' | 'BB' | 'HB' | 'HH' | 'HE' | 'MV' | 'NI' | 'NW' | 'RP' | 'SL' | 'SN' | 'ST' | 'SH' | 'TH';
-  phone?: string | null;
-  email?: string | null;
-  website?: string | null;
-  /**
-   * Für Kartenanzeige (optional)
-   */
-  latitude?: number | null;
-  /**
-   * Für Kartenanzeige (optional)
-   */
-  longitude?: number | null;
-  licenseClasses: (
-    | 'AM'
-    | 'A1'
-    | 'A2'
-    | 'A'
-    | 'B'
-    | 'B197'
-    | 'B196'
-    | 'BE'
-    | 'B96'
-    | 'C1'
-    | 'C'
-    | 'CE'
-    | 'D1'
-    | 'D'
-    | 'L'
-    | 'T'
-  )[];
-  languages?: ('de' | 'en' | 'tr' | 'ar' | 'ru' | 'pl' | 'es' | 'fr' | 'it' | 'pt')[] | null;
-  features?:
-    | (
-        | 'online-theory'
-        | 'intensive'
-        | 'holiday-courses'
-        | 'simulator'
-        | 'automatic'
-        | 'electric'
-        | 'accessible'
-        | 'first-aid'
-        | 'eye-test'
-        | 'photos'
-        | 'refresher'
-        | 'asf'
-        | 'weekend'
-        | 'evening'
-      )[]
-    | null;
-  vehicleTypes?: ('manual' | 'automatic' | 'electric' | 'hybrid')[] | null;
-  priceRange?: ('budget' | 'medium' | 'premium') | null;
-  prices?:
-    | {
-        licenseClass: 'B' | 'A' | 'A1' | 'A2' | 'AM' | 'BE';
-        basePrice?: number | null;
-        lessonPrice?: number | null;
-        examPrice?: number | null;
-        id?: string | null;
-      }[]
-    | null;
-  openingHours?:
-    | {
-        day: 'monday' | 'tuesday' | 'wednesday' | 'thursday' | 'friday' | 'saturday' | 'sunday';
-        openTime?: string | null;
-        closeTime?: string | null;
-        closed?: boolean | null;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Wird in Suchergebnissen angezeigt (max. 300 Zeichen)
-   */
-  shortDescription?: string | null;
-  description?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  /**
-   * Liste der benötigten Dokumente und Voraussetzungen für die Anmeldung
-   */
-  checklist?:
-    | {
-        item: string;
-        description?: string | null;
-        /**
-         * Ist dieses Item zwingend erforderlich?
-         */
-        required?: boolean | null;
-        category?: ('general' | 'documents' | 'courses' | 'examinations' | 'other') | null;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Wird automatisch aus Bewertungen berechnet
-   */
-  rating?: number | null;
-  reviewCount?: number | null;
-  /**
-   * Fahrschule wurde überprüft
-   */
-  verified?: boolean | null;
-  /**
-   * In Suchergebnissen priorisieren
-   */
-  featured?: boolean | null;
-  publishedAt?: string | null;
-  /**
-   * Wird für die URL der Fahrschule verwendet
-   */
-  slug: string;
-  updatedAt: string;
-  createdAt: string;
-  _status?: ('draft' | 'published') | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "reviews".
- */
-export interface Review {
-  id: string;
-  drivingSchool: string | DrivingSchool;
-  title: string;
-  rating: number;
-  ratings?: {
-    theory?: number | null;
-    practice?: number | null;
-    friendliness?: number | null;
-    pricePerformance?: number | null;
-    flexibility?: number | null;
-  };
-  licenseClass?: ('B' | 'A' | 'A1' | 'A2' | 'AM' | 'BE' | 'other') | null;
-  text: string;
-  pros?:
-    | {
-        text: string;
-        id?: string | null;
-      }[]
-    | null;
-  cons?:
-    | {
-        text: string;
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Wie wahrscheinlich würden Sie diese Fahrschule weiterempfehlen?
-   */
-  recommendationScore?: number | null;
-  /**
-   * Wird öffentlich angezeigt
-   */
-  authorName: string;
-  /**
-   * Wird nicht öffentlich angezeigt
-   */
-  authorEmail: string;
-  /**
-   * Bewertung wird erst nach Freigabe angezeigt
-   */
-  approved?: boolean | null;
-  helpful?: number | null;
-  /**
-   * Wann wurde die Ausbildung abgeschlossen?
-   */
-  completedAt?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Anfragen von Fahrschülern an Fahrschulen
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "inquiries".
- */
-export interface Inquiry {
-  id: string;
-  /**
-   * Wird automatisch generiert
-   */
-  inquiryNumber?: string | null;
-  studentName: string;
-  studentEmail: string;
-  studentPhone?: string | null;
-  studentAge?: number | null;
-  /**
-   * Wohnort des Fahrschülers
-   */
-  studentCity: string;
-  licenseClass: 'B' | 'B197' | 'BF17' | 'A' | 'A1' | 'A2' | 'AM' | 'BE' | 'C' | 'CE' | 'D' | 'T';
-  preferredStart?: ('asap' | '1-2weeks' | '1month' | '2-3months' | 'later') | null;
-  courseType?: ('regular' | 'intensive' | 'weekend' | 'evening' | 'flexible') | null;
-  hasFirstAid?: boolean | null;
-  hasEyeTest?: boolean | null;
-  preferences?: ('online-theory' | 'automatic' | 'simulator' | 'electric' | 'foreign-language')[] | null;
-  preferredLanguage?: ('de' | 'en' | 'tr' | 'ar' | 'ru' | 'other') | null;
-  /**
-   * Teile den Fahrschulen weitere Details mit (optional)
-   */
-  message?: string | null;
-  budgetRange?: ('under-2000' | '2000-2500' | '2500-3000' | '3000-3500' | 'over-3500' | 'no-preference') | null;
-  /**
-   * Diese Fahrschulen erhalten die Anfrage
-   */
-  drivingSchools: (string | DrivingSchool)[];
-  status?: ('pending' | 'responded' | 'closed' | 'cancelled') | null;
-  responseCount?: number | null;
-  /**
-   * Für Schüler-Zugang ohne Login
-   */
-  accessToken?: string | null;
-  /**
-   * Anfrage verfällt nach diesem Datum
-   */
-  expiresAt?: string | null;
-  privacyAccepted: boolean;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * Antworten von Fahrschulen auf Anfragen
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "inquiry-responses".
- */
-export interface InquiryResponse {
-  id: string;
-  responseNumber?: string | null;
-  /**
-   * Die Anfrage, auf die geantwortet wird
-   */
-  inquiry: string | Inquiry;
-  /**
-   * Die antwortende Fahrschule
-   */
-  drivingSchool: string | DrivingSchool;
-  /**
-   * Persönliche Nachricht an den Fahrschüler
-   */
-  greeting?: string | null;
-  availability?: ('immediate' | '1-2weeks' | '2-4weeks' | 'waitlist' | 'no-capacity') | null;
-  /**
-   * Können alle Präferenzen des Schülers erfüllt werden?
-   */
-  canFulfillPreferences?: boolean | null;
-  /**
-   * Falls nicht alle Wünsche erfüllt werden können
-   */
-  preferencesNote?: string | null;
-  priceOffer?: {
-    basePrice?: number | null;
-    lessonPrice?: number | null;
-    specialLessonPrice?: number | null;
-    theoryMaterial?: number | null;
-    theoryExam?: number | null;
-    practicalExam?: number | null;
-    /**
-     * Basierend auf durchschnittlicher Anzahl Fahrstunden
-     */
-    estimatedTotal?: number | null;
-    /**
-     * Durchschnittliche Anzahl benötigter Fahrstunden
-     */
-    estimatedLessons?: number | null;
-  };
-  specialOffers?:
-    | {
-        title: string;
-        discount?: string | null;
-        validUntil?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  paymentOptions?:
-    | ('single' | 'installments' | 'per-lesson' | 'voucher' | 'ec' | 'credit-card' | 'transfer' | 'cash')[]
-    | null;
-  /**
-   * Was der Fahrschüler als nächstes tun soll
-   */
-  nextSteps?: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  } | null;
-  additionalServices?:
-    | {
-        service: string;
-        included?: boolean | null;
-        price?: number | null;
-        id?: string | null;
-      }[]
-    | null;
-  freeTrialLesson?: boolean | null;
-  attachments?:
-    | {
-        file: string | Media;
-        description?: string | null;
-        id?: string | null;
-      }[]
-    | null;
-  status?: ('sent' | 'read' | 'favorited' | 'accepted' | 'declined') | null;
-  readAt?: string | null;
-  contactPerson?: string | null;
-  /**
-   * Telefon/WhatsApp für Rückfragen
-   */
-  directPhone?: string | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "redirects".
- */
-export interface Redirect {
-  id: string;
-  /**
-   * Sie müssen die Website neu erstellen, wenn Sie dieses Feld ändern.
-   */
-  from: string;
-  to?: {
-    type?: ('reference' | 'custom') | null;
-    reference?:
-      | ({
-          relationTo: 'pages';
-          value: string | Page;
-        } | null)
-      | ({
-          relationTo: 'posts';
-          value: string | Post;
-        } | null);
-    url?: string | null;
-  };
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "form-submissions".
  */
 export interface FormSubmission {
@@ -1179,37 +1113,6 @@ export interface FormSubmission {
     | {
         field: string;
         value: string;
-        id?: string | null;
-      }[]
-    | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This is a collection of automatically created search results. These results are used by the global site search and will be updated automatically as documents in the CMS are created or updated.
- *
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "search".
- */
-export interface Search {
-  id: string;
-  title?: string | null;
-  priority?: number | null;
-  doc: {
-    relationTo: 'posts';
-    value: string | Post;
-  };
-  slug?: string | null;
-  meta?: {
-    title?: string | null;
-    description?: string | null;
-    image?: (string | null) | Media;
-  };
-  categories?:
-    | {
-        relationTo?: string | null;
-        categoryID?: string | null;
-        title?: string | null;
         id?: string | null;
       }[]
     | null;
@@ -1235,142 +1138,70 @@ export interface PayloadKv {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-jobs".
- */
-export interface PayloadJob {
-  id: string;
-  /**
-   * Input data provided to the job
-   */
-  input?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  taskStatus?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  completedAt?: string | null;
-  totalTried?: number | null;
-  /**
-   * If hasError is true this job will not be retried
-   */
-  hasError?: boolean | null;
-  /**
-   * If hasError is true, this is the error that caused it
-   */
-  error?:
-    | {
-        [k: string]: unknown;
-      }
-    | unknown[]
-    | string
-    | number
-    | boolean
-    | null;
-  /**
-   * Task execution log
-   */
-  log?:
-    | {
-        executedAt: string;
-        completedAt: string;
-        taskSlug: 'inline' | 'schedulePublish';
-        taskID: string;
-        input?:
-          | {
-              [k: string]: unknown;
-            }
-          | unknown[]
-          | string
-          | number
-          | boolean
-          | null;
-        output?:
-          | {
-              [k: string]: unknown;
-            }
-          | unknown[]
-          | string
-          | number
-          | boolean
-          | null;
-        state: 'failed' | 'succeeded';
-        error?:
-          | {
-              [k: string]: unknown;
-            }
-          | unknown[]
-          | string
-          | number
-          | boolean
-          | null;
-        id?: string | null;
-      }[]
-    | null;
-  taskSlug?: ('inline' | 'schedulePublish') | null;
-  queue?: string | null;
-  waitUntil?: string | null;
-  processing?: boolean | null;
-  updatedAt: string;
-  createdAt: string;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-locked-documents".
  */
 export interface PayloadLockedDocument {
   id: string;
   document?:
     | ({
-        relationTo: 'pages';
-        value: string | Page;
-      } | null)
-    | ({
-        relationTo: 'posts';
-        value: string | Post;
-      } | null)
-    | ({
-        relationTo: 'driving-schools';
-        value: string | DrivingSchool;
-      } | null)
-    | ({
-        relationTo: 'reviews';
-        value: string | Review;
-      } | null)
-    | ({
-        relationTo: 'inquiries';
-        value: string | Inquiry;
-      } | null)
-    | ({
-        relationTo: 'inquiry-responses';
-        value: string | InquiryResponse;
+        relationTo: 'users';
+        value: string | User;
       } | null)
     | ({
         relationTo: 'media';
         value: string | Media;
       } | null)
     | ({
-        relationTo: 'categories';
-        value: string | Category;
+        relationTo: 'transactions';
+        value: string | Transaction;
       } | null)
     | ({
-        relationTo: 'users';
-        value: string | User;
+        relationTo: 'transaction-categories';
+        value: string | TransactionCategory;
       } | null)
     | ({
-        relationTo: 'redirects';
-        value: string | Redirect;
+        relationTo: 'cost-centers';
+        value: string | CostCenter;
+      } | null)
+    | ({
+        relationTo: 'aircraft';
+        value: string | Aircraft;
+      } | null)
+    | ({
+        relationTo: 'flights';
+        value: string | Flight;
+      } | null)
+    | ({
+        relationTo: 'flight-logs';
+        value: string | FlightLog;
+      } | null)
+    | ({
+        relationTo: 'fuel-entries';
+        value: string | FuelEntry;
+      } | null)
+    | ({
+        relationTo: 'general-costs';
+        value: string | GeneralCost;
+      } | null)
+    | ({
+        relationTo: 'access-tokens';
+        value: string | AccessToken;
+      } | null)
+    | ({
+        relationTo: 'members';
+        value: string | Member;
+      } | null)
+    | ({
+        relationTo: 'membership-fee-types';
+        value: string | MembershipFeeType;
+      } | null)
+    | ({
+        relationTo: 'membership-fee-stats';
+        value: string | MembershipFeeStat;
+      } | null)
+    | ({
+        relationTo: 'working-hours';
+        value: string | WorkingHour;
       } | null)
     | ({
         relationTo: 'forms';
@@ -1379,10 +1210,6 @@ export interface PayloadLockedDocument {
     | ({
         relationTo: 'form-submissions';
         value: string | FormSubmission;
-      } | null)
-    | ({
-        relationTo: 'search';
-        value: string | Search;
       } | null)
     | ({
         relationTo: 'payload-folders';
@@ -1432,363 +1259,38 @@ export interface PayloadMigration {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "pages_select".
+ * via the `definition` "users_select".
  */
-export interface PagesSelect<T extends boolean = true> {
-  title?: T;
-  hero?:
-    | T
-    | {
-        type?: T;
-        richText?: T;
-        links?:
-          | T
-          | {
-              link?:
-                | T
-                | {
-                    type?: T;
-                    newTab?: T;
-                    reference?: T;
-                    url?: T;
-                    label?: T;
-                    appearance?: T;
-                  };
-              id?: T;
-            };
-        media?: T;
-        videoUrl?: T;
-        videoPoster?: T;
-      };
-  layout?:
-    | T
-    | {
-        cta?: T | CallToActionBlockSelect<T>;
-        content?: T | ContentBlockSelect<T>;
-        mediaBlock?: T | MediaBlockSelect<T>;
-        archive?: T | ArchiveBlockSelect<T>;
-        formBlock?: T | FormBlockSelect<T>;
-      };
-  meta?:
-    | T
-    | {
-        title?: T;
-        image?: T;
-        description?: T;
-      };
-  publishedAt?: T;
-  generateSlug?: T;
-  slug?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  _status?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "CallToActionBlock_select".
- */
-export interface CallToActionBlockSelect<T extends boolean = true> {
-  richText?: T;
-  links?:
-    | T
-    | {
-        link?:
-          | T
-          | {
-              type?: T;
-              newTab?: T;
-              reference?: T;
-              url?: T;
-              label?: T;
-              appearance?: T;
-            };
-        id?: T;
-      };
-  id?: T;
-  blockName?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "ContentBlock_select".
- */
-export interface ContentBlockSelect<T extends boolean = true> {
-  columns?:
-    | T
-    | {
-        size?: T;
-        richText?: T;
-        enableLink?: T;
-        link?:
-          | T
-          | {
-              type?: T;
-              newTab?: T;
-              reference?: T;
-              url?: T;
-              label?: T;
-              appearance?: T;
-            };
-        id?: T;
-      };
-  id?: T;
-  blockName?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "MediaBlock_select".
- */
-export interface MediaBlockSelect<T extends boolean = true> {
-  media?: T;
-  id?: T;
-  blockName?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "ArchiveBlock_select".
- */
-export interface ArchiveBlockSelect<T extends boolean = true> {
-  introContent?: T;
-  populateBy?: T;
-  relationTo?: T;
-  categories?: T;
-  limit?: T;
-  selectedDocs?: T;
-  id?: T;
-  blockName?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "FormBlock_select".
- */
-export interface FormBlockSelect<T extends boolean = true> {
-  form?: T;
-  enableIntro?: T;
-  introContent?: T;
-  id?: T;
-  blockName?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "posts_select".
- */
-export interface PostsSelect<T extends boolean = true> {
-  title?: T;
-  heroImage?: T;
-  content?: T;
-  relatedPosts?: T;
-  categories?: T;
-  meta?:
-    | T
-    | {
-        title?: T;
-        image?: T;
-        description?: T;
-      };
-  publishedAt?: T;
-  authors?: T;
-  populatedAuthors?:
-    | T
-    | {
-        id?: T;
-        name?: T;
-      };
-  generateSlug?: T;
-  slug?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  _status?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "driving-schools_select".
- */
-export interface DrivingSchoolsSelect<T extends boolean = true> {
+export interface UsersSelect<T extends boolean = true> {
   name?: T;
-  logo?: T;
-  images?:
+  permissions?:
     | T
     | {
-        image?: T;
-        id?: T;
+        transactions?: T;
+        aircraft?: T;
+        flightLogs?: T;
+        costCenters?: T;
+        costAllocations?: T;
+        yearlyComparison?: T;
+        costCalculation?: T;
+        fuelTracking?: T;
       };
-  street?: T;
-  postalCode?: T;
-  city?: T;
-  state?: T;
-  phone?: T;
+  updatedAt?: T;
+  createdAt?: T;
   email?: T;
-  website?: T;
-  latitude?: T;
-  longitude?: T;
-  licenseClasses?: T;
-  languages?: T;
-  features?: T;
-  vehicleTypes?: T;
-  priceRange?: T;
-  prices?:
+  resetPasswordToken?: T;
+  resetPasswordExpiration?: T;
+  salt?: T;
+  hash?: T;
+  loginAttempts?: T;
+  lockUntil?: T;
+  sessions?:
     | T
     | {
-        licenseClass?: T;
-        basePrice?: T;
-        lessonPrice?: T;
-        examPrice?: T;
         id?: T;
+        createdAt?: T;
+        expiresAt?: T;
       };
-  openingHours?:
-    | T
-    | {
-        day?: T;
-        openTime?: T;
-        closeTime?: T;
-        closed?: T;
-        id?: T;
-      };
-  shortDescription?: T;
-  description?: T;
-  checklist?:
-    | T
-    | {
-        item?: T;
-        description?: T;
-        required?: T;
-        category?: T;
-        id?: T;
-      };
-  rating?: T;
-  reviewCount?: T;
-  verified?: T;
-  featured?: T;
-  publishedAt?: T;
-  slug?: T;
-  updatedAt?: T;
-  createdAt?: T;
-  _status?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "reviews_select".
- */
-export interface ReviewsSelect<T extends boolean = true> {
-  drivingSchool?: T;
-  title?: T;
-  rating?: T;
-  ratings?:
-    | T
-    | {
-        theory?: T;
-        practice?: T;
-        friendliness?: T;
-        pricePerformance?: T;
-        flexibility?: T;
-      };
-  licenseClass?: T;
-  text?: T;
-  pros?:
-    | T
-    | {
-        text?: T;
-        id?: T;
-      };
-  cons?:
-    | T
-    | {
-        text?: T;
-        id?: T;
-      };
-  recommendationScore?: T;
-  authorName?: T;
-  authorEmail?: T;
-  approved?: T;
-  helpful?: T;
-  completedAt?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "inquiries_select".
- */
-export interface InquiriesSelect<T extends boolean = true> {
-  inquiryNumber?: T;
-  studentName?: T;
-  studentEmail?: T;
-  studentPhone?: T;
-  studentAge?: T;
-  studentCity?: T;
-  licenseClass?: T;
-  preferredStart?: T;
-  courseType?: T;
-  hasFirstAid?: T;
-  hasEyeTest?: T;
-  preferences?: T;
-  preferredLanguage?: T;
-  message?: T;
-  budgetRange?: T;
-  drivingSchools?: T;
-  status?: T;
-  responseCount?: T;
-  accessToken?: T;
-  expiresAt?: T;
-  privacyAccepted?: T;
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "inquiry-responses_select".
- */
-export interface InquiryResponsesSelect<T extends boolean = true> {
-  responseNumber?: T;
-  inquiry?: T;
-  drivingSchool?: T;
-  greeting?: T;
-  availability?: T;
-  canFulfillPreferences?: T;
-  preferencesNote?: T;
-  priceOffer?:
-    | T
-    | {
-        basePrice?: T;
-        lessonPrice?: T;
-        specialLessonPrice?: T;
-        theoryMaterial?: T;
-        theoryExam?: T;
-        practicalExam?: T;
-        estimatedTotal?: T;
-        estimatedLessons?: T;
-      };
-  specialOffers?:
-    | T
-    | {
-        title?: T;
-        discount?: T;
-        validUntil?: T;
-        id?: T;
-      };
-  paymentOptions?: T;
-  nextSteps?: T;
-  additionalServices?:
-    | T
-    | {
-        service?: T;
-        included?: T;
-        price?: T;
-        id?: T;
-      };
-  freeTrialLesson?: T;
-  attachments?:
-    | T
-    | {
-        file?: T;
-        description?: T;
-        id?: T;
-      };
-  status?: T;
-  readAt?: T;
-  contactPerson?: T;
-  directPhone?: T;
-  updatedAt?: T;
-  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -1886,19 +1388,25 @@ export interface MediaSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "categories_select".
+ * via the `definition` "transactions_select".
  */
-export interface CategoriesSelect<T extends boolean = true> {
-  title?: T;
-  generateSlug?: T;
-  slug?: T;
-  parent?: T;
-  breadcrumbs?:
+export interface TransactionsSelect<T extends boolean = true> {
+  date?: T;
+  description?: T;
+  amount?: T;
+  type?: T;
+  category?: T;
+  costCenter?: T;
+  reference?: T;
+  processed?: T;
+  notes?: T;
+  costAllocations?:
     | T
     | {
-        doc?: T;
-        url?: T;
-        label?: T;
+        allocationType?: T;
+        aircraft?: T;
+        generalCost?: T;
+        weight?: T;
         id?: T;
       };
   updatedAt?: T;
@@ -1906,40 +1414,215 @@ export interface CategoriesSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "users_select".
+ * via the `definition` "transaction-categories_select".
  */
-export interface UsersSelect<T extends boolean = true> {
+export interface TransactionCategoriesSelect<T extends boolean = true> {
   name?: T;
+  type?: T;
+  color?: T;
+  description?: T;
   updatedAt?: T;
   createdAt?: T;
-  email?: T;
-  resetPasswordToken?: T;
-  resetPasswordExpiration?: T;
-  salt?: T;
-  hash?: T;
-  loginAttempts?: T;
-  lockUntil?: T;
-  sessions?:
-    | T
-    | {
-        id?: T;
-        createdAt?: T;
-        expiresAt?: T;
-      };
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "redirects_select".
+ * via the `definition` "cost-centers_select".
  */
-export interface RedirectsSelect<T extends boolean = true> {
-  from?: T;
-  to?:
+export interface CostCentersSelect<T extends boolean = true> {
+  name?: T;
+  code?: T;
+  description?: T;
+  active?: T;
+  color?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "aircraft_select".
+ */
+export interface AircraftSelect<T extends boolean = true> {
+  registration?: T;
+  name?: T;
+  aircraftGroup?: T;
+  manufacturer?: T;
+  model?: T;
+  purchaseDate?: T;
+  purchasePrice?: T;
+  insurance?: T;
+  hangar?: T;
+  annualInspection?: T;
+  fixedCosts?: T;
+  engineHours?: T;
+  totalFlightHours?: T;
+  fuelConsumption?: T;
+  fuelPrice?: T;
+  maintenanceCostPerHour?: T;
+  notes?: T;
+  active?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "flights_select".
+ */
+export interface FlightsSelect<T extends boolean = true> {
+  date?: T;
+  aircraft?: T;
+  pilot?: T;
+  pilotName?: T;
+  copilot?: T;
+  copilotName?: T;
+  startTime?: T;
+  landingTime?: T;
+  flightHours?: T;
+  flightMinutes?: T;
+  starts?: T;
+  departureLocation?: T;
+  landingLocation?: T;
+  landings?: T;
+  flightType?: T;
+  notes?: T;
+  sourceYear?: T;
+  sourceImportId?: T;
+  sourceRowHash?: T;
+  sourceTowAircraftRegistration?: T;
+  sourceTowMinutes?: T;
+  sourceMinutes?: T;
+  workingMinutesGlider?: T;
+  workingMinutesMotor?: T;
+  workingMinutesTow?: T;
+  memberMatchStatus?: T;
+  memberMatchCandidates?:
     | T
     | {
-        type?: T;
-        reference?: T;
-        url?: T;
+        name?: T;
+        id?: T;
       };
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "flight-logs_select".
+ */
+export interface FlightLogsSelect<T extends boolean = true> {
+  aircraft?: T;
+  year?: T;
+  starts?: T;
+  flightHours?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "fuel-entries_select".
+ */
+export interface FuelEntriesSelect<T extends boolean = true> {
+  date?: T;
+  aircraft?: T;
+  fuelType?: T;
+  name?: T;
+  meterReadingOld?: T;
+  meterReadingNew?: T;
+  liters?: T;
+  pricePerLiter?: T;
+  totalPrice?: T;
+  gasStation?: T;
+  invoiceNumber?: T;
+  invoice?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "general-costs_select".
+ */
+export interface GeneralCostsSelect<T extends boolean = true> {
+  parent?: T;
+  name?: T;
+  description?: T;
+  availableForIncome?: T;
+  availableForExpense?: T;
+  active?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "access-tokens_select".
+ */
+export interface AccessTokensSelect<T extends boolean = true> {
+  name?: T;
+  token?: T;
+  permissions?: T;
+  expiresAt?: T;
+  active?: T;
+  lastUsedAt?: T;
+  usageCount?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "members_select".
+ */
+export interface MembersSelect<T extends boolean = true> {
+  name?: T;
+  memberNumber?: T;
+  email?: T;
+  phone?: T;
+  address?: T;
+  active?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "membership-fee-types_select".
+ */
+export interface MembershipFeeTypesSelect<T extends boolean = true> {
+  name?: T;
+  code?: T;
+  defaultAmount?: T;
+  active?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "membership-fee-stats_select".
+ */
+export interface MembershipFeeStatsSelect<T extends boolean = true> {
+  adminLabel?: T;
+  year?: T;
+  snapshotDate?: T;
+  feeType?: T;
+  memberCount?: T;
+  amountPerMember?: T;
+  totalIncome?: T;
+  generalCost?: T;
+  notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "working-hours_select".
+ */
+export interface WorkingHoursSelect<T extends boolean = true> {
+  adminLabel?: T;
+  member?: T;
+  date?: T;
+  hours?: T;
+  type?: T;
+  description?: T;
+  notes?: T;
   updatedAt?: T;
   createdAt?: T;
 }
@@ -2094,69 +1777,11 @@ export interface FormSubmissionsSelect<T extends boolean = true> {
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "search_select".
- */
-export interface SearchSelect<T extends boolean = true> {
-  title?: T;
-  priority?: T;
-  doc?: T;
-  slug?: T;
-  meta?:
-    | T
-    | {
-        title?: T;
-        description?: T;
-        image?: T;
-      };
-  categories?:
-    | T
-    | {
-        relationTo?: T;
-        categoryID?: T;
-        title?: T;
-        id?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
  * via the `definition` "payload-kv_select".
  */
 export interface PayloadKvSelect<T extends boolean = true> {
   key?: T;
   data?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "payload-jobs_select".
- */
-export interface PayloadJobsSelect<T extends boolean = true> {
-  input?: T;
-  taskStatus?: T;
-  completedAt?: T;
-  totalTried?: T;
-  hasError?: T;
-  error?: T;
-  log?:
-    | T
-    | {
-        executedAt?: T;
-        completedAt?: T;
-        taskSlug?: T;
-        taskID?: T;
-        input?: T;
-        output?: T;
-        state?: T;
-        error?: T;
-        id?: T;
-      };
-  taskSlug?: T;
-  queue?: T;
-  waitUntil?: T;
-  processing?: T;
-  updatedAt?: T;
-  createdAt?: T;
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema
@@ -2201,239 +1826,6 @@ export interface PayloadMigrationsSelect<T extends boolean = true> {
   batch?: T;
   updatedAt?: T;
   createdAt?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "header".
- */
-export interface Header {
-  id: string;
-  navItems?:
-    | {
-        /**
-         * Wählen Sie, ob dies ein einfacher Link oder ein Dropdown mit Untermenüpunkten sein soll.
-         */
-        type?: ('link' | 'dropdown') | null;
-        /**
-         * Der angezeigte Text im Menü
-         */
-        label: string;
-        link?: {
-          type?: ('reference' | 'custom') | null;
-          newTab?: boolean | null;
-          reference?:
-            | ({
-                relationTo: 'pages';
-                value: string | Page;
-              } | null)
-            | ({
-                relationTo: 'posts';
-                value: string | Post;
-              } | null);
-          url?: string | null;
-        };
-        /**
-         * Fügen Sie hier die Untermenüpunkte hinzu.
-         */
-        children?:
-          | {
-              link: {
-                type?: ('reference' | 'custom') | null;
-                newTab?: boolean | null;
-                reference?:
-                  | ({
-                      relationTo: 'pages';
-                      value: string | Page;
-                    } | null)
-                  | ({
-                      relationTo: 'posts';
-                      value: string | Post;
-                    } | null);
-                url?: string | null;
-                label: string;
-              };
-              id?: string | null;
-            }[]
-          | null;
-        id?: string | null;
-      }[]
-    | null;
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "footer".
- */
-export interface Footer {
-  id: string;
-  navItems?:
-    | {
-        /**
-         * Bestimmt in welcher Spalte der Link angezeigt wird
-         */
-        category: 'navigation' | 'legal';
-        link: {
-          type?: ('reference' | 'custom') | null;
-          newTab?: boolean | null;
-          reference?:
-            | ({
-                relationTo: 'pages';
-                value: string | Page;
-              } | null)
-            | ({
-                relationTo: 'posts';
-                value: string | Post;
-              } | null);
-          url?: string | null;
-          label: string;
-        };
-        id?: string | null;
-      }[]
-    | null;
-  /**
-   * Social Media Icons werden unten rechts im Footer angezeigt
-   */
-  socialLinks?:
-    | {
-        platform: 'facebook' | 'instagram' | 'youtube' | 'tiktok' | 'twitter' | 'linkedin';
-        url: string;
-        id?: string | null;
-      }[]
-    | null;
-  updatedAt?: string | null;
-  createdAt?: string | null;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "header_select".
- */
-export interface HeaderSelect<T extends boolean = true> {
-  navItems?:
-    | T
-    | {
-        type?: T;
-        label?: T;
-        link?:
-          | T
-          | {
-              type?: T;
-              newTab?: T;
-              reference?: T;
-              url?: T;
-            };
-        children?:
-          | T
-          | {
-              link?:
-                | T
-                | {
-                    type?: T;
-                    newTab?: T;
-                    reference?: T;
-                    url?: T;
-                    label?: T;
-                  };
-              id?: T;
-            };
-        id?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "footer_select".
- */
-export interface FooterSelect<T extends boolean = true> {
-  navItems?:
-    | T
-    | {
-        category?: T;
-        link?:
-          | T
-          | {
-              type?: T;
-              newTab?: T;
-              reference?: T;
-              url?: T;
-              label?: T;
-            };
-        id?: T;
-      };
-  socialLinks?:
-    | T
-    | {
-        platform?: T;
-        url?: T;
-        id?: T;
-      };
-  updatedAt?: T;
-  createdAt?: T;
-  globalType?: T;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "TaskSchedulePublish".
- */
-export interface TaskSchedulePublish {
-  input: {
-    type?: ('publish' | 'unpublish') | null;
-    locale?: string | null;
-    doc?:
-      | ({
-          relationTo: 'pages';
-          value: string | Page;
-        } | null)
-      | ({
-          relationTo: 'posts';
-          value: string | Post;
-        } | null)
-      | ({
-          relationTo: 'driving-schools';
-          value: string | DrivingSchool;
-        } | null);
-    global?: string | null;
-    user?: (string | null) | User;
-  };
-  output?: unknown;
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "BannerBlock".
- */
-export interface BannerBlock {
-  style: 'info' | 'warning' | 'error' | 'success';
-  content: {
-    root: {
-      type: string;
-      children: {
-        type: any;
-        version: number;
-        [k: string]: unknown;
-      }[];
-      direction: ('ltr' | 'rtl') | null;
-      format: 'left' | 'start' | 'center' | 'right' | 'end' | 'justify' | '';
-      indent: number;
-      version: number;
-    };
-    [k: string]: unknown;
-  };
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'banner';
-}
-/**
- * This interface was referenced by `Config`'s JSON-Schema
- * via the `definition` "CodeBlock".
- */
-export interface CodeBlock {
-  language?: ('typescript' | 'javascript' | 'css') | null;
-  code: string;
-  id?: string | null;
-  blockName?: string | null;
-  blockType: 'code';
 }
 /**
  * This interface was referenced by `Config`'s JSON-Schema

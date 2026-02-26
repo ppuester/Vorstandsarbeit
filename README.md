@@ -414,6 +414,48 @@ Before deploying your app, you need to:
 
 You can also deploy your app manually, check out the [deployment documentation](https://payloadcms.com/docs/production/deployment) for full details.
 
+## Arbeitsstunden aus Flugbewegungen
+
+Die App kann Flugbewegungen (CSV/TSV oder XLSX) importieren und daraus Arbeitsstunden je Mitglied (Segelflug, Motorflug, Schlepp) berechnen.
+
+### Wo klicken / Ablauf
+
+1. **Import:** Unter **Flugzeuge → Flugstunden & Starts** auf „Importieren“ klicken und eine Datei wählen (CSV, TSV oder XLSX).
+2. **Auswertung:** Unter **Arbeitsstunden** auf „Aus Flugbewegungen“ klicken → Jahr wählen → Tabelle je Mitglied mit Segelflug-, Motorflug- und Schlepp-Minuten/Stunden. Klick auf eine Zelle öffnet die Detail-Liste der zugrundeliegenden Flüge.
+
+### Unterstützte Dateiformate
+
+- **CSV / TSV:** Trennzeichen Komma, Semikolon oder Tab; Kopfzeile mit deutschen Spaltennamen.
+- **XLSX / XLS:** Erstes Arbeitsblatt wird gelesen; erste Zeile = Kopfzeile.
+
+### Erwartete Spalten (Header)
+
+Die Kopfzeile wird tolerant erkannt (trim, lowercase, mehrfache Leerzeichen/Punkte entfernt). Erwartet werden u. a.:
+
+| Spalte        | Beschreibung                          |
+|---------------|----------------------------------------|
+| Datum         | Datum des Flugs (Format DD.MM.YY oder DD.MM.YYYY) |
+| Lfz. / Kennzeichen | Kennzeichen des Flugzeugs (Vereinsflugzeug = in Stammdaten vorhanden) |
+| Pilot         | Pilot als Text, z. B. „Nachname, Vorname“ |
+| Zeit          | Flugdauer in Minuten                  |
+| Schleppzeit   | Schleppdauer in Minuten (optional)   |
+| Schlepp-LFZ   | Kennzeichen des Schleppflugzeugs (wenn gefüllt = Schlepp-Zeile) |
+| Abr.          | Abrechnung (optional)                 |
+| Bemerkung / Notiz | Freitext (optional)               |
+| Start / Landung | Start- und Landezeit (optional, HH:MM) |
+| Startort / Landeort | Orte (optional)                  |
+
+### Beispiel CSV (erste Zeilen)
+
+```csv
+Datum;Lfz.;Pilot;Zeit;Schleppzeit;Schlepp-LFZ;Abr.;Bemerkung;Start;Landung;Startort;Landeort
+01.05.24;D-1234;Müller, Hans;45;12;D-5678;P;;09:00;09:57;EDLW;EDLW
+02.05.24;D-5678;Schmidt, Anna;30;0;;P;;10:00;10:30;EDLW;EDLW
+```
+
+- Nur Zeilen, deren Flugzeug (Lfz.) als Vereinsflugzeug in der App existiert, erzeugen Arbeitsstunden.
+- Pilot-Matching: „Nachname, Vorname“ wird gegen Mitglieder-Stammdaten abgeglichen (normalisiert, Umlaute); bei keinem Treffer bleibt der Pilot unzugeordnet (PilotName gespeichert, Zähler „Unzugeordnete“).
+
 ## Questions
 
 If you have any issues or questions, reach out to us on [Discord](https://discord.com/invite/payload) or start a [GitHub discussion](https://github.com/payloadcms/payload/discussions).
