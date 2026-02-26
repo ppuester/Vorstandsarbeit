@@ -100,7 +100,10 @@ function buildHeaderToIndex(rawHeaders: string[]): Record<string, number> {
 
 /** Hash für Dedupe: datum(ISO)|lfz|pilot|start(HH:MM)|landung(HH:MM)|zeit|schleppzeit|schleppLfz|startort|landeort */
 function buildRowHash(
-  values: Record<string, string>,
+  values: Pick<
+    ParsedRow,
+    'lfz' | 'pilot' | 'start' | 'landung' | 'zeit' | 'schleppzeit' | 'schleppLfz' | 'startort' | 'landeort'
+  >,
   date: Date | null
 ): string {
   const isoDate = date ? date.toISOString().slice(0, 10) : ''
