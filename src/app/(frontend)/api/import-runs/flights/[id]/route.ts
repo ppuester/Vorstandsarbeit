@@ -1,13 +1,15 @@
 import { NextResponse } from 'next/server'
 import { getPayload, type CollectionSlug } from 'payload'
 import configPromise from '@payload-config'
+import { syncFlightLogsFromFlights } from '@/utilities/syncFlightLogsFromFlights'
 
 export const runtime = 'nodejs'
 
 const CHUNK_SIZE = 500
 
 /**
- * DELETE: Import rückgängig machen – löscht alle Flüge dieses Imports und markiert den ImportRun als gelöscht.
+ * DELETE: Import rückgängig machen – löscht alle Flüge dieses Imports, markiert den ImportRun als gelöscht
+ * und aktualisiert die Flugbücher (Starts/Flugstunden pro Flugzeug) aus den verbleibenden Flügen.
  * Query-Parameter: confirm=true erforderlich.
  */
 export async function DELETE(
@@ -85,10 +87,14 @@ export async function DELETE(
       overrideAccess: true,
     })
 
+    const syncResult = await syncFlightLogsFromFlights(payload)
+
     return NextResponse.json({
       success: true,
       deletedFlights,
       importRunId: id,
+      flightLogsUpdated: syncResult.updated,
+      flightLogsZeroed: syncResult.zeroed,
     })
   } catch (error) {
     console.error('Error deleting import run:', error)
