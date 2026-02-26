@@ -77,6 +77,34 @@ export const Members: CollectionConfig = {
         description: 'Zusätzliche Informationen',
       },
     },
+    {
+      name: 'importFingerprint',
+      type: 'text',
+      label: 'Import-Fingerprint',
+      admin: {
+        hidden: true,
+        description: 'SHA1 der importierten Felder für Delta-Import',
+      },
+    },
+    {
+      name: 'lastImportedAt',
+      type: 'date',
+      label: 'Zuletzt importiert',
+      admin: {
+        hidden: true,
+        date: { pickerAppearance: 'dayOnly' },
+      },
+    },
+    {
+      name: 'sourceSystem',
+      type: 'text',
+      label: 'Quellsystem',
+      defaultValue: 'members-xlsx',
+      admin: {
+        hidden: true,
+        description: 'Herkunft des letzten Imports',
+      },
+    },
   ],
   timestamps: true,
 }

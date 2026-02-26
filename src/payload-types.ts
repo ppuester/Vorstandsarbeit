@@ -705,6 +705,15 @@ export interface Member {
    * Zusätzliche Informationen
    */
   notes?: string | null;
+  /**
+   * SHA1 der importierten Felder für Delta-Import
+   */
+  importFingerprint?: string | null;
+  lastImportedAt?: string | null;
+  /**
+   * Herkunft des letzten Imports
+   */
+  sourceSystem?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1578,6 +1587,9 @@ export interface MembersSelect<T extends boolean = true> {
   address?: T;
   active?: T;
   notes?: T;
+  importFingerprint?: T;
+  lastImportedAt?: T;
+  sourceSystem?: T;
   updatedAt?: T;
   createdAt?: T;
 }

@@ -22,6 +22,12 @@ export default function MitgliederPage() {
   const [importing, setImporting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
+  const [importResult, setImportResult] = useState<{
+    created: number
+    updated: number
+    skipped: number
+    errors: Array<{ row: number; reason: string }>
+  } | null>(null)
   const [showModal, setShowModal] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [formData, setFormData] = useState<Partial<Member>>({
@@ -181,6 +187,7 @@ export default function MitgliederPage() {
       setImporting(true)
       setError(null)
       setSuccess(null)
+      setImportResult(null)
 
       const formData = new FormData()
       formData.append('file', file)
@@ -193,12 +200,18 @@ export default function MitgliederPage() {
       const result = await response.json()
 
       if (response.ok) {
-        setSuccess(
-          `${result.imported} Mitglied${result.imported !== 1 ? 'er' : ''} erfolgreich importiert. ${result.skipped > 0 ? `${result.skipped} übersprungen.` : ''}`
-        )
-        if (result.errors && result.errors.length > 0) {
-          console.warn('Import-Fehler:', result.errors)
-        }
+        const { created = 0, updated = 0, skipped = 0, errors: errList = [] } = result
+        const parts = []
+        if (created > 0) parts.push(`${created} neu angelegt`)
+        if (updated > 0) parts.push(`${updated} aktualisiert`)
+        if (skipped > 0) parts.push(`${skipped} unverändert/übersprungen`)
+        setSuccess(parts.length > 0 ? `Delta-Import: ${parts.join(', ')}.` : 'Import abgeschlossen.')
+        setImportResult({
+          created,
+          updated,
+          skipped,
+          errors: Array.isArray(errList) ? errList : [],
+        })
         await fetchData()
       } else {
         setError(result.error || 'Fehler beim Importieren')
@@ -269,11 +282,11 @@ export default function MitgliederPage() {
               </button>
               <label className="inline-flex items-center gap-2 px-4 py-2 text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors font-medium cursor-pointer">
                 <Upload className="w-4 h-4" />
-                CSV Import
+                Delta-Import
                 <input
                   ref={fileInputRef}
                   type="file"
-                  accept=".csv"
+                  accept=".csv,.tsv,.xlsx,.xls"
                   onChange={handleFileUpload}
                   className="hidden"
                 />
@@ -297,9 +310,28 @@ export default function MitgliederPage() {
           )}
 
           {success && (
-            <div className="mb-6 flex items-center gap-2 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-              <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" />
-              <p className="text-sm text-green-700 dark:text-green-300">{success}</p>
+            <div className="mb-6 flex flex-col gap-2 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+                <p className="text-sm text-green-700 dark:text-green-300">{success}</p>
+              </div>
+              {importResult && importResult.errors.length > 0 && (
+                <div className="mt-2 pt-2 border-t border-green-200 dark:border-green-800">
+                  <p className="text-xs font-medium text-green-800 dark:text-green-200 mb-1">
+                    Fehler ({importResult.errors.length}):
+                  </p>
+                  <ul className="text-xs text-green-700 dark:text-green-300 list-disc list-inside space-y-0.5 max-h-32 overflow-y-auto">
+                    {importResult.errors.slice(0, 20).map((e, idx) => (
+                      <li key={idx}>
+                        Zeile {e.row}: {e.reason}
+                      </li>
+                    ))}
+                    {importResult.errors.length > 20 && (
+                      <li>… und {importResult.errors.length - 20} weitere</li>
+                    )}
+                  </ul>
+                </div>
+              )}
             </div>
           )}
 
@@ -310,10 +342,12 @@ export default function MitgliederPage() {
             </div>
           )}
 
-          {/* Info Box für CSV Format */}
+          {/* Info Box Delta-Import */}
           <div className="mb-6 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
             <p className="text-sm text-blue-800 dark:text-blue-300">
-              <strong>CSV-Format:</strong> Name, Mitgliedsnummer, E-Mail, Telefon, Adresse, Aktiv (Ja/Nein), Notizen
+              <strong>Mitglieder importieren (Delta-Import):</strong> Beliebig oft ausführbar. Nur Differenzen werden
+              übernommen (MitgliedsNr = Schlüssel). Unterstützte Formate: CSV, TSV, XLSX. Spalte &quot;MitgliedsNr&quot;
+              ist Pflicht.
             </p>
           </div>
 
