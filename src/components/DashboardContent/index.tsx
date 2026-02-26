@@ -79,15 +79,6 @@ export function DashboardContent() {
 
   const quickActions = [
     {
-      title: 'CSV Import',
-      description: 'Finanzen importieren',
-      href: '/kontobewegungen',
-      icon: FileText,
-      iconBg: 'bg-blue-100',
-      iconColor: 'text-blue-600',
-      enabled: isFeatureEnabled('transactions'),
-    },
-    {
       title: 'Flugzeuge',
       description: 'Flugzeugstammdaten verwalten',
       href: '/flugzeuge',

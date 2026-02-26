@@ -80,6 +80,8 @@ interface GeneralCost {
   active: boolean
 }
 
+const CURRENT_YEAR = new Date().getFullYear()
+
 export default function KontobewegungenUebersichtPage() {
   const { isFeatureEnabled } = useOrganization()
   const [transactions, setTransactions] = useState<Transaction[]>([])
@@ -94,8 +96,10 @@ export default function KontobewegungenUebersichtPage() {
   // Eingabe im Textfeld (wird erst bei Klick auf „Suchen“ übernommen)
   const [searchInput, setSearchInput] = useState('')
   const [filterProcessed, setFilterProcessed] = useState<'all' | 'processed' | 'unprocessed'>('all')
-  const [dateFrom, setDateFrom] = useState('')
-  const [dateTo, setDateTo] = useState('')
+  // Schnellfilter für ganze Jahre (Standard: aktuelles Jahr)
+  const [yearPreset, setYearPreset] = useState<string>(String(CURRENT_YEAR))
+  const [dateFrom, setDateFrom] = useState(`${CURRENT_YEAR}-01-01`)
+  const [dateTo, setDateTo] = useState(`${CURRENT_YEAR}-12-31`)
   const [amountMin, setAmountMin] = useState('')
   const [amountMax, setAmountMax] = useState('')
   const [showAdvancedFilters, setShowAdvancedFilters] = useState(false)
@@ -486,34 +490,47 @@ export default function KontobewegungenUebersichtPage() {
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="mb-8 flex items-center justify-between">
+          <div className="mb-8 space-y-4">
+            {/* Zurück-Button zum Dashboard */}
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2">
-                Kontobewegungen Übersicht
-              </h1>
-              <p className="text-sm md:text-base text-slate-600 dark:text-slate-400">
-                Verwalten Sie Ihre Einnahmen und Ausgaben
-              </p>
+              <Link
+                href="/"
+                className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-slate-300 dark:border-slate-600 bg-white/60 dark:bg-slate-800/80 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Zurück zum Dashboard
+              </Link>
             </div>
-            <div className="flex gap-3">
-              <Link
-                href="/kontobewegungen/kostenstellenvergleich"
-                className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors"
-              >
-                Kostenstellenvergleich
-              </Link>
-              <Link
-                href="/kontobewegungen/jahresvergleich"
-                className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors"
-              >
-                Jahresvergleich
-              </Link>
-              <Link
-                href="/kontobewegungen"
-                className="px-4 py-2 rounded-lg bg-slate-900 text-white text-sm font-medium hover:bg-slate-800 transition-colors"
-              >
-                Neue Bewegungen importieren
-              </Link>
+
+            <div className="flex items-center justify-between">
+              <div>
+                <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2">
+                  Kontobewegungen Übersicht
+                </h1>
+                <p className="text-sm md:text-base text-slate-600 dark:text-slate-400">
+                  Verwalten Sie Ihre Einnahmen und Ausgaben
+                </p>
+              </div>
+              <div className="flex gap-3">
+                <Link
+                  href="/kontobewegungen/kostenstellenvergleich"
+                  className="inline-flex items-center px-4 py-2 rounded-full border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-800 text-sm font-medium text-slate-900 dark:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                >
+                  Kostenstellenvergleich
+                </Link>
+                <Link
+                  href="/kontobewegungen/jahresvergleich"
+                  className="inline-flex items-center px-4 py-2 rounded-full border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-800 text-sm font-medium text-slate-900 dark:text-slate-100 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"
+                >
+                  Jahresvergleich
+                </Link>
+                <Link
+                  href="/kontobewegungen"
+                  className="inline-flex items-center px-4 py-2 rounded-full border border-slate-300 dark:border-slate-600 bg-slate-900 text-sm font-medium text-white hover:bg-slate-800 transition-colors"
+                >
+                  Neue Bewegungen importieren
+                </Link>
+              </div>
             </div>
           </div>
 
@@ -632,6 +649,33 @@ export default function KontobewegungenUebersichtPage() {
                     <option value="unprocessed">Nur unverarbeitete</option>
                   </select>
                 </div>
+                {/* Jahr-Schnellauswahl */}
+                <div className="flex items-center gap-2">
+                  <Calendar className="w-5 h-5 text-slate-400 dark:text-slate-500" />
+                  <select
+                    value={yearPreset}
+                    onChange={(e) => {
+                      const value = e.target.value
+                      setYearPreset(value)
+                      if (value === 'all') {
+                        setDateFrom('')
+                        setDateTo('')
+                      } else {
+                        const year = Number(value)
+                        if (!Number.isNaN(year)) {
+                          setDateFrom(`${year}-01-01`)
+                          setDateTo(`${year}-12-31`)
+                        }
+                      }
+                    }}
+                    className="px-4 py-2 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 text-slate-900 dark:text-slate-100 text-sm"
+                  >
+                    <option value={String(CURRENT_YEAR)}>Aktuelles Jahr ({CURRENT_YEAR})</option>
+                    <option value={String(CURRENT_YEAR - 1)}>{CURRENT_YEAR - 1}</option>
+                    <option value={String(CURRENT_YEAR - 2)}>{CURRENT_YEAR - 2}</option>
+                    <option value="all">Alle Jahre</option>
+                  </select>
+                </div>
                 <button
                   onClick={() => setShowAdvancedFilters(!showAdvancedFilters)}
                   className="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-800"
@@ -695,11 +739,12 @@ export default function KontobewegungenUebersichtPage() {
               )}
 
               {/* Clear Filters */}
-              {(dateFrom || dateTo || amountMin || amountMax) && (
+              {(dateFrom || dateTo || amountMin || amountMax || yearPreset !== String(CURRENT_YEAR)) && (
                 <button
                   onClick={() => {
-                    setDateFrom('')
-                    setDateTo('')
+                    setYearPreset(String(CURRENT_YEAR))
+                    setDateFrom(`${CURRENT_YEAR}-01-01`)
+                    setDateTo(`${CURRENT_YEAR}-12-31`)
                     setAmountMin('')
                     setAmountMax('')
                   }}

@@ -21,10 +21,6 @@ export default async function DashboardPage() {
               <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold text-slate-900 dark:text-slate-100">
                 Dashboard
               </h1>
-              <p className="text-sm md:text-base text-slate-600 dark:text-slate-400 max-w-2xl">
-                Überblick über Finanzen, Flugzeuge und Fix-Einnahmen – klar strukturiert für die
-                tägliche Vorstandsarbeit.
-              </p>
             </div>
             <div className="self-start md:self-auto">
               <OrganizationSelector />
