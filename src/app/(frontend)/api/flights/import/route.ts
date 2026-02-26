@@ -286,7 +286,7 @@ export async function POST(request: Request) {
         fileName: sourceFileName,
         fileSize,
         fileHash,
-        importedAt: new Date(),
+        importedAt: new Date().toISOString(),
         stats: {
           created: 0,
           updated: 0,
