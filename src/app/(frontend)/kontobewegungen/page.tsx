@@ -379,32 +379,34 @@ export default function KontobewegungenPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-slate-200">
-                      <th className="text-left py-3 px-4 font-semibold text-slate-700">Datum</th>
-                      <th className="text-left py-3 px-4 font-semibold text-slate-700">Beschreibung</th>
-                      <th className="text-right py-3 px-4 font-semibold text-slate-700">Betrag</th>
-                      <th className="text-left py-3 px-4 font-semibold text-slate-700">Referenz</th>
+                    <tr className="border-b border-slate-200 dark:border-slate-600">
+                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">Datum</th>
+                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">Beschreibung</th>
+                      <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">Betrag</th>
+                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">Referenz</th>
                     </tr>
                   </thead>
                   <tbody>
                     {preview.slice(0, 20).map((transaction, index) => (
                       <tr
                         key={index}
-                        className="border-b border-slate-100 hover:bg-slate-50"
+                        className="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
                       >
-                        <td className="py-3 px-4">
+                        <td className="py-3 px-4 text-slate-900 dark:text-slate-100 whitespace-nowrap">
                           {new Date(transaction.date).toLocaleDateString('de-DE')}
                         </td>
-                        <td className="py-3 px-4">{transaction.description}</td>
+                        <td className="py-3 px-4 text-slate-800 dark:text-slate-200 text-base break-words max-w-md">
+                          {transaction.description}
+                        </td>
                         <td
-                          className={`py-3 px-4 text-right font-medium ${
-                            transaction.amount >= 0 ? 'text-green-600' : 'text-red-600'
+                          className={`py-3 px-4 text-right font-medium whitespace-nowrap ${
+                            transaction.amount >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                           }`}
                         >
                           {transaction.amount >= 0 ? '+' : ''}
                           {transaction.amount.toFixed(2)} €
                         </td>
-                        <td className="py-3 px-4 text-slate-500">
+                        <td className="py-3 px-4 text-slate-600 dark:text-slate-300 text-base break-words max-w-xs font-mono">
                           {transaction.reference || '–'}
                         </td>
                       </tr>
@@ -453,20 +455,20 @@ export default function KontobewegungenPage() {
           )}
 
           {/* Link to View Transactions */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
             <Link
               href="/kontobewegungen/uebersicht"
-              className="flex items-center justify-between group"
+              className="flex items-center justify-between gap-4 group"
             >
-              <div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-1">
+              <div className="min-w-0">
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-1 group-hover:text-slate-700 dark:group-hover:text-slate-200">
                   Alle Kontobewegungen anzeigen
                 </h3>
-                <p className="text-sm text-slate-600">
+                <p className="text-sm text-slate-600 dark:text-slate-400 font-medium">
                   Einnahmen und Ausgaben in übersichtlichen Reitern anzeigen
                 </p>
               </div>
-              <FileText className="w-6 h-6 text-slate-400 group-hover:text-violet-600 transition-colors" />
+              <FileText className="w-6 h-6 text-slate-500 dark:text-slate-400 group-hover:text-violet-600 dark:group-hover:text-violet-400 transition-colors flex-shrink-0" aria-hidden />
             </Link>
           </div>
         </div>

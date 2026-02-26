@@ -48,15 +48,6 @@ const aircraftGroupLabels: Record<string, string> = {
   other: 'Sonstiges',
 }
 
-const aircraftGroupIcons: Record<string, string> = {
-  ul: '✈️',
-  glider: '🪂',
-  motor: '🛩️',
-  'motor-glider': '🛫',
-  helicopter: '🚁',
-  other: '✈️',
-}
-
 export default function FlugzeugePage() {
   const [aircraft, setAircraft] = useState<Aircraft[]>([])
   const [loading, setLoading] = useState(true)
@@ -281,21 +272,21 @@ export default function FlugzeugePage() {
           <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6 mb-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 dark:text-slate-400" />
                 <input
                   type="text"
                   placeholder="Suchen nach Kennzeichen, Name, Hersteller..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                  className="w-full pl-10 pr-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 placeholder:text-slate-500 dark:placeholder:text-slate-400"
                 />
               </div>
               <div className="flex items-center gap-2">
-                <Filter className="w-5 h-5 text-slate-400" />
+                <Filter className="w-5 h-5 text-slate-500 dark:text-slate-400" />
                 <select
                   value={filterGroup}
                   onChange={(e) => setFilterGroup(e.target.value)}
-                  className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                  className="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
                 >
                   <option value="all">Alle Typen</option>
                   {Object.entries(aircraftGroupLabels).map(([value, label]) => (
@@ -309,7 +300,7 @@ export default function FlugzeugePage() {
                   onChange={(e) =>
                     setFilterActive(e.target.value as 'all' | 'active' | 'inactive')
                   }
-                  className="px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white"
+                  className="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
                 >
                   <option value="all">Alle</option>
                   <option value="active">Nur aktive</option>
@@ -353,7 +344,6 @@ export default function FlugzeugePage() {
                     <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500 px-6 py-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <span className="text-2xl">{aircraftGroupIcons[group] || '✈️'}</span>
                           <h2 className="text-xl font-bold text-white">
                             {aircraftGroupLabels[group]} ({aircraftList.length})
                           </h2>
@@ -416,7 +406,7 @@ export default function FlugzeugePage() {
                             </div>
 
                             {/* Actions */}
-                            <div className="flex gap-2 pt-4 border-t border-slate-200">
+                            <div className="flex gap-2 pt-4 border-t border-slate-200 dark:border-slate-600">
                               <Link
                                 href={`/flugzeuge/${ac.id}`}
                                 className="flex-1 px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors text-sm font-medium text-center"
@@ -425,9 +415,11 @@ export default function FlugzeugePage() {
                               </Link>
                               <Link
                                 href={`/admin/collections/aircraft/${ac.id}`}
-                                className="px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors text-sm flex items-center gap-1"
+                                className="px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700/50 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors text-sm font-medium flex items-center gap-1.5"
+                                title="Im Admin bearbeiten"
                               >
                                 <Edit2 className="w-4 h-4" />
+                                Bearbeiten
                               </Link>
                             </div>
                           </div>
