@@ -64,14 +64,6 @@ interface Aircraft {
   active?: boolean
 }
 
-interface CostCenter {
-  id: string
-  name: string
-  code?: string
-  color?: string
-  active: boolean
-}
-
 interface GeneralCost {
   id: string
   name: string
@@ -86,10 +78,8 @@ export default function KontobewegungenUebersichtPage() {
   const { isFeatureEnabled } = useOrganization()
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [aircraft, setAircraft] = useState<Aircraft[]>([])
-  const [costCenters, setCostCenters] = useState<CostCenter[]>([])
   const [generalCosts, setGeneralCosts] = useState<GeneralCost[]>([])
   const [loading, setLoading] = useState(true)
-  const [editingCostCenter, setEditingCostCenter] = useState<{ transactionId: string; costCenterId: string | null } | null>(null)
   const [activeTab, setActiveTab] = useState<'all' | 'income' | 'expense'>('all')
   // Suchbegriff, der tatsächlich für die Filterung verwendet wird
   const [searchTerm, setSearchTerm] = useState('')
@@ -133,20 +123,14 @@ export default function KontobewegungenUebersichtPage() {
 
   const fetchAircraftAndCostCenters = async () => {
     try {
-      const [aircraftRes, costCentersRes, generalCostsRes] = await Promise.all([
+      const [aircraftRes, generalCostsRes] = await Promise.all([
         fetch('/api/aircraft'),
-        fetch('/api/cost-centers'),
         fetch('/api/general-costs?activeOnly=true'),
       ])
 
       if (aircraftRes.ok) {
         const data = await aircraftRes.json()
         setAircraft(data.docs || [])
-      }
-
-      if (costCentersRes.ok) {
-        const data = await costCentersRes.json()
-        setCostCenters(data.docs || [])
       }
 
       if (generalCostsRes.ok) {
@@ -410,32 +394,6 @@ export default function KontobewegungenUebersichtPage() {
 
   const handleRemoveAllocation = (index: number) => {
     setAllocationForm(allocationForm.filter((_, i) => i !== index))
-  }
-
-  const handleCostCenterChange = async (transactionId: string, costCenterId: string | null) => {
-    try {
-      const response = await fetch(`/api/transactions/${transactionId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          costCenter: costCenterId || null,
-        }),
-      })
-
-      if (response.ok) {
-        const json = await response.json()
-        const updated = (json as any).doc ?? json
-        setTransactions((prev) =>
-          prev.map((t) => (t.id === transactionId ? updated : t))
-        )
-        setEditingCostCenter(null)
-      }
-    } catch (error) {
-      console.error('Fehler beim Aktualisieren der Kostenstelle:', error)
-      alert('Fehler beim Speichern der Kostenstelle')
-    }
   }
 
   const handleAllocationChange = (
@@ -795,8 +753,6 @@ export default function KontobewegungenUebersichtPage() {
                     <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">
                       Beschreibung
                     </th>
-                    <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Kategorie</th>
-                    <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Kostenstelle</th>
                     <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Referenz</th>
                     <th className="text-center py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Status</th>
                   </tr>
@@ -805,12 +761,7 @@ export default function KontobewegungenUebersichtPage() {
                   {sortedTransactions.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={
-                          7 +
-                          (isFeatureEnabled('costCenters') ? 1 : 0) +
-                          (isFeatureEnabled('costAllocations') ? 1 : 0) +
-                          1
-                        }
+                        colSpan={9}
                         className="py-12 text-center text-slate-500 dark:text-slate-400"
                       >
                         {searchTerm || filterProcessed !== 'all'
@@ -927,80 +878,6 @@ export default function KontobewegungenUebersichtPage() {
                             </div>
                           )}
                         </td>
-                        <td className="py-4 px-6">
-                          {transaction.category ? (
-                            <span
-                              className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
-                              style={{
-                                backgroundColor: transaction.category.color
-                                  ? `${transaction.category.color}20`
-                                  : '#F3F4F6',
-                                color: transaction.category.color || '#6B7280',
-                              }}
-                            >
-                              {transaction.category.name}
-                            </span>
-                          ) : (
-                            <span className="text-slate-400 dark:text-slate-500">–</span>
-                          )}
-                        </td>
-                        {isFeatureEnabled('costCenters') && (
-                          <td className="py-4 px-6">
-                            {editingCostCenter?.transactionId === transaction.id ? (
-                              <select
-                                value={editingCostCenter.costCenterId || ''}
-                                onChange={(e) => {
-                                  const newValue = e.target.value || null
-                                  handleCostCenterChange(transaction.id, newValue)
-                                }}
-                                onBlur={() => setEditingCostCenter(null)}
-                                autoFocus
-                                className="px-3 py-1.5 bg-white dark:bg-slate-700 border border-violet-300 dark:border-violet-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 dark:focus:ring-violet-400 text-sm text-slate-900 dark:text-slate-100"
-                              >
-                                <option value="">Keine Kostenstelle</option>
-                                {costCenters.map((cc) => (
-                                  <option key={cc.id} value={cc.id}>
-                                    {cc.code ? `${cc.code} - ` : ''}
-                                    {cc.name}
-                                  </option>
-                                ))}
-                              </select>
-                            ) : (
-                              <button
-                                onClick={() =>
-                                  setEditingCostCenter({
-                                    transactionId: transaction.id,
-                                    costCenterId: transaction.costCenter?.id || null,
-                                  })
-                                }
-                                className="text-left w-full"
-                              >
-                                {transaction.costCenter ? (
-                                  <span
-                                    className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium hover:opacity-80 transition-opacity"
-                                    style={{
-                                      backgroundColor: transaction.costCenter.color
-                                        ? `${transaction.costCenter.color}20`
-                                        : '#E0E7FF',
-                                      color: transaction.costCenter.color || '#6366F1',
-                                    }}
-                                  >
-                                    {transaction.costCenter.code && (
-                                      <span className="mr-1 font-semibold">
-                                        {transaction.costCenter.code}
-                                      </span>
-                                    )}
-                                    {transaction.costCenter.name}
-                                  </span>
-                                ) : (
-                                  <span className="text-slate-400 dark:text-slate-500 hover:text-violet-600 dark:hover:text-violet-400 transition-colors text-sm">
-                                    Kostenstelle zuordnen
-                                  </span>
-                                )}
-                              </button>
-                            )}
-                          </td>
-                        )}
                         <td className="py-4 px-6 text-slate-500 dark:text-slate-400">
                           {transaction.reference || '–'}
                         </td>

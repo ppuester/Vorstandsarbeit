@@ -30,8 +30,8 @@ function parseDate(dateStr: string): Date | null {
   const parts = cleaned.split('.')
   if (parts.length !== 3) return null
 
-  let day = parseInt(parts[0], 10)
-  let month = parseInt(parts[1], 10) - 1 // Monate sind 0-indexiert
+  const day = parseInt(parts[0], 10)
+  const month = parseInt(parts[1], 10) - 1 // Monate sind 0-indexiert
   let year = parseInt(parts[2], 10)
 
   // Wenn Jahr 2-stellig, interpretiere als 20XX
