@@ -465,9 +465,6 @@ export default function KontobewegungenUebersichtPage() {
                 <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2">
                   Kontobewegungen Übersicht
                 </h1>
-                <p className="text-sm md:text-base text-slate-600 dark:text-slate-400">
-                  Verwalten Sie Ihre Einnahmen und Ausgaben
-                </p>
               </div>
               <div className="flex gap-3">
                 <Link
@@ -515,15 +512,20 @@ export default function KontobewegungenUebersichtPage() {
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 p-6">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Saldo</span>
-                <span
-                  className={`text-2xl font-bold ${
-                    balance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
-                  }`}
-                >
-                  {balance >= 0 ? '+' : ''}
-                  {balance.toFixed(2)} €
-                </span>
+                {balance >= 0 ? (
+                  <ArrowUp className="w-5 h-5 text-green-500 dark:text-green-400" />
+                ) : (
+                  <ArrowDown className="w-5 h-5 text-red-500 dark:text-red-400" />
+                )}
               </div>
+              <p
+                className={`text-3xl font-bold ${
+                  balance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                }`}
+              >
+                {balance >= 0 ? '+' : ''}
+                {balance.toFixed(2)} €
+              </p>
             </div>
           </div>
 

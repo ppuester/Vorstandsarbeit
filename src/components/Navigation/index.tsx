@@ -23,8 +23,8 @@ export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false)
   const { isFeatureEnabled, setUser } = useOrganization()
 
-  // Navigation auf Login-Seite ausblenden
-  if (pathname === '/login') {
+  // Navigation auf bestimmten Seiten ausblenden (Login, Kontobewegungen-Ansichten)
+  if (pathname === '/login' || pathname?.startsWith('/kontobewegungen')) {
     return null
   }
 
