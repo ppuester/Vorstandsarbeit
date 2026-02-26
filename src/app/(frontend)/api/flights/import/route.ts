@@ -286,7 +286,7 @@ export async function POST(request: Request) {
         fileName: sourceFileName,
         fileSize,
         fileHash,
-        importedAt: new Date().toISOString(),
+        importedAt: new Date(),
         stats: {
           created: 0,
           updated: 0,
@@ -464,7 +464,7 @@ export async function POST(request: Request) {
         await payload.create({
           collection: 'flights' as CollectionSlug,
           data: {
-            date: date.toISOString().split('T')[0],
+            date: date,
             aircraft: aircraftId,
             pilot: pilotId,
             pilotName: pilotText || undefined,
