@@ -28,7 +28,7 @@ export function DashboardContent() {
 
   const stats = [
     {
-      title: 'Kontobewegungen',
+      title: 'Finanzen',
       value: 'Übersicht',
       icon: FileText,
       description: 'Einnahmen & Ausgaben verwalten',
@@ -80,7 +80,7 @@ export function DashboardContent() {
   const quickActions = [
     {
       title: 'CSV Import',
-      description: 'Kontobewegungen importieren',
+      description: 'Finanzen importieren',
       href: '/kontobewegungen',
       icon: FileText,
       iconBg: 'bg-blue-100',
