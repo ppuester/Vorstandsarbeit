@@ -1,8 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import Link from 'next/link'
-import { Plus, Edit2, Save, X, AlertCircle, CheckCircle, Trash2, Clock, BarChart3 } from 'lucide-react'
+import { Plus, Edit2, Save, X, AlertCircle, CheckCircle, Trash2, Clock } from 'lucide-react'
 
 interface Member {
   id: string
@@ -18,6 +17,40 @@ interface WorkingHour {
   type: 'glider' | 'motor' | 'administration' | 'maintenance' | 'other'
   description?: string
   notes?: string
+}
+
+interface MemberSummaryItem {
+  memberId: string | null
+  memberName: string
+  matched: boolean
+  totals: {
+    gliderMin: number
+    motorMin: number
+    towMin: number
+    gliderHours: number
+    motorHours: number
+    towHours: number
+  }
+  detailsCount: { glider: number; motor: number; tow: number }
+}
+
+interface FlightDetailItem {
+  id: string
+  date: string
+  aircraftRegistration: string
+  pilotName: string
+  workingMinutesGlider: number
+  workingMinutesMotor: number
+  workingMinutesTow: number
+  sourceTowAircraftRegistration?: string
+  departureLocation?: string
+  landingLocation?: string
+  notes?: string
+}
+
+function formatMinHours(min: number): string {
+  const h = Number((min / 60).toFixed(2))
+  return `${min} min (${h.toLocaleString('de-DE')} h)`
 }
 
 const typeLabels: Record<string, string> = {
@@ -53,9 +86,62 @@ export default function ArbeitsstundenPage() {
     notes: '',
   })
 
+  const currentYear = new Date().getFullYear()
+  const [flightSummaryYear, setFlightSummaryYear] = useState(currentYear)
+  const [flightSummaryList, setFlightSummaryList] = useState<MemberSummaryItem[]>([])
+  const [includeUnmatched, setIncludeUnmatched] = useState(true)
+  const [drilldown, setDrilldown] = useState<{
+    memberId: string | null
+    pilotName: string
+    category: 'glider' | 'motor' | 'tow'
+    label: string
+  } | null>(null)
+  const [details, setDetails] = useState<FlightDetailItem[]>([])
+  const [detailsLoading, setDetailsLoading] = useState(false)
+
   useEffect(() => {
     fetchData()
   }, [])
+
+  useEffect(() => {
+    const fetchSummary = async () => {
+      try {
+        const params = new URLSearchParams({ year: String(flightSummaryYear) })
+        if (includeUnmatched) params.append('includeUnmatched', 'true')
+        const res = await fetch(
+          `/api/working-hours/flight-based/member-summary?${params.toString()}`
+        )
+        if (res.ok) {
+          const data = await res.json()
+          setFlightSummaryList(Array.isArray(data) ? data : [])
+        } else {
+          setFlightSummaryList([])
+        }
+      } catch (_err) {
+        setFlightSummaryList([])
+      }
+    }
+    fetchSummary()
+  }, [flightSummaryYear, includeUnmatched])
+
+  useEffect(() => {
+    if (!drilldown) {
+      setDetails([])
+      return
+    }
+    setDetailsLoading(true)
+    const params = new URLSearchParams({
+      year: String(flightSummaryYear),
+      category: drilldown.category,
+    })
+    if (drilldown.memberId) params.append('memberId', drilldown.memberId)
+    else if (drilldown.pilotName) params.append('pilotName', drilldown.pilotName)
+    fetch(`/api/working-hours/flight-based/member-details?${params.toString()}`)
+      .then((res) => (res.ok ? res.json() : []))
+      .then((data) => setDetails(Array.isArray(data) ? data : []))
+      .catch(() => setDetails([]))
+      .finally(() => setDetailsLoading(false))
+  }, [drilldown, flightSummaryYear])
 
   const fetchData = async () => {
     try {
@@ -80,6 +166,15 @@ export default function ArbeitsstundenPage() {
     } finally {
       setLoading(false)
     }
+  }
+
+  const openDrilldown = (
+    memberId: string | null,
+    pilotName: string,
+    category: 'glider' | 'motor' | 'tow',
+    label: string
+  ) => {
+    setDrilldown({ memberId, pilotName, category, label })
   }
 
   const handleCreate = () => {
@@ -239,13 +334,6 @@ export default function ArbeitsstundenPage() {
               </div>
             </div>
             <div className="flex items-center gap-3">
-              <Link
-                href="/arbeitsstunden/flugbewegungen-auswertung"
-                className="inline-flex items-center gap-2 px-4 py-3 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors font-medium shadow-sm"
-              >
-                <BarChart3 className="w-5 h-5" />
-                Aus Flugbewegungen
-              </Link>
               <button
                 onClick={handleCreate}
                 className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 text-white rounded-lg hover:bg-slate-800 transition-colors font-medium shadow-sm"
@@ -271,7 +359,153 @@ export default function ArbeitsstundenPage() {
             </div>
           )}
 
-          {/* List */}
+          {/* Arbeitsstunden aus Flugbewegungen */}
+          <div className="mb-8">
+            <div className="mb-4 flex items-center justify-between flex-wrap gap-4">
+              <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100">
+                Aus Flugbewegungen
+              </h2>
+              <div className="flex items-center gap-3 flex-wrap">
+                <label className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                  <input
+                    type="checkbox"
+                    checked={includeUnmatched}
+                    onChange={(e) => setIncludeUnmatched(e.target.checked)}
+                    className="rounded border-slate-300 dark:border-slate-600"
+                  />
+                  Unzugeordnete anzeigen
+                </label>
+                <select
+                  value={flightSummaryYear}
+                  onChange={(e) => setFlightSummaryYear(Number(e.target.value))}
+                  className="rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm"
+                >
+                  {Array.from({ length: 10 }, (_, i) => currentYear - i).map((y) => (
+                    <option key={y} value={y}>
+                      {y}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600">
+                    <tr>
+                      <th className="text-left py-3 px-6 font-semibold text-slate-700 dark:text-slate-300">
+                        Mitglied
+                      </th>
+                      <th className="text-left py-3 px-6 font-semibold text-slate-700 dark:text-slate-300">
+                        Segelflug
+                      </th>
+                      <th className="text-left py-3 px-6 font-semibold text-slate-700 dark:text-slate-300">
+                        Motorflug
+                      </th>
+                      <th className="text-left py-3 px-6 font-semibold text-slate-700 dark:text-slate-300">
+                        Schlepp
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                    {flightSummaryList.length === 0 ? (
+                      <tr>
+                        <td
+                          colSpan={4}
+                          className="py-8 text-center text-slate-500 dark:text-slate-400"
+                        >
+                          Keine Daten für {flightSummaryYear}. Bitte zuerst Flugbewegungen unter Flugstunden &amp; Starts importieren.
+                        </td>
+                      </tr>
+                    ) : (
+                      flightSummaryList.map((row) => (
+                        <tr
+                          key={row.memberId ?? `name:${row.memberName}`}
+                          className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                        >
+                          <td className="py-3 px-6">
+                            <span className="font-medium text-slate-900 dark:text-slate-100">
+                              {row.memberName}
+                            </span>
+                            {!row.matched && (
+                              <span className="ml-2 text-xs text-amber-600 dark:text-amber-400">
+                                (nicht zugeordnet)
+                              </span>
+                            )}
+                          </td>
+                          <td className="py-3 px-6">
+                            {row.totals.gliderMin > 0 || row.detailsCount.glider > 0 ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  openDrilldown(
+                                    row.memberId,
+                                    row.memberName,
+                                    'glider',
+                                    'Segelflug'
+                                  )
+                                }
+                                className="text-left text-violet-600 dark:text-violet-400 hover:underline font-medium"
+                              >
+                                {formatMinHours(row.totals.gliderMin)}
+                              </button>
+                            ) : (
+                              <span className="text-slate-400 dark:text-slate-500">–</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-6">
+                            {row.totals.motorMin > 0 || row.detailsCount.motor > 0 ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  openDrilldown(
+                                    row.memberId,
+                                    row.memberName,
+                                    'motor',
+                                    'Motorflug'
+                                  )
+                                }
+                                className="text-left text-violet-600 dark:text-violet-400 hover:underline font-medium"
+                              >
+                                {formatMinHours(row.totals.motorMin)}
+                              </button>
+                            ) : (
+                              <span className="text-slate-400 dark:text-slate-500">–</span>
+                            )}
+                          </td>
+                          <td className="py-3 px-6">
+                            {row.totals.towMin > 0 || row.detailsCount.tow > 0 ? (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  openDrilldown(
+                                    row.memberId,
+                                    row.memberName,
+                                    'tow',
+                                    'Schlepp'
+                                  )
+                                }
+                                className="text-left text-violet-600 dark:text-violet-400 hover:underline font-medium"
+                              >
+                                {formatMinHours(row.totals.towMin)}
+                              </button>
+                            ) : (
+                              <span className="text-slate-400 dark:text-slate-500">–</span>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          {/* Manuell erfasste Arbeitsstunden */}
+          <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-4">
+            Manuell erfasste Arbeitsstunden
+          </h2>
           <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
             <div className="overflow-x-auto">
               <table className="w-full text-sm">
@@ -533,6 +767,89 @@ export default function ArbeitsstundenPage() {
                   </>
                 )}
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Drilldown Dialog (Aus Flugbewegungen) */}
+      {drilldown && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+          role="dialog"
+          aria-modal="true"
+          aria-label="Detail-Liste"
+        >
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 max-w-4xl w-full max-h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+              <h2 className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                {drilldown.label} – {drilldown.pilotName}
+              </h2>
+              <button
+                type="button"
+                onClick={() => setDrilldown(null)}
+                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400"
+                aria-label="Schließen"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto p-4">
+              {detailsLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <div className="w-10 h-10 border-4 border-slate-900 dark:border-slate-100 border-t-transparent rounded-full animate-spin" />
+                </div>
+              ) : details.length === 0 ? (
+                <p className="text-slate-500 dark:text-slate-400 text-center py-8">
+                  Keine Einträge
+                </p>
+              ) : (
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="border-b border-slate-200 dark:border-slate-700">
+                      <th className="text-left py-2 px-2 font-medium text-slate-600 dark:text-slate-400">
+                        Datum
+                      </th>
+                      <th className="text-left py-2 px-2 font-medium text-slate-600 dark:text-slate-400">
+                        LFZ
+                      </th>
+                      <th className="text-left py-2 px-2 font-medium text-slate-600 dark:text-slate-400">
+                        Min
+                      </th>
+                      <th className="text-left py-2 px-2 font-medium text-slate-600 dark:text-slate-400">
+                        Schlepp-LFZ
+                      </th>
+                      <th className="text-left py-2 px-2 font-medium text-slate-600 dark:text-slate-400">
+                        Start / Landeort
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-700">
+                    {details.map((f) => (
+                      <tr key={f.id}>
+                        <td className="py-2 px-2 text-slate-900 dark:text-slate-100">
+                          {f.date ? new Date(f.date).toLocaleDateString('de-DE') : '–'}
+                        </td>
+                        <td className="py-2 px-2 text-slate-700 dark:text-slate-300">
+                          {f.aircraftRegistration || '–'}
+                        </td>
+                        <td className="py-2 px-2">
+                          {drilldown.category === 'glider' && f.workingMinutesGlider}
+                          {drilldown.category === 'motor' && f.workingMinutesMotor}
+                          {drilldown.category === 'tow' && f.workingMinutesTow}
+                          {' min'}
+                        </td>
+                        <td className="py-2 px-2 text-slate-600 dark:text-slate-400">
+                          {f.sourceTowAircraftRegistration || '–'}
+                        </td>
+                        <td className="py-2 px-2 text-slate-600 dark:text-slate-400">
+                          {[f.departureLocation, f.landingLocation].filter(Boolean).join(' → ') || '–'}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              )}
             </div>
           </div>
         </div>
