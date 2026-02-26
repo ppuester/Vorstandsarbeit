@@ -11,6 +11,8 @@ import {
   type RowForWorkingMinutes,
 } from '@/utilities/workingMinutesFromFlights'
 
+export const runtime = 'nodejs'
+
 // Parse DD.MM.YY or DD.MM.YYYY
 function parseDate(dateStr: string): Date | null {
   if (!dateStr || !String(dateStr).trim()) return null
@@ -25,6 +27,17 @@ function parseDate(dateStr: string): Date | null {
   const date = new Date(year, month, day)
   if (Number.isNaN(date.getTime())) return null
   return date
+}
+
+/** Normalize time to HH:MM for hashing */
+function normalizeTimeHHMM(timeStr: string): string {
+  if (!timeStr || !String(timeStr).trim()) return ''
+  const parts = String(timeStr).trim().split(':')
+  if (parts.length < 2) return ''
+  const h = parseInt(parts[0]!, 10)
+  const m = parseInt(parts[1]!, 10)
+  if (Number.isNaN(h) || Number.isNaN(m)) return ''
+  return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`
 }
 
 function parseTimeToMinutes(timeStr: string): number | null {
@@ -54,19 +67,54 @@ function normalizeHeader(h: string): string {
     .replace(/\./g, '')
 }
 
-/** Hash für Dedupe: datum|lfz|pilot|start|landung|zeit|schleppzeit|schlepp-lfz|startort|landeort */
-function buildRowHash(values: Record<string, string>): string {
+/** Hauptflugbuch: canonical key -> possible header normalizations (exact preferred) */
+const HAUPFLUGBUCH_ALIASES: Record<string, string[]> = {
+  vereinsLfz: ['vereins-lfz', 'vereins lfz', 'vereinslfz'],
+  datum: ['datum'],
+  lfz: ['lfz', 'lfz.', 'kennzeichen'],
+  pilot: ['pilot'],
+  begleiterFi: ['begleiter/fi', 'begleiter fi', 'begleiterfi'],
+  start: ['start'],
+  zeit: ['zeit'],
+  schleppzeit: ['schleppzeit'],
+  schleppLfz: ['schlepp-lfz', 'schlepp lfz', 'schlepplfz'],
+  startort: ['startort', 'start ort'],
+  landung: ['landung'],
+  landeort: ['landeort', 'lande ort'],
+  bemerkung: ['bemerkung', 'notiz'],
+}
+
+function buildHeaderToIndex(rawHeaders: string[]): Record<string, number> {
+  const normalizedHeaders = rawHeaders.map(normalizeHeader)
+  const headerToIndex: Record<string, number> = Object.fromEntries(
+    normalizedHeaders.map((h, i) => [h, i])
+  ) as Record<string, number>
+  for (const [canonical, aliases] of Object.entries(HAUPFLUGBUCH_ALIASES)) {
+    const idx = normalizedHeaders.findIndex((h) =>
+      aliases.some((a) => h === a || h.replace(/\s|-/g, '') === a.replace(/\s|-/g, ''))
+    )
+    if (idx >= 0) headerToIndex[canonical] = idx
+  }
+  return headerToIndex
+}
+
+/** Hash für Dedupe: datum(ISO)|lfz|pilot|start(HH:MM)|landung(HH:MM)|zeit|schleppzeit|schleppLfz|startort|landeort */
+function buildRowHash(
+  values: Record<string, string>,
+  date: Date | null
+): string {
+  const isoDate = date ? date.toISOString().slice(0, 10) : ''
   const s = [
-    values.datum ?? '',
-    values.lfz ?? '',
-    values.pilot ?? '',
-    values.start ?? '',
-    values.landung ?? '',
+    isoDate,
+    (values.lfz ?? '').trim(),
+    (values.pilot ?? '').trim(),
+    normalizeTimeHHMM(values.start ?? ''),
+    normalizeTimeHHMM(values.landung ?? ''),
     values.zeit ?? '',
     values.schleppzeit ?? '',
-    values['schlepp-lfz'] ?? '',
-    values.startort ?? '',
-    values.landeort ?? '',
+    (values.schleppLfz ?? '').trim(),
+    (values.startort ?? '').trim(),
+    (values.landeort ?? '').trim(),
   ].join('|')
   return crypto.createHash('sha1').update(s, 'utf8').digest('hex')
 }
@@ -92,19 +140,19 @@ async function findAircraftByRegistration(
 }
 
 interface ParsedRow {
+  vereinsLfz: string
   datum: string
   lfz: string
   pilot: string
+  begleiterFi: string
+  start: string
   zeit: string
   schleppzeit: string
-  'schlepp-lfz': string
-  abr: string
-  bemerkung: string
-  start: string
-  landung: string
+  schleppLfz: string
   startort: string
+  landung: string
   landeort: string
-  [key: string]: string
+  bemerkung: string
 }
 
 function getRowValues(row: string[], headerToIndex: Record<string, number>): ParsedRow {
@@ -113,18 +161,19 @@ function getRowValues(row: string[], headerToIndex: Record<string, number>): Par
     return i === undefined ? '' : String((row[i] ?? '').trim())
   }
   return {
+    vereinsLfz: get('vereinsLfz'),
     datum: get('datum'),
-    lfz: get('lfz') || get('kennzeichen'),
+    lfz: get('lfz'),
     pilot: get('pilot'),
+    begleiterFi: get('begleiterFi'),
+    start: get('start'),
     zeit: get('zeit'),
     schleppzeit: get('schleppzeit'),
-    'schlepp-lfz': get('schlepp-lfz'),
-    abr: get('abr'),
-    bemerkung: get('bemerkung') || get('notiz'),
-    start: get('start'),
-    landung: get('landung'),
+    schleppLfz: get('schleppLfz'),
     startort: get('startort'),
+    landung: get('landung'),
     landeort: get('landeort'),
+    bemerkung: get('bemerkung'),
   }
 }
 
@@ -167,17 +216,7 @@ export async function POST(request: Request) {
         )
       }
       const rawHeaders = (data[0] ?? []).map((c) => String(c ?? ''))
-      const normalizedHeaders = rawHeaders.map(normalizeHeader)
-      headerToIndex = Object.fromEntries(
-        normalizedHeaders.map((h, i) => [h, i])
-      ) as Record<string, number>
-      // Auch "lfz." / "lfz" abdecken
-      const lfzIdx = rawHeaders.findIndex(
-        (h) => normalizeHeader(h).includes('lfz') || normalizeHeader(h).includes('kennzeichen')
-      )
-      if (lfzIdx >= 0) headerToIndex['lfz'] = lfzIdx
-      const datumIdx = rawHeaders.findIndex((h) => normalizeHeader(h).includes('datum'))
-      if (datumIdx >= 0) headerToIndex['datum'] = datumIdx
+      headerToIndex = buildHeaderToIndex(rawHeaders)
       rows = data.slice(1)
     } else {
       const text = await file.text()
@@ -201,30 +240,15 @@ export async function POST(request: Request) {
       })
       const data = reparse.data as string[][]
       const rawHeaders = (data[0] ?? []).map((c) => String(c ?? '').trim())
-      const normalizedHeaders = rawHeaders.map(normalizeHeader)
-      headerToIndex = Object.fromEntries(
-        normalizedHeaders.map((h, i) => [h, i])
-      ) as Record<string, number>
-      const lfzIdx = rawHeaders.findIndex(
-        (h) => normalizeHeader(h).includes('lfz') || normalizeHeader(h).includes('kennzeichen')
-      )
-      if (lfzIdx >= 0) headerToIndex['lfz'] = lfzIdx
-      const datumIdx = rawHeaders.findIndex((h) => normalizeHeader(h).includes('datum'))
-      if (datumIdx >= 0) headerToIndex['datum'] = datumIdx
+      headerToIndex = buildHeaderToIndex(rawHeaders)
       rows = data.slice(1)
     }
 
-    if (headerToIndex['datum'] === undefined && headerToIndex['lfz'] === undefined) {
-      const hasDatum = Object.keys(headerToIndex).some((k) => k.includes('datum'))
-      const hasLfz = Object.keys(headerToIndex).some(
-        (k) => k.includes('lfz') || k.includes('kennzeichen')
+    if (headerToIndex['datum'] === undefined || headerToIndex['lfz'] === undefined) {
+      return NextResponse.json(
+        { error: 'Erforderliche Spalten "Datum" und "Lfz." nicht gefunden (Hauptflugbuch-Format)' },
+        { status: 400 }
       )
-      if (!hasDatum || !hasLfz) {
-        return NextResponse.json(
-          { error: 'Erforderliche Spalten "Datum" und "Lfz." nicht gefunden' },
-          { status: 400 }
-        )
-      }
     }
 
     const payload = await getPayload({ config: configPromise })
@@ -250,23 +274,51 @@ export async function POST(request: Request) {
       if (!row || row.length === 0) continue
 
       const raw = getRowValues(row, headerToIndex)
-      const datumStr = raw.datum ?? ''
-      const lfzStr = raw.lfz ?? ''
-      if (!datumStr || !lfzStr) {
+
+      if (!raw.datum || !raw.lfz || !raw.pilot) {
         skipped++
-        if (errors.length < 50) errors.push(`Zeile ${i + 2}: Datum oder Lfz. fehlt`)
+        if (errors.length < 50)
+          errors.push(`Zeile ${i + 2}: Datum, Lfz. oder Pilot fehlt`)
         continue
       }
 
-      const date = parseDate(datumStr)
+      const date = parseDate(raw.datum)
       if (!date) {
         skipped++
-        if (errors.length < 50) errors.push(`Zeile ${i + 2}: Ungültiges Datum "${datumStr}"`)
+        if (errors.length < 50) errors.push(`Zeile ${i + 2}: Ungültiges Datum "${raw.datum}"`)
         continue
+      }
+
+      const zeitStr = (raw.zeit ?? '').trim()
+      const schleppzeitStr = (raw.schleppzeit ?? '').trim()
+      let timeMinutes: number
+      let towTimeMinutes: number
+      if (zeitStr === '') {
+        timeMinutes = 0
+      } else {
+        const parsed = parseInt(zeitStr, 10)
+        if (Number.isNaN(parsed)) {
+          skipped++
+          if (errors.length < 50) errors.push(`Zeile ${i + 2}: Ungültige Zeit "${zeitStr}"`)
+          continue
+        }
+        timeMinutes = Math.max(0, parsed)
+      }
+      if (schleppzeitStr === '') {
+        towTimeMinutes = 0
+      } else {
+        const parsed = parseInt(schleppzeitStr, 10)
+        if (Number.isNaN(parsed)) {
+          skipped++
+          if (errors.length < 50)
+            errors.push(`Zeile ${i + 2}: Ungültige Schleppzeit "${schleppzeitStr}"`)
+          continue
+        }
+        towTimeMinutes = Math.max(0, parsed)
       }
 
       const year = date.getFullYear()
-      const rowHash = buildRowHash(raw)
+      const rowHash = buildRowHash(raw, date)
 
       const existingByHash = await payload.find({
         collection: 'flights' as CollectionSlug,
@@ -283,13 +335,16 @@ export async function POST(request: Request) {
         continue
       }
 
-      const aircraftForRow = await findAircraftByRegistration(payload, lfzStr)
-      const towReg = (raw['schlepp-lfz'] ?? '').trim()
+      const vereinsLfz = (raw.vereinsLfz ?? '').trim().toLowerCase()
+      const isVereinsLfz = vereinsLfz === 'ja'
+
+      const aircraftForRow = isVereinsLfz
+        ? await findAircraftByRegistration(payload, raw.lfz)
+        : null
+      const towReg = (raw.schleppLfz ?? '').trim()
       const towAircraft = towReg ? await findAircraftByRegistration(payload, towReg) : null
       const towAircraftExists = towAircraft !== null
-      const towLfzFilled = towReg.length > 0
-      const timeMinutes = Math.max(0, parseInt(raw.zeit ?? '0', 10) || 0)
-      const towTimeMinutes = Math.max(0, parseInt(raw.schleppzeit ?? '0', 10) || 0)
+      const towLfzFilled = towReg.length > 0 || towTimeMinutes > 0
 
       const rowForWorking: RowForWorkingMinutes = {
         timeMinutes,
@@ -304,16 +359,12 @@ export async function POST(request: Request) {
       )
 
       let flightHours = timeMinutes / 60
-      if (flightHours === 0) {
-        const startTime = raw.start ?? ''
-        const landingTime = raw.landung ?? ''
-        if (startTime && landingTime) {
-          const dur = calculateFlightDuration(startTime, landingTime)
-          if (dur !== null) flightHours = dur / 60
-        }
+      if (flightHours === 0 && raw.start && raw.landung) {
+        const dur = calculateFlightDuration(raw.start, raw.landung)
+        if (dur !== null) flightHours = dur / 60
       }
 
-      const pilotText = (raw.pilot ?? '').trim()
+      const pilotText = raw.pilot.trim()
       const matchResult = matchMemberByName(pilotText, members)
       if (matchResult.status === 'unmatched' && pilotText) unmatchedMembers++
 
@@ -326,13 +377,10 @@ export async function POST(request: Request) {
             : 'unmatched'
       const memberMatchCandidates = (matchResult.candidates || []).slice(0, 5).map((name) => ({ name }))
 
-      const aircraftId = aircraftForRow?.id
-      if (!aircraftId) {
-        skipped++
-        if (errors.length < 50)
-          errors.push(`Zeile ${i + 2}: Flugzeug "${lfzStr}" nicht gefunden (Zeile wird nicht als Flug importiert, wenn kein Vereinsflugzeug)`)
-        continue
-      }
+      const aircraftId = aircraftForRow?.id ?? undefined
+      const copilotName = (raw.begleiterFi ?? '').trim() || undefined
+      const sourceAircraftReg = (raw.lfz ?? '').trim().toUpperCase() || undefined
+      const sourceTowReg = towReg ? towReg.toUpperCase() : undefined
 
       try {
         await payload.create({
@@ -342,17 +390,19 @@ export async function POST(request: Request) {
             aircraft: aircraftId,
             pilot: pilotId,
             pilotName: pilotText || undefined,
+            copilotName,
             startTime: raw.start || undefined,
             landingTime: raw.landung || undefined,
             flightHours,
-            flightMinutes: timeMinutes || flightHours * 60,
+            flightMinutes: timeMinutes || Math.round(flightHours * 60),
             starts: 1,
             departureLocation: raw.startort || undefined,
             landingLocation: raw.landeort || undefined,
             notes: raw.bemerkung || undefined,
             sourceYear: year,
             sourceRowHash: rowHash,
-            sourceTowAircraftRegistration: towReg || undefined,
+            sourceAircraftRegistration: sourceAircraftReg,
+            sourceTowAircraftRegistration: sourceTowReg,
             sourceTowMinutes: towTimeMinutes || undefined,
             sourceMinutes: timeMinutes || undefined,
             workingMinutesGlider: working.workingMinutesGlider || undefined,
@@ -364,12 +414,14 @@ export async function POST(request: Request) {
         })
         created++
 
-        const key = `${aircraftId}-${year}`
-        const current = flightLogsMap.get(key) || { starts: 0, flightHours: 0 }
-        flightLogsMap.set(key, {
-          starts: current.starts + 1,
-          flightHours: current.flightHours + flightHours,
-        })
+        if (aircraftId) {
+          const key = `${aircraftId}-${year}`
+          const current = flightLogsMap.get(key) || { starts: 0, flightHours: 0 }
+          flightLogsMap.set(key, {
+            starts: current.starts + 1,
+            flightHours: current.flightHours + flightHours,
+          })
+        }
       } catch (err) {
         skipped++
         if (errors.length < 50)

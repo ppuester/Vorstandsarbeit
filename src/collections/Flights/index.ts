@@ -32,8 +32,11 @@ export const Flights: CollectionConfig = {
       name: 'aircraft',
       type: 'relationship',
       relationTo: 'aircraft' as any,
-      required: true,
+      required: false,
       label: 'Flugzeug',
+      admin: {
+        description: 'Leer bei Import wenn Vereins-LFZ ≠ Ja (kein Vereinsflugzeug)',
+      },
     },
     {
       name: 'pilot',
@@ -181,6 +184,14 @@ export const Flights: CollectionConfig = {
       label: 'Zeilen-Hash',
       admin: {
         description: 'Hash zur Duplikaterkennung',
+      },
+    },
+    {
+      name: 'sourceAircraftRegistration',
+      type: 'text',
+      label: 'Lfz. (Kennzeichen)',
+      admin: {
+        description: 'Inhalt aus Spalte Lfz. (Hauptflugbuch)',
       },
     },
     {

@@ -215,7 +215,7 @@ export default function FlugstundenPage() {
       }
 
       setSuccess(
-        `Import erfolgreich: ${result.imported} Flüge importiert, ${result.aggregated} Flugbücher aktualisiert, ${result.skipped} übersprungen`
+        `Import erfolgreich: ${result.created} Flüge importiert, ${result.aggregated} Flugbücher aktualisiert, ${result.skipped} übersprungen`
       )
 
       if (result.errors && result.errors.length > 0) {
@@ -285,6 +285,9 @@ export default function FlugstundenPage() {
               </h1>
               <p className="text-sm md:text-base text-slate-600 dark:text-slate-400">
                 Erfassen Sie jährliche Starts und Flugstunden pro Flugzeug
+              </p>
+              <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
+                Import erwartet Hauptflugbuch-Format (CSV/TSV oder XLSX/XLS) mit Spalten: Vereins-LFZ | Datum | Lfz. | Pilot | Begleiter/FI | Start | Zeit | Schleppzeit | Schlepp-LFZ | Startort | S.-Art | Flugart | Abr. | Bemerkung | Landung | Landeort
               </p>
             </div>
             <div className="flex gap-3 flex-wrap">

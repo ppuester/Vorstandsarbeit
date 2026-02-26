@@ -565,7 +565,10 @@ export interface Flight {
    * Datum des Flugs
    */
   date: string;
-  aircraft: string | Aircraft;
+  /**
+   * Leer bei Import wenn Vereins-LFZ ≠ Ja (kein Vereinsflugzeug)
+   */
+  aircraft?: (string | null) | Aircraft;
   /**
    * Hauptpilot des Flugs
    */
@@ -631,6 +634,10 @@ export interface Flight {
    * Hash zur Duplikaterkennung
    */
   sourceRowHash?: string | null;
+  /**
+   * Inhalt aus Spalte Lfz. (Hauptflugbuch)
+   */
+  sourceAircraftRegistration?: string | null;
   /**
    * Inhalt aus Spalte Schlepp-LFZ
    */
@@ -1496,6 +1503,7 @@ export interface FlightsSelect<T extends boolean = true> {
   sourceYear?: T;
   sourceImportId?: T;
   sourceRowHash?: T;
+  sourceAircraftRegistration?: T;
   sourceTowAircraftRegistration?: T;
   sourceTowMinutes?: T;
   sourceMinutes?: T;
