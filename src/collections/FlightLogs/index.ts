@@ -106,7 +106,7 @@ export const FlightLogs: CollectionConfig = {
               limit: 1,
               depth: 0,
               req,
-              overrideAccess: false,
+              overrideAccess: true,
             })
 
             if (existing.totalDocs > 0) {
