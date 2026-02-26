@@ -245,33 +245,33 @@ export default function KontobewegungenPage() {
     .reduce((sum, t) => sum + Math.abs(t.amount), 0)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8">
-            <h1 className="text-4xl font-bold text-slate-900 mb-4">
+            <h1 className="text-4xl font-bold text-slate-900 dark:text-slate-100 mb-4">
               Kontobewegungen einlesen
             </h1>
-            <p className="text-lg text-slate-600">
+            <p className="text-lg text-slate-600 dark:text-slate-400">
               Laden Sie eine CSV-Datei mit Ihren Kontobewegungen hoch
             </p>
           </div>
 
           {/* Upload Section */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 mb-8">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-8 mb-8">
             <div className="flex flex-col md:flex-row gap-6 items-start">
               <div className="flex-1">
                 <label
                   htmlFor="csv-file"
-                  className="flex flex-col items-center justify-center w-full h-64 border-2 border-slate-300 border-dashed rounded-lg cursor-pointer bg-slate-50 hover:bg-slate-100 transition-colors"
+                  className="flex flex-col items-center justify-center w-full h-64 border-2 border-slate-300 dark:border-slate-600 border-dashed rounded-lg cursor-pointer bg-slate-50 dark:bg-slate-700/50 hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
                 >
                   <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                    <Upload className="w-12 h-12 mb-4 text-slate-400" />
-                    <p className="mb-2 text-sm text-slate-500">
+                    <Upload className="w-12 h-12 mb-4 text-slate-400 dark:text-slate-500" />
+                    <p className="mb-2 text-sm text-slate-500 dark:text-slate-400">
                       <span className="font-semibold">Klicken Sie zum Hochladen</span> oder ziehen Sie die Datei hierher
                     </p>
-                    <p className="text-xs text-slate-500">CSV-Datei (max. 10MB)</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">CSV-Datei (max. 10MB)</p>
                   </div>
                   <input
                     id="csv-file"
@@ -284,15 +284,15 @@ export default function KontobewegungenPage() {
               </div>
 
               <div className="md:w-80 space-y-4">
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <h3 className="font-semibold text-blue-900 mb-2 flex items-center gap-2">
+                <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <h3 className="font-semibold text-blue-900 dark:text-blue-200 mb-2 flex items-center gap-2">
                     <FileText className="w-5 h-5" />
                     CSV-Format
                   </h3>
-                  <p className="text-sm text-blue-700 mb-3">
+                  <p className="text-sm text-blue-700 dark:text-blue-300 mb-3">
                     Unterstütztes Format: Volksbank CSV-Export
                   </p>
-                  <ul className="text-xs text-blue-600 space-y-1 list-disc list-inside">
+                  <ul className="text-xs text-blue-600 dark:text-blue-400 space-y-1 list-disc list-inside">
                     <li>Semikolon-getrennt (;)</li>
                     <li>Datum: DD.MM.YYYY</li>
                     <li>Betrag: Komma als Dezimaltrennzeichen</li>
@@ -302,7 +302,7 @@ export default function KontobewegungenPage() {
 
                 <button
                   onClick={downloadTemplate}
-                  className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors text-sm"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors text-sm"
                 >
                   <Download className="w-4 h-4" />
                   Vorlage herunterladen
@@ -361,16 +361,16 @@ export default function KontobewegungenPage() {
 
           {/* Preview Section */}
           {preview.length > 0 && (
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8 mb-8">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-8 mb-8">
               <div className="flex items-center justify-between mb-6">
-                <h2 className="text-2xl font-bold text-slate-900">
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                   Vorschau ({preview.length} Bewegungen)
                 </h2>
                 <div className="flex gap-4 text-sm">
-                  <div className="text-green-600 font-semibold">
+                  <div className="text-green-600 dark:text-green-400 font-semibold">
                     Einnahmen: {totalIncome.toFixed(2)} €
                   </div>
-                  <div className="text-red-600 font-semibold">
+                  <div className="text-red-600 dark:text-red-400 font-semibold">
                     Ausgaben: {totalExpenses.toFixed(2)} €
                   </div>
                 </div>
@@ -446,7 +446,7 @@ export default function KontobewegungenPage() {
                     const fileInput = document.getElementById('csv-file') as HTMLInputElement
                     if (fileInput) fileInput.value = ''
                   }}
-                  className="px-6 py-3 border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+                  className="px-6 py-3 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors"
                 >
                   Zurücksetzen
                 </button>

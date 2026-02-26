@@ -62,32 +62,32 @@ export default function JahresvergleichPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-slate-900 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600">Lade Jahresstatistiken...</p>
+          <div className="w-16 h-16 border-4 border-slate-900 dark:border-slate-100 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600 dark:text-slate-300">Lade Jahresstatistiken...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <div className="container mx-auto px-4 py-12">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8 flex items-center justify-between">
             <div>
-              <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
+              <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-slate-100 mb-2">
                 Jahresvergleich
               </h1>
-              <p className="text-sm md:text-base text-slate-600">
+              <p className="text-sm md:text-base text-slate-600 dark:text-slate-400">
                 Vergleichen Sie Einnahmen, Ausgaben und Überschüsse über die Jahre
               </p>
             </div>
             <Link
               href="/kontobewegungen/uebersicht"
-              className="px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 text-sm font-medium transition-colors"
+              className="px-4 py-2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-lg hover:bg-slate-800 dark:hover:bg-slate-200 text-sm font-medium transition-colors"
             >
               Zurück zur Übersicht
             </Link>
@@ -95,70 +95,75 @@ export default function JahresvergleichPage() {
 
           {/* Summary Cards */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200/70 p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">Gesamt Einnahmen</span>
-                <ArrowUp className="w-5 h-5 text-green-500" />
+                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Gesamt Einnahmen</span>
+                <ArrowUp className="w-5 h-5 text-green-500 dark:text-green-400" />
               </div>
-              <p className="text-2xl font-bold text-green-600">
+              <p className="text-2xl font-bold text-green-600 dark:text-green-400">
                 {totalIncome.toFixed(2)} €
               </p>
               {selectedStats.length > 0 && (
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   Ø {avgIncome.toFixed(2)} € pro Jahr
                 </p>
               )}
             </div>
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200/70 p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">Gesamt Ausgaben</span>
-                <ArrowDown className="w-5 h-5 text-red-500" />
+                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Gesamt Ausgaben</span>
+                <ArrowDown className="w-5 h-5 text-red-500 dark:text-red-400" />
               </div>
-              <p className="text-2xl font-bold text-red-600">
+              <p className="text-2xl font-bold text-red-600 dark:text-red-400">
                 {totalExpenses.toFixed(2)} €
               </p>
               {selectedStats.length > 0 && (
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   Ø {avgExpenses.toFixed(2)} € pro Jahr
                 </p>
               )}
             </div>
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200/70 p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">Gesamt Saldo</span>
-                <span
-                  className={`text-2xl font-bold ${
-                    totalBalance >= 0 ? 'text-green-600' : 'text-red-600'
-                  }`}
-                >
-                  {totalBalance >= 0 ? '+' : ''}
-                  {totalBalance.toFixed(2)} €
-                </span>
+                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Gesamt Saldo</span>
+                {totalBalance >= 0 ? (
+                  <ArrowUp className="w-5 h-5 text-green-500 dark:text-green-400" />
+                ) : (
+                  <ArrowDown className="w-5 h-5 text-red-500 dark:text-red-400" />
+                )}
               </div>
+              <p
+                className={`text-2xl font-bold ${
+                  totalBalance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
+                }`}
+              >
+                {totalBalance >= 0 ? '+' : ''}
+                {totalBalance.toFixed(2)} €
+              </p>
               {selectedStats.length > 0 && (
-                <p className="text-xs text-slate-500 mt-1">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                   Ø {avgBalance >= 0 ? '+' : ''}
                   {avgBalance.toFixed(2)} € pro Jahr
                 </p>
               )}
             </div>
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200/70 p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">Anzahl Jahre</span>
-                <Calendar className="w-5 h-5 text-slate-400" />
+                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Anzahl Jahre</span>
+                <Calendar className="w-5 h-5 text-slate-400 dark:text-slate-500" />
               </div>
-              <p className="text-2xl font-bold text-slate-900">
+              <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
                 {selectedStats.length}
               </p>
-              <p className="text-xs text-slate-500 mt-1">
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
                 {yearStats.length} Jahre verfügbar
               </p>
             </div>
           </div>
 
           {/* Year Selection */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200/70 p-6 mb-8">
-            <h2 className="text-xl font-semibold text-slate-900 mb-4">Jahre auswählen</h2>
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 p-6 mb-8">
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-4">Jahre auswählen</h2>
             <div className="flex flex-wrap gap-3">
               {yearStats
                 .sort((a, b) => b.year - a.year)
@@ -168,8 +173,8 @@ export default function JahresvergleichPage() {
                     onClick={() => toggleYear(stat.year)}
                     className={`px-4 py-2 rounded-lg border text-sm font-medium transition-colors ${
                       selectedYears.includes(stat.year)
-                        ? 'border-slate-900 bg-slate-900 text-white'
-                        : 'border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300'
+                        ? 'border-slate-900 dark:border-slate-100 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900'
+                        : 'border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500'
                     }`}
                   >
                     {stat.year}
@@ -183,7 +188,7 @@ export default function JahresvergleichPage() {
                       : yearStats.map((s) => s.year),
                   )
                 }
-                className="px-4 py-2 rounded-lg border border-slate-200 bg-slate-50 text-slate-600 hover:border-slate-300 text-sm"
+                className="px-4 py-2 rounded-lg border border-slate-200 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-500 text-sm"
               >
                 {selectedYears.length === yearStats.length ? 'Alle abwählen' : 'Alle auswählen'}
               </button>
@@ -191,29 +196,29 @@ export default function JahresvergleichPage() {
           </div>
 
           {/* Year Comparison Table */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200/70 overflow-hidden mb-8">
-            <div className="p-6 border-b border-slate-200">
-              <h2 className="text-xl font-bold text-slate-900 flex items-center gap-2">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 overflow-hidden mb-8">
+            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                 <BarChart3 className="w-5 h-5" />
                 Jahresvergleich
               </h2>
             </div>
             <div className="overflow-x-auto">
               <table className="w-full">
-                <thead className="bg-slate-50 border-b border-slate-200">
+                <thead className="bg-slate-50 dark:bg-slate-700/50 border-b border-slate-200 dark:border-slate-600">
                   <tr>
-                    <th className="text-left py-4 px-6 font-semibold text-slate-700">Jahr</th>
-                    <th className="text-right py-4 px-6 font-semibold text-slate-700">
+                    <th className="text-left py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Jahr</th>
+                    <th className="text-right py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">
                       Einnahmen
                     </th>
-                    <th className="text-right py-4 px-6 font-semibold text-slate-700">
+                    <th className="text-right py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">
                       Ausgaben
                     </th>
-                    <th className="text-right py-4 px-6 font-semibold text-slate-700">Saldo</th>
-                    <th className="text-right py-4 px-6 font-semibold text-slate-700">
+                    <th className="text-right py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">Saldo</th>
+                    <th className="text-right py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">
                       Bewegungen
                     </th>
-                    <th className="text-center py-4 px-6 font-semibold text-slate-700">
+                    <th className="text-center py-4 px-6 font-semibold text-slate-700 dark:text-slate-300">
                       Trend
                     </th>
                   </tr>
@@ -221,7 +226,7 @@ export default function JahresvergleichPage() {
                 <tbody>
                   {selectedStats.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="py-12 text-center text-slate-500">
+                      <td colSpan={6} className="py-12 text-center text-slate-500 dark:text-slate-400">
                         Wählen Sie mindestens ein Jahr aus, um den Vergleich anzuzeigen.
                       </td>
                     </tr>
@@ -246,20 +251,20 @@ export default function JahresvergleichPage() {
                         return (
                           <tr
                             key={stat.year}
-                            className="border-b border-slate-100 hover:bg-slate-50 transition-colors"
+                            className="border-b border-slate-100 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
                           >
                             <td className="py-4 px-6">
-                              <span className="font-bold text-slate-900">{stat.year}</span>
+                              <span className="font-bold text-slate-900 dark:text-slate-100">{stat.year}</span>
                             </td>
                             <td className="py-4 px-6 text-right">
                               <div className="flex items-center justify-end gap-2">
-                                <span className="font-semibold text-green-600">
+                                <span className="font-semibold text-green-600 dark:text-green-400">
                                   {stat.income.toFixed(2)} €
                                 </span>
                                 {prevStat && incomeChange !== 0 && (
                                   <span
                                     className={`text-xs flex items-center gap-1 ${
-                                      incomeChange > 0 ? 'text-green-600' : 'text-red-600'
+                                      incomeChange > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                                     }`}
                                   >
                                     {incomeChange > 0 ? (
@@ -274,13 +279,13 @@ export default function JahresvergleichPage() {
                             </td>
                             <td className="py-4 px-6 text-right">
                               <div className="flex items-center justify-end gap-2">
-                                <span className="font-semibold text-red-600">
+                                <span className="font-semibold text-red-600 dark:text-red-400">
                                   {stat.expenses.toFixed(2)} €
                                 </span>
                                 {prevStat && expenseChange !== 0 && (
                                   <span
                                     className={`text-xs flex items-center gap-1 ${
-                                      expenseChange < 0 ? 'text-green-600' : 'text-red-600'
+                                      expenseChange < 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                                     }`}
                                   >
                                     {expenseChange < 0 ? (
@@ -297,7 +302,7 @@ export default function JahresvergleichPage() {
                               <div className="flex items-center justify-end gap-2">
                                 <span
                                   className={`font-bold ${
-                                    stat.balance >= 0 ? 'text-green-600' : 'text-red-600'
+                                    stat.balance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                                   }`}
                                 >
                                   {stat.balance >= 0 ? '+' : ''}
@@ -306,7 +311,7 @@ export default function JahresvergleichPage() {
                                 {prevStat && balanceChange !== 0 && (
                                   <span
                                     className={`text-xs ${
-                                      balanceChange > 0 ? 'text-green-600' : 'text-red-600'
+                                      balanceChange > 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                                     }`}
                                   >
                                     {balanceChange > 0 ? '+' : ''}
@@ -315,16 +320,16 @@ export default function JahresvergleichPage() {
                                 )}
                               </div>
                             </td>
-                            <td className="py-4 px-6 text-right text-slate-600">
+                            <td className="py-4 px-6 text-right text-slate-600 dark:text-slate-300">
                               {stat.transactionCount}
                             </td>
                             <td className="py-4 px-6 text-center">
                               {stat.balance >= 0 ? (
-                                <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                                <span className="inline-flex items-center gap-1 px-3 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 rounded-full text-xs font-medium">
                                   Überschuss
                                 </span>
                               ) : (
-                                <span className="inline-flex items-center gap-1 px-3 py-1 bg-red-100 text-red-700 rounded-full text-xs font-medium">
+                                <span className="inline-flex items-center gap-1 px-3 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300 rounded-full text-xs font-medium">
                                   Defizit
                                 </span>
                               )}
@@ -340,8 +345,8 @@ export default function JahresvergleichPage() {
 
           {/* Visual Chart */}
           {selectedStats.length > 0 && (
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <h2 className="text-xl font-bold text-slate-900 mb-6">Visueller Vergleich</h2>
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6">Visueller Vergleich</h2>
               <div className="space-y-6">
                 {selectedStats
                   .sort((a, b) => b.year - a.year)
@@ -358,17 +363,17 @@ export default function JahresvergleichPage() {
                     return (
                       <div key={stat.year}>
                         <div className="flex items-center justify-between mb-2">
-                          <span className="font-semibold text-slate-900">{stat.year}</span>
+                          <span className="font-semibold text-slate-900 dark:text-slate-100">{stat.year}</span>
                           <div className="flex gap-4 text-sm">
-                            <span className="text-green-600">
+                            <span className="text-green-600 dark:text-green-400">
                               Einnahmen: {stat.income.toFixed(2)} €
                             </span>
-                            <span className="text-red-600">
+                            <span className="text-red-600 dark:text-red-400">
                               Ausgaben: {stat.expenses.toFixed(2)} €
                             </span>
                             <span
                               className={`font-semibold ${
-                                stat.balance >= 0 ? 'text-green-600' : 'text-red-600'
+                                stat.balance >= 0 ? 'text-green-600 dark:text-green-400' : 'text-red-600 dark:text-red-400'
                               }`}
                             >
                               Saldo: {stat.balance >= 0 ? '+' : ''}
@@ -376,7 +381,7 @@ export default function JahresvergleichPage() {
                             </span>
                           </div>
                         </div>
-                        <div className="relative h-8 bg-slate-100 rounded-lg overflow-hidden">
+                        <div className="relative h-8 bg-slate-100 dark:bg-slate-700 rounded-lg overflow-hidden">
                           <div className="flex h-full w-full">
                             {/* Anteil Einnahmen */}
                             <div
