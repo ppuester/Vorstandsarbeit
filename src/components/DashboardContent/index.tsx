@@ -5,11 +5,9 @@ import Link from 'next/link'
 import {
   FileText,
   Plane,
-  Calculator,
   BarChart3,
   ArrowRight,
   Fuel,
-  FolderTree,
   Users,
   Clock,
 } from 'lucide-react'
@@ -42,14 +40,6 @@ export function DashboardContent() {
       description: 'Flugzeugstammdaten & Flugbücher',
       href: '/flugzeuge',
       enabled: isFeatureEnabled('aircraft'),
-    },
-    {
-      title: 'Kostenermittlung',
-      value: 'Berechnung',
-      icon: Calculator,
-      description: 'Kosten pro Flugzeug',
-      href: '/flugzeuge/kostenermittlung',
-      enabled: isFeatureEnabled('costCalculation'),
     },
     {
       title: 'Kraftstofferfassung',
