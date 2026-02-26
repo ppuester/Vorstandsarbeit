@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Plus, Edit2, Save, X, AlertCircle, CheckCircle, Trash2 } from 'lucide-react'
+import { Plus, Edit2, Save, X, AlertCircle, CheckCircle, Trash2, BarChart3 } from 'lucide-react'
 
 interface MembershipFeeType {
   id: string
@@ -266,6 +266,19 @@ export default function MitgliederEinnahmenPage() {
 
   const yearsInData = Array.from(new Set(stats.map((s) => s.year))).sort((a, b) => b - a)
 
+  // Pro-Jahr-Summen für den visuellen Vergleich
+  const yearSummaries = yearsInData.map((year) => {
+    const yearStats = stats.filter((s) => s.year === year)
+    const totalMembers = yearStats.reduce((sum, s) => sum + (s.memberCount || 0), 0)
+    const totalIncome = yearStats.reduce((sum, s) => {
+      const income =
+        s.totalIncome != null ? s.totalIncome : s.memberCount * s.amountPerMember
+      return sum + income
+    }, 0)
+    return { year, totalMembers, totalIncome }
+  })
+  const maxIncome = Math.max(...yearSummaries.map((y) => y.totalIncome), 1)
+
   if (loading) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
@@ -485,6 +498,54 @@ export default function MitgliederEinnahmenPage() {
               </table>
             </div>
           </div>
+
+          {/* Visueller Vergleich */}
+          {yearSummaries.length > 0 && (
+            <div className="mt-8 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+              <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-6 flex items-center gap-2">
+                <BarChart3 className="w-5 h-5" />
+                Visueller Vergleich
+              </h2>
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-6">
+                Mitglieder und Fix-Einnahmen im Vergleich über die Jahre
+              </p>
+              <div className="space-y-6">
+                {yearSummaries.map(({ year, totalMembers, totalIncome }) => {
+                  const widthPercent = maxIncome > 0 ? (totalIncome / maxIncome) * 100 : 0
+                  const barWidth = Math.max(widthPercent, 4)
+                  return (
+                    <div key={year}>
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-semibold text-slate-900 dark:text-slate-100">
+                          {year}
+                        </span>
+                        <div className="flex gap-4 text-sm">
+                          <span className="text-slate-600 dark:text-slate-300">
+                            {totalMembers} Mitglieder
+                          </span>
+                          <span className="font-semibold text-emerald-600 dark:text-emerald-400">
+                            {totalIncome.toFixed(2)} € Fix-Einnahmen
+                          </span>
+                        </div>
+                      </div>
+                      <div className="relative h-8 bg-slate-100 dark:bg-slate-700 rounded-lg overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-emerald-400 to-emerald-600 flex items-center justify-end pr-3 transition-all duration-500"
+                          style={{ width: `${barWidth}%` }}
+                        >
+                          {barWidth >= 8 && (
+                            <span className="text-[11px] font-semibold text-white whitespace-nowrap drop-shadow-sm">
+                              {totalIncome.toFixed(0)} €
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Modal */}
           {showModal && (

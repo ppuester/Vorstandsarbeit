@@ -5,7 +5,6 @@ import Link from 'next/link'
 import {
   FileText,
   Plane,
-  BarChart3,
   ArrowRight,
   Fuel,
   Users,
@@ -58,35 +57,14 @@ export function DashboardContent() {
       enabled: isFeatureEnabled('aircraft'),
     },
     {
-      title: 'Mitglieder & Fix-Einnahmen',
+      title: 'Mitglieder',
       value: '',
       icon: Users,
-      description: 'Verlauf der Mitgliederzahlen und Fix-Einnahmen',
+      description: 'Mitgliederzahlen und Fix-Einnahmen',
       href: '/stammdaten/mitglieder-einnahmen',
       enabled: true,
     },
   ].filter((stat) => stat.enabled)
-
-  const quickActions = [
-    {
-      title: 'Flugzeuge',
-      description: 'Flugzeugstammdaten verwalten',
-      href: '/flugzeuge',
-      icon: Plane,
-      iconBg: 'bg-slate-900/5',
-      iconColor: 'text-slate-900',
-      enabled: isFeatureEnabled('aircraft'),
-    },
-    {
-      title: 'Mitglieder',
-      description: 'Mitglieder verwalten',
-      href: '/stammdaten/mitglieder',
-      icon: Users,
-      iconBg: 'bg-green-100',
-      iconColor: 'text-green-600',
-      enabled: isFeatureEnabled('fuelTracking'), // Mitglieder werden für Kraftstofferfassung benötigt
-    },
-  ].filter((action) => action.enabled)
 
   useEffect(() => {
     const fetchMemberStats = async () => {
@@ -189,85 +167,63 @@ export function DashboardContent() {
               )
             }
 
-            if (stat.title === 'Mitglieder & Fix-Einnahmen') {
-              const topYears = memberSummary.slice(0, 3)
-              const latest = topYears[0]
+            if (stat.title === 'Mitglieder') {
+              const verlaufYears = memberSummary.slice(0, 6)
 
               return (
-                <div
+                <Link
                   key={index}
-                  className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-6 flex flex-col justify-between"
+                  href={stat.href}
+                  className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-6 flex flex-col hover:shadow-md hover:border-slate-400 dark:hover:border-slate-500 transition-all duration-200 hover:-translate-y-0.5"
                 >
-                  <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-start justify-between mb-3">
                     <div className="p-3 rounded-xl bg-slate-900 text-white shadow-lg">
                       <stat.icon className="w-6 h-6 text-white" />
                     </div>
-                    <Link
-                      href={stat.href}
-                      className="p-1 text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
-                      title="Fix-Einnahmen öffnen"
-                    >
-                      <ArrowRight className="w-5 h-5" />
-                    </Link>
+                    <ArrowRight className="w-5 h-5 text-slate-400 dark:text-slate-500 group-hover:text-slate-900 dark:group-hover:text-slate-100 group-hover:translate-x-0.5 transition-all duration-200" />
                   </div>
-                  <h3 className="text-base font-semibold text-slate-700 dark:text-slate-200 mb-2">
-                    Mitglieder & Fix-Einnahmen
+                  <h3 className="text-base font-semibold text-slate-700 dark:text-slate-200 mb-3">
+                    Mitglieder
                   </h3>
                   {memberLoading ? (
                     <p className="text-sm text-slate-500 dark:text-slate-400">
                       Lade Daten...
                     </p>
-                  ) : topYears.length === 0 ? (
+                  ) : verlaufYears.length === 0 ? (
                     <p className="text-sm text-slate-500 dark:text-slate-400">
-                      Noch keine Fix-Einnahmen erfasst.
+                      Noch keine Daten erfasst. Details im Eintrag.
                     </p>
                   ) : (
-                    <>
-                      {latest && (
-                        <div className="mb-4">
-                          <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1">
-                            Letztes Jahr
-                          </p>
-                          <p className="text-lg font-semibold text-slate-900 dark:text-slate-100">
-                            {latest.year}:{' '}
-                            <span className="font-normal text-slate-700 dark:text-slate-300">
-                              {latest.members} Mitglieder ·{' '}
-                              {latest.income.toFixed(0)} € Fix-Einnahmen
-                            </span>
-                          </p>
-                        </div>
-                      )}
-                      <div className="rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 px-3 py-2">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
-                            Verlauf
-                          </span>
-                          <span className="text-xs text-slate-400 dark:text-slate-500">
-                            Mitglieder · Einnahmen
-                          </span>
-                        </div>
-                        <div className="space-y-1.5">
-                          {topYears.map((y) => (
-                            <div
-                              key={y.year}
-                              className="flex items-center justify-between text-xs text-slate-700 dark:text-slate-200"
-                            >
-                              <span className="w-10 text-slate-500 dark:text-slate-400">
-                                {y.year}
-                              </span>
-                              <span className="flex-1 text-right">
-                                {y.members} Pers.
-                              </span>
-                              <span className="flex-1 text-right text-emerald-600 dark:text-emerald-400">
-                                {y.income.toFixed(0)} €
-                              </span>
-                            </div>
-                          ))}
-                        </div>
+                    <div className="rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-200 dark:border-slate-700 px-3 py-2">
+                      <div className="flex items-center justify-between mb-1.5">
+                        <span className="text-xs font-medium text-slate-500 dark:text-slate-400">
+                          Verlauf
+                        </span>
+                        <span className="text-xs text-slate-400 dark:text-slate-500">
+                          Pers. · Einnahmen
+                        </span>
                       </div>
-                    </>
+                      <div className="space-y-1">
+                        {verlaufYears.map((y) => (
+                          <div
+                            key={y.year}
+                            className="flex items-center justify-between text-xs text-slate-700 dark:text-slate-200"
+                          >
+                            <span className="w-10 text-slate-500 dark:text-slate-400">
+                              {y.year}
+                            </span>
+                            <span className="flex-1 text-right">
+                              {y.members} Pers.
+                            </span>
+                            <span className="flex-1 text-right text-emerald-600 dark:text-emerald-400">
+                              {y.income.toFixed(0)} €
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
                   )}
-                </div>
+                </Link>
               )
             }
 
@@ -299,41 +255,7 @@ export function DashboardContent() {
         </div>
       )}
 
-      {/* Quick Actions */}
-      {quickActions.length > 0 && (
-        <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 p-6 md:p-8">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="p-2 rounded-lg bg-slate-900 text-white">
-              <BarChart3 className="w-5 h-5" />
-            </div>
-            <h2 className="text-xl md:text-2xl font-semibold text-slate-900 dark:text-slate-100">
-              Stammdaten
-            </h2>
-          </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-            {quickActions.map((action, index) => (
-              <Link
-                key={index}
-                href={action.href}
-                className="group relative p-5 border border-slate-200 dark:border-slate-700 rounded-xl hover:border-slate-400 dark:hover:border-slate-500 hover:bg-slate-50 dark:hover:bg-slate-900/40 transition-all duration-200 hover:shadow-sm"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className={`p-2 ${action.iconBg} rounded-lg`}>
-                    <action.icon className={`w-5 h-5 ${action.iconColor}`} />
-                  </div>
-                  <ArrowRight className="w-4 h-4 text-slate-400 dark:text-slate-500 group-hover:text-slate-700 dark:group-hover:text-slate-200 group-hover:translate-x-0.5 transition-all duration-200" />
-                </div>
-                <h3 className="font-semibold text-slate-900 dark:text-slate-100 mb-1">
-                  {action.title}
-                </h3>
-                <p className="text-sm text-slate-600 dark:text-slate-400">{action.description}</p>
-              </Link>
-            ))}
-          </div>
-        </div>
-      )}
-
-      {stats.length === 0 && quickActions.length === 0 && (
+      {stats.length === 0 && (
         <div className="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 dark:border-slate-700/60 p-12 text-center">
           <p className="text-lg text-slate-600 dark:text-slate-400">
             Für diese Organisation sind noch keine Funktionen aktiviert.
