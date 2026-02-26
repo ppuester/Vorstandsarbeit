@@ -38,6 +38,17 @@ export function normalizeEmail(val: unknown): string | null {
   return s ? s.toLowerCase() : null
 }
 
+/** Kostenstufe: trim, lowercase für Vergleich */
+export function normalizeCostTier(val: string | null | undefined): string {
+  if (val == null) return ''
+  return String(val).trim().toLowerCase()
+}
+
+/** true wenn Kostenstufe „Barzahler“ (normalisiert) */
+export function isWorkingHoursExemptFromCostTier(costTier: string | null | undefined): boolean {
+  return normalizeCostTier(costTier) === 'barzahler'
+}
+
 /** Plz: als String (keine .0), trim */
 export function normalizePlz(val: unknown): string | null {
   if (val === null || val === undefined) return null
@@ -59,6 +70,8 @@ export interface MemberImportData {
   email: string | null
   active: boolean
   address: string | null
+  costTier: string | null
+  isWorkingHoursExempt: boolean
   importBlock: string
 }
 
@@ -81,7 +94,7 @@ export function mapRowToMemberData(
   const Name2 = normalizeString(get(['name2']))
   const Mailadresse = normalizeEmail(get(headerAliases.email ?? []))
   const Mitgliedsstatus = normalizeString(get(headerAliases.mitgliedsstatus ?? []))
-  const Kostenstufe = normalizeString(get(['kostenstufe']))
+  const Kostenstufe = normalizeString(get(headerAliases.kostenstufe ?? ['kostenstufe']))
   const Lastschrift = normalizeString(get(['lastschrift', 'mandatsaktiv']))
   const Eintritt = normalizeString(get(['eintritt']))
   const Austritt = normalizeString(get(['austritt']))
@@ -115,6 +128,8 @@ export function mapRowToMemberData(
     email: Mailadresse,
     active,
     address,
+    costTier: Kostenstufe ?? null,
+    isWorkingHoursExempt: isWorkingHoursExemptFromCostTier(Kostenstufe),
     importBlock,
   }
 }
@@ -154,6 +169,8 @@ function fingerprintPayload(mapped: MemberImportData, notesWithImportBlock: stri
     email: mapped.email ?? '',
     active: mapped.active,
     address: mapped.address ?? '',
+    costTier: mapped.costTier ?? '',
+    isWorkingHoursExempt: mapped.isWorkingHoursExempt,
     importBlock: notesWithImportBlock,
   })
 }
@@ -176,6 +193,7 @@ export const MEMBER_IMPORT_HEADER_ALIASES: Record<string, string[]> = {
   name: ['name'],
   email: ['mailadresse', 'mail', 'e-mail', 'email'],
   mitgliedsstatus: ['mitgliedsstatus', 'status'],
+  kostenstufe: ['kostenstufe', 'kostenstufe '],
   straße: ['straße', 'strasse', 'str', 'street'],
   plz: ['plz', 'postleitzahl', 'zip'],
   ort: ['ort', 'stadt', 'city'],

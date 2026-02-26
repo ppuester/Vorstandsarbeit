@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { BarChart3, ChevronLeft, X } from 'lucide-react'
+import { BarChart3, ChevronLeft, Download, X } from 'lucide-react'
 
 interface MemberSummaryItem {
   memberId: string | null
@@ -151,6 +151,25 @@ export default function FlugbewegungenAuswertungPage() {
                   </option>
                 ))}
               </select>
+              <button
+                type="button"
+                onClick={async () => {
+                  const url = `/api/working-hours/flight-based/export?year=${year}&includeUnmatched=${includeUnmatched}`
+                  const res = await fetch(url)
+                  if (!res.ok) return
+                  const blob = await res.blob()
+                  const a = document.createElement('a')
+                  a.href = URL.createObjectURL(blob)
+                  a.download = `arbeitsstunden_${year}.xlsx`
+                  a.click()
+                  URL.revokeObjectURL(a.href)
+                }}
+                disabled={!year}
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+              >
+                <Download className="w-4 h-4" />
+                Export (XLSX)
+              </button>
             </div>
           </div>
 
@@ -271,6 +290,9 @@ export default function FlugbewegungenAuswertungPage() {
                   </tbody>
                 </table>
               </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-3 px-4 pb-4">
+                Mitglieder mit Kostenstufe &quot;Barzahler&quot; sind von Arbeitsstunden ausgenommen und werden nicht angezeigt.
+              </p>
             </div>
           )}
         </div>

@@ -514,6 +514,10 @@ export interface Aircraft {
    */
   maintenanceCostPerHour?: number | null;
   /**
+   * Multiplikator für Arbeitsstunden aus Flugbewegungen
+   */
+  workingHourFactor?: number | null;
+  /**
    * Zusätzliche Informationen zum Flugzeug
    */
   notes?: string | null;
@@ -718,6 +722,14 @@ export interface Member {
    * Ist das Mitglied aktiv?
    */
   active?: boolean | null;
+  /**
+   * Importwert aus Spalte „Kostenstufe“ (z.B. Barzahler)
+   */
+  costTier?: string | null;
+  /**
+   * Wird aus Kostenstufe „Barzahler“ abgeleitet; diese Mitglieder erscheinen nicht in der Arbeitsstunden-Auswertung.
+   */
+  isWorkingHoursExempt?: boolean | null;
   /**
    * Zusätzliche Informationen
    */
@@ -1525,6 +1537,7 @@ export interface AircraftSelect<T extends boolean = true> {
   fuelConsumption?: T;
   fuelPrice?: T;
   maintenanceCostPerHour?: T;
+  workingHourFactor?: T;
   notes?: T;
   active?: T;
   updatedAt?: T;
@@ -1676,6 +1689,8 @@ export interface MembersSelect<T extends boolean = true> {
   phone?: T;
   address?: T;
   active?: T;
+  costTier?: T;
+  isWorkingHoursExempt?: T;
   notes?: T;
   importFingerprint?: T;
   lastImportedAt?: T;

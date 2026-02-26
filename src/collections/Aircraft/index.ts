@@ -186,6 +186,17 @@ export const Aircraft: CollectionConfig = {
           label: 'Weitere Informationen',
           fields: [
             {
+              name: 'workingHourFactor',
+              type: 'number',
+              label: 'Arbeitsstunden-Faktor',
+              defaultValue: 1,
+              min: 0,
+              admin: {
+                description: 'Multiplikator für Arbeitsstunden aus Flugbewegungen',
+                step: 0.1,
+              },
+            },
+            {
               name: 'notes',
               type: 'textarea',
               label: 'Notizen',

@@ -43,6 +43,17 @@ export async function GET(request: Request) {
 
     const payload = await getPayload({ config: configPromise })
 
+    const membersRes = await payload.find({
+      collection: 'members' as CollectionSlug,
+      where: { isWorkingHoursExempt: { equals: true } },
+      limit: 10000,
+      depth: 0,
+      overrideAccess: true,
+    })
+    const exemptMemberIds = new Set(
+      (membersRes.docs || []).map((d) => String((d as { id: string }).id))
+    )
+
     const flightsRes = await payload.find({
       collection: 'flights' as CollectionSlug,
       where: {
@@ -94,6 +105,7 @@ export async function GET(request: Request) {
       const matched = !!pilotId
 
       if (!includeUnmatched && !matched) continue
+      if (pilotId != null && exemptMemberIds.has(pilotId)) continue
 
       const current = byMember.get(key)
       const g = Math.max(0, Number(d.workingMinutesGlider) || 0)

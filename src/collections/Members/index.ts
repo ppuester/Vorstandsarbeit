@@ -70,6 +70,23 @@ export const Members: CollectionConfig = {
       },
     },
     {
+      name: 'costTier',
+      type: 'text',
+      label: 'Kostenstufe',
+      admin: {
+        description: 'Importwert aus Spalte „Kostenstufe“ (z.B. Barzahler)',
+      },
+    },
+    {
+      name: 'isWorkingHoursExempt',
+      type: 'checkbox',
+      label: 'Von Arbeitsstunden ausgenommen',
+      defaultValue: false,
+      admin: {
+        description: 'Wird aus Kostenstufe „Barzahler“ abgeleitet; diese Mitglieder erscheinen nicht in der Arbeitsstunden-Auswertung.',
+      },
+    },
+    {
       name: 'notes',
       type: 'textarea',
       label: 'Notizen',
