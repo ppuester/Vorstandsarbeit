@@ -56,6 +56,12 @@ export default function FlugstundenPage() {
   const [showImportHistory, setShowImportHistory] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; fileName: string } | null>(null)
   const [deleting, setDeleting] = useState(false)
+  const [deleteConfirmLog, setDeleteConfirmLog] = useState<{
+    id: string
+    aircraftLabel: string
+    year: number
+  } | null>(null)
+  const [deletingLog, setDeletingLog] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
@@ -317,6 +323,31 @@ export default function FlugstundenPage() {
       setError(err instanceof Error ? err.message : 'Fehler beim Löschen des Imports')
     } finally {
       setDeleting(false)
+    }
+  }
+
+  const handleDeleteLog = async () => {
+    if (!deleteConfirmLog) return
+    try {
+      setDeletingLog(true)
+      setError(null)
+      setSuccess(null)
+      const res = await fetch(`/api/flight-logs/${deleteConfirmLog.id}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Löschen fehlgeschlagen')
+      const count = data.deletedFlights ?? 0
+      setSuccess(
+        count > 0
+          ? `Eintrag gelöscht: ${count} Flüge und der Flugbucheintrag wurden entfernt.`
+          : 'Flugbucheintrag gelöscht.'
+      )
+      setDeleteConfirmLog(null)
+      await fetchData()
+      if (showMemberStats) await fetchMemberStats()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Fehler beim Löschen des Eintrags')
+    } finally {
+      setDeletingLog(false)
     }
   }
 
@@ -756,6 +787,24 @@ export default function FlugstundenPage() {
                                 >
                                   <Edit2 className="w-4 h-4" />
                                 </Link>
+                                <button
+                                  onClick={() =>
+                                    setDeleteConfirmLog({
+                                      id: log.id,
+                                      aircraftLabel:
+                                        typeof log.aircraft === 'object'
+                                          ? log.aircraft.registration ||
+                                            log.aircraft.name ||
+                                            log.aircraft.id
+                                          : log.aircraft,
+                                      year: log.year,
+                                    })
+                                  }
+                                  className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                                  title="Eintrag löschen (Flugzeug + Jahr inkl. aller Flüge)"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
                               </div>
                             </td>
                           </tr>
@@ -915,6 +964,55 @@ export default function FlugstundenPage() {
                   <>
                     <Trash2 className="w-4 h-4" />
                     Import löschen
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dialog: Einzelnen Flugbucheintrag löschen */}
+      {deleteConfirmLog && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-log-title"
+        >
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 max-w-md w-full p-6">
+            <h2 id="delete-log-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
+              Eintrag löschen
+            </h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+              Diesen Flugbucheintrag (<strong>{deleteConfirmLog.aircraftLabel}</strong>, Jahr{' '}
+              <strong>{deleteConfirmLog.year}</strong>) und <strong>alle zugehörigen Flüge</strong> unwiderruflich
+              löschen? Der Eintrag ist danach überall entfernt (Tabelle und Flugstunden nach Mitglied).
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirmLog(null)}
+                disabled={deletingLog}
+                className="px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg font-medium transition-colors"
+              >
+                Abbrechen
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteLog}
+                disabled={deletingLog}
+                className="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {deletingLog ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Wird gelöscht...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    Eintrag löschen
                   </>
                 )}
               </button>
