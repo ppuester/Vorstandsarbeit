@@ -277,6 +277,18 @@ export async function POST(request: Request) {
       )
     }
 
+    const MAX_ROWS_SINGLE_REQUEST = 1000
+    if (rows.length > MAX_ROWS_SINGLE_REQUEST) {
+      return NextResponse.json(
+        {
+          error: `Datei hat ${rows.length} Zeilen. Bitte Chunk-Import verwenden (max. ${MAX_ROWS_SINGLE_REQUEST} Zeilen pro Einzel-Request).`,
+          useChunkImport: true,
+          rowCount: rows.length,
+        },
+        { status: 400 }
+      )
+    }
+
     const payload = await getPayload({ config: configPromise })
 
     const importRunDoc = await payload.create({

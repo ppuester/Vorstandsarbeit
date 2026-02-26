@@ -1,8 +1,10 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { Plus, Save, X, AlertCircle, CheckCircle, Edit2, Upload, Users, RefreshCw, History, Trash2 } from 'lucide-react'
+import { Plus, Save, X, AlertCircle, CheckCircle, Edit2, Upload, Users, RefreshCw, History, Trash2, Download } from 'lucide-react'
 import Link from 'next/link'
+import Papa from 'papaparse'
+import * as XLSX from 'xlsx'
 
 interface ImportRunItem {
   id: string
@@ -44,6 +46,21 @@ interface MemberStat {
   flightHours: number
 }
 
+interface ChunkImportError {
+  rowIndexGlobal: number
+  reason: string
+  raw: {
+    Datum?: string
+    Start?: string
+    Landung?: string
+    Lfz?: string
+    Pilot?: string
+    Zeit?: string
+    Schleppzeit?: string
+    'Schlepp-LFZ'?: string
+  }
+}
+
 export default function FlugstundenPage() {
   const [aircraft, setAircraft] = useState<Aircraft[]>([])
   const [flightLogs, setFlightLogs] = useState<FlightLog[]>([])
@@ -51,6 +68,10 @@ export default function FlugstundenPage() {
   const [saving, setSaving] = useState(false)
   const [importing, setImporting] = useState(false)
   const [importProgress, setImportProgress] = useState(0)
+  const [importStatus, setImportStatus] = useState<string>('')
+  const [importChunkErrors, setImportChunkErrors] = useState<ChunkImportError[]>([])
+  const [_importSummary, setImportSummary] = useState<{ created: number; skipped: number; totalErrors: number; importRunId?: string } | null>(null)
+  const [showImportErrors, setShowImportErrors] = useState(false)
   const [syncing, setSyncing] = useState(false)
   const [importRuns, setImportRuns] = useState<ImportRunItem[]>([])
   const [showImportHistory, setShowImportHistory] = useState(false)
@@ -228,57 +249,183 @@ export default function FlugstundenPage() {
     })
   }
 
+  const CHUNK_SIZE = 500
+  const MAX_ROWS_SINGLE = 1000
+
+  const parseFileToHeadersAndRows = async (
+    file: File
+  ): Promise<{ headers: string[]; rows: (string | number | null)[][] }> => {
+    const name = (file.name || '').toLowerCase()
+    const isExcel =
+      name.endsWith('.xlsx') ||
+      name.endsWith('.xls') ||
+      file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+      file.type === 'application/vnd.ms-excel'
+
+    if (isExcel) {
+      const buf = await file.arrayBuffer()
+      const wb = XLSX.read(buf, { type: 'array' })
+      const ws = wb.Sheets[wb.SheetNames[0]!]
+      if (!ws) throw new Error('Keine Tabelle in der Excel-Datei gefunden')
+      const data = XLSX.utils.sheet_to_json<(string | number)[]>(ws, {
+        header: 1,
+        defval: '',
+      }) as (string | number)[][]
+      if (!data.length) throw new Error('Datei muss mindestens eine Kopfzeile und eine Datenzeile enthalten')
+      const headers = (data[0] ?? []).map((c) => String(c ?? '').trim())
+      const rows = data.slice(1).map((row) => row.map((c) => (c == null ? '' : c)))
+      return { headers, rows }
+    }
+
+    const text = await file.text()
+    const normalized = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
+    const firstLine = normalized.split('\n')[0] ?? ''
+    const delimiter = firstLine.includes('\t') ? '\t' : firstLine.includes(';') ? ';' : ','
+    const parsed = Papa.parse<string[]>(normalized, { delimiter, skipEmptyLines: true })
+    const data = parsed.data as string[][]
+    if (!data.length) throw new Error('Datei muss mindestens eine Kopfzeile und eine Datenzeile enthalten')
+    const headers = (data[0] ?? []).map((c) => String(c ?? '').trim())
+    const rows = data.slice(1).map((row) => (row ?? []).map((c) => c ?? ''))
+    return { headers, rows }
+  }
+
   const handleImport = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
 
     setImporting(true)
     setImportProgress(0)
+    setImportStatus('')
     setError(null)
     setSuccess(null)
-
-    const progressInterval = window.setInterval(() => {
-      setImportProgress((p) => {
-        if (p >= 85) return 85
-        return p + Math.random() * 6 + 4
-      })
-    }, 400)
+    setImportChunkErrors([])
+    setImportSummary(null)
+    setShowImportErrors(false)
 
     try {
-      const formData = new FormData()
-      formData.append('file', file)
+      const { headers, rows } = await parseFileToHeadersAndRows(file)
+      const sourceFileName = file.name || 'Unbekannt'
 
-      const response = await fetch('/api/flights/import', {
-        method: 'POST',
-        body: formData,
-      })
+      if (rows.length > MAX_ROWS_SINGLE) {
+        const totalChunks = Math.ceil(rows.length / CHUNK_SIZE)
+        let importRunId: string | undefined
+        let totalCreated = 0
+        let totalSkipped = 0
+        const allErrors: ChunkImportError[] = []
 
-      const result = await response.json()
-      clearInterval(progressInterval)
-      setImportProgress(100)
+        for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
+          setImportStatus(`Chunk ${chunkIndex + 1}/${totalChunks}`)
+          setImportProgress(((chunkIndex + 0.5) / totalChunks) * 100)
 
-      if (!response.ok) {
-        throw new Error(result.error || 'Fehler beim Importieren')
+          const start = chunkIndex * CHUNK_SIZE
+          const chunkRows = rows.slice(start, start + CHUNK_SIZE)
+          const rowsAsRecords: Array<Record<string, string | number | null>> = chunkRows.map(
+            (rowArr) => {
+              const o: Record<string, string | number | null> = {}
+              headers.forEach((h, j) => {
+                o[h] = rowArr[j] ?? ''
+              })
+              return o
+            }
+          )
+
+          const res = await fetch('/api/flights/import-chunk', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              importRunId,
+              fileName: sourceFileName,
+              headers,
+              rows: rowsAsRecords,
+              chunkIndex,
+              totalChunks,
+            }),
+          })
+          const data = await res.json()
+
+          if (!res.ok) {
+            throw new Error(data.error || 'Chunk-Import fehlgeschlagen')
+          }
+
+          importRunId = data.importRunId ?? importRunId
+          totalCreated += data.created ?? 0
+          totalSkipped += data.skipped ?? 0
+          if (Array.isArray(data.errors)) allErrors.push(...data.errors)
+        }
+
+        setImportProgress(100)
+        setImportStatus('Flugbücher aktualisieren…')
+
+        const syncRes = await fetch('/api/flight-logs/sync', { method: 'POST' })
+        const syncData = await syncRes.json()
+        if (!syncRes.ok) {
+          console.warn('Sync-Warnung:', syncData.error)
+        }
+
+        setImportSummary({
+          created: totalCreated,
+          skipped: totalSkipped,
+          totalErrors: allErrors.length,
+          importRunId,
+        })
+        setImportChunkErrors(allErrors)
+        setSuccess(
+          `Chunk-Import abgeschlossen: ${totalCreated} Flüge importiert, ${totalSkipped} übersprungen${allErrors.length > 0 ? `, ${allErrors.length} Fehler.` : '.'} Siehe „Import-Historie“.`
+        )
+        if (allErrors.length > 0) {
+          setShowImportErrors(true)
+        }
+        await fetchData()
+      } else {
+        const formData = new FormData()
+        formData.append('file', file)
+        const response = await fetch('/api/flights/import', { method: 'POST', body: formData })
+        const result = await response.json()
+        setImportProgress(100)
+
+        if (!response.ok) {
+          if (result.useChunkImport && result.rowCount) {
+            setError(
+              `${result.error} Bitte die Datei erneut auswählen – dann wird automatisch der Chunk-Import verwendet.`
+            )
+          } else {
+            setError(result.error || 'Fehler beim Importieren')
+          }
+          return
+        }
+
+        setSuccess(
+          result.importRunId
+            ? `Import gespeichert (#${String(result.importRunId).slice(-6)}): ${result.created} Flüge importiert, ${result.aggregated} Flugbücher aktualisiert, ${result.skipped} übersprungen. Siehe „Import-Historie“.`
+            : `Import erfolgreich: ${result.created} Flüge importiert, ${result.aggregated} Flugbücher aktualisiert, ${result.skipped} übersprungen`
+        )
+        if (result.errors?.length > 0) {
+          setImportChunkErrors(
+            result.errors.map((msg: string, idx: number) => ({
+              rowIndexGlobal: idx,
+              reason: msg,
+              raw: {},
+            }))
+          )
+          setImportSummary({
+            created: result.created ?? 0,
+            skipped: result.skipped ?? 0,
+            totalErrors: result.errors.length,
+            importRunId: result.importRunId,
+          })
+          setShowImportErrors(true)
+        }
+        await fetchData()
       }
-
-      setSuccess(
-        result.importRunId
-          ? `Import gespeichert (#${String(result.importRunId).slice(-6)}): ${result.created} Flüge importiert, ${result.aggregated} Flugbücher aktualisiert, ${result.skipped} übersprungen. Siehe „Import-Historie“.`
-          : `Import erfolgreich: ${result.created} Flüge importiert, ${result.aggregated} Flugbücher aktualisiert, ${result.skipped} übersprungen`
-      )
-
-      if (result.errors && result.errors.length > 0) {
-        console.warn('Import-Warnungen:', result.errors)
-      }
-
-      await fetchData()
-    } catch (error) {
-      console.error('Import error:', error)
-      clearInterval(progressInterval)
-      setError(error instanceof Error ? error.message : 'Fehler beim Importieren')
+    } catch (err) {
+      console.error('Import error:', err)
+      setError(err instanceof Error ? err.message : 'Fehler beim Importieren')
     } finally {
       setImporting(false)
-      setTimeout(() => setImportProgress(0), 300)
+      setTimeout(() => {
+        setImportProgress(0)
+        setImportStatus('')
+      }, 300)
       e.target.value = ''
     }
   }
@@ -466,7 +613,7 @@ export default function FlugstundenPage() {
           {importing && (
             <div className="mb-6 p-4 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg">
               <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                Datei wird importiert…
+                {importStatus || 'Datei wird importiert…'}
               </p>
               <div className="h-2.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                 <div
@@ -475,6 +622,7 @@ export default function FlugstundenPage() {
                 />
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
+                {importStatus ? `${importStatus} – ` : ''}
                 {Math.min(100, Math.round(importProgress))} %
               </p>
             </div>
@@ -488,9 +636,49 @@ export default function FlugstundenPage() {
           )}
 
           {success && (
-            <div className="mb-6 flex items-center gap-2 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-              <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" />
-              <p className="text-sm text-green-700 dark:text-green-300">{success}</p>
+            <div className="mb-6 flex flex-col gap-2 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+              <div className="flex items-center gap-2">
+                <CheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0" />
+                <p className="text-sm text-green-700 dark:text-green-300">{success}</p>
+              </div>
+              {importChunkErrors.length > 0 && (
+                <div className="flex flex-wrap items-center gap-2 mt-1">
+                  <span className="text-sm text-amber-700 dark:text-amber-300">
+                    Import: {importChunkErrors.length} Fehler in Zeilen{' '}
+                    {[...new Set(importChunkErrors.map((e) => e.rowIndexGlobal + 2))]
+                      .sort((a, b) => a - b)
+                      .slice(0, 15)
+                      .join(', ')}
+                    {importChunkErrors.length > 15 ? '…' : ''}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowImportErrors(true)}
+                    className="text-sm font-medium text-amber-700 dark:text-amber-300 hover:underline"
+                  >
+                    Details anzeigen
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const blob = new Blob(
+                        [JSON.stringify(importChunkErrors, null, 2)],
+                        { type: 'application/json' }
+                      )
+                      const url = URL.createObjectURL(blob)
+                      const a = document.createElement('a')
+                      a.href = url
+                      a.download = `import-fehler-${new Date().toISOString().slice(0, 10)}.json`
+                      a.click()
+                      URL.revokeObjectURL(url)
+                    }}
+                    className="inline-flex items-center gap-1 text-sm font-medium text-slate-600 dark:text-slate-400 hover:underline"
+                  >
+                    <Download className="w-4 h-4" />
+                    Fehler als JSON
+                  </button>
+                </div>
+              )}
             </div>
           )}
 
@@ -966,6 +1154,87 @@ export default function FlugstundenPage() {
                     Import löschen
                   </>
                 )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Dialog: Import-Fehler Details */}
+      {showImportErrors && importChunkErrors.length > 0 && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="import-errors-title"
+        >
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 max-w-2xl w-full max-h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+              <h2 id="import-errors-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100">
+                Import: {importChunkErrors.length} Fehler
+              </h2>
+              <button
+                type="button"
+                onClick={() => setShowImportErrors(false)}
+                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400"
+                aria-label="Schließen"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto p-4">
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+                Zeilen (1-basiert) mit Problem und Rohwerten. Top 10 unten; alle als JSON herunterladbar.
+              </p>
+              <ul className="space-y-3">
+                {importChunkErrors.slice(0, 10).map((err, idx) => (
+                  <li
+                    key={idx}
+                    className="p-3 bg-slate-50 dark:bg-slate-700/50 rounded-lg text-sm"
+                  >
+                    <span className="font-medium text-slate-900 dark:text-slate-100">
+                      Zeile {err.rowIndexGlobal + 2}:
+                    </span>{' '}
+                    <span className="text-amber-700 dark:text-amber-300">{err.reason}</span>
+                    {err.raw && Object.keys(err.raw).length > 0 && (
+                      <div className="mt-2 text-xs text-slate-500 dark:text-slate-400 font-mono">
+                        {Object.entries(err.raw)
+                          .filter(([, v]) => v != null && v !== '')
+                          .map(([k, v]) => (
+                            <div key={k}>
+                              {k}: {String(v)}
+                            </div>
+                          ))}
+                      </div>
+                    )}
+                  </li>
+                ))}
+              </ul>
+              {importChunkErrors.length > 10 && (
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
+                  … und {importChunkErrors.length - 10} weitere. Über „Fehler als JSON“ alle herunterladen.
+                </p>
+              )}
+            </div>
+            <div className="p-4 border-t border-slate-200 dark:border-slate-700 flex justify-end">
+              <button
+                type="button"
+                onClick={() => {
+                  const blob = new Blob(
+                    [JSON.stringify(importChunkErrors, null, 2)],
+                    { type: 'application/json' }
+                  )
+                  const url = URL.createObjectURL(blob)
+                  const a = document.createElement('a')
+                  a.href = url
+                  a.download = `import-fehler-${new Date().toISOString().slice(0, 10)}.json`
+                  a.click()
+                  URL.revokeObjectURL(url)
+                }}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-lg hover:bg-slate-800 text-sm font-medium"
+              >
+                <Download className="w-4 h-4" />
+                Fehler als JSON herunterladen
               </button>
             </div>
           </div>
