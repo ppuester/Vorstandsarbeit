@@ -13,7 +13,12 @@ export async function GET() {
 
     const result = await payload.find({
       collection: 'import-runs' as CollectionSlug,
-      where: { type: { equals: 'flights' } },
+      where: {
+        and: [
+          { type: { equals: 'flights' } },
+          { isDeleted: { not_equals: true } },
+        ],
+      },
       sort: '-importedAt',
       limit: 50,
       depth: 1,

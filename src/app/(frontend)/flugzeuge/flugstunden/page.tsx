@@ -50,8 +50,10 @@ export default function FlugstundenPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [importing, setImporting] = useState(false)
+  const [importProgress, setImportProgress] = useState(0)
   const [syncing, setSyncing] = useState(false)
   const [importRuns, setImportRuns] = useState<ImportRunItem[]>([])
+  const [showImportHistory, setShowImportHistory] = useState(false)
   const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; fileName: string } | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -224,11 +226,19 @@ export default function FlugstundenPage() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    try {
-      setImporting(true)
-      setError(null)
-      setSuccess(null)
+    setImporting(true)
+    setImportProgress(0)
+    setError(null)
+    setSuccess(null)
 
+    const progressInterval = window.setInterval(() => {
+      setImportProgress((p) => {
+        if (p >= 85) return 85
+        return p + Math.random() * 6 + 4
+      })
+    }, 400)
+
+    try {
       const formData = new FormData()
       formData.append('file', file)
 
@@ -238,6 +248,8 @@ export default function FlugstundenPage() {
       })
 
       const result = await response.json()
+      clearInterval(progressInterval)
+      setImportProgress(100)
 
       if (!response.ok) {
         throw new Error(result.error || 'Fehler beim Importieren')
@@ -245,7 +257,7 @@ export default function FlugstundenPage() {
 
       setSuccess(
         result.importRunId
-          ? `Import gespeichert (#${String(result.importRunId).slice(-6)}): ${result.created} Flüge importiert, ${result.aggregated} Flugbücher aktualisiert, ${result.skipped} übersprungen. Siehe Import-Historie unten.`
+          ? `Import gespeichert (#${String(result.importRunId).slice(-6)}): ${result.created} Flüge importiert, ${result.aggregated} Flugbücher aktualisiert, ${result.skipped} übersprungen. Siehe „Import-Historie“.`
           : `Import erfolgreich: ${result.created} Flüge importiert, ${result.aggregated} Flugbücher aktualisiert, ${result.skipped} übersprungen`
       )
 
@@ -256,10 +268,11 @@ export default function FlugstundenPage() {
       await fetchData()
     } catch (error) {
       console.error('Import error:', error)
+      clearInterval(progressInterval)
       setError(error instanceof Error ? error.message : 'Fehler beim Importieren')
     } finally {
       setImporting(false)
-      // Reset file input
+      setTimeout(() => setImportProgress(0), 300)
       e.target.value = ''
     }
   }
@@ -299,6 +312,7 @@ export default function FlugstundenPage() {
       setSuccess(`${data.deletedFlights} Flüge aus Import "${deleteConfirm.fileName}" gelöscht.`)
       setDeleteConfirm(null)
       await fetchData()
+      await fetchImportRuns()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Fehler beim Löschen des Imports')
     } finally {
@@ -374,6 +388,18 @@ export default function FlugstundenPage() {
                 <>
                   <button
                     type="button"
+                    onClick={() => {
+                      setShowImportHistory(true)
+                      fetchImportRuns()
+                    }}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 text-sm font-medium transition-colors"
+                    title="Import-Historie anzeigen"
+                  >
+                    <History className="w-5 h-5" />
+                    Import-Historie
+                  </button>
+                  <button
+                    type="button"
                     onClick={handleSyncFlightLogs}
                     disabled={syncing}
                     className="inline-flex items-center gap-2 px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-900 dark:text-slate-100 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 text-sm font-medium transition-colors disabled:opacity-50"
@@ -406,6 +432,23 @@ export default function FlugstundenPage() {
           </div>
 
           {/* Messages */}
+          {importing && (
+            <div className="mb-6 p-4 bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-600 rounded-lg">
+              <p className="text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
+                Datei wird importiert…
+              </p>
+              <div className="h-2.5 w-full bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                <div
+                  className="h-full bg-slate-900 dark:bg-slate-100 rounded-full transition-all duration-300 ease-out"
+                  style={{ width: `${Math.min(100, Math.round(importProgress))}%` }}
+                />
+              </div>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1.5">
+                {Math.min(100, Math.round(importProgress))} %
+              </p>
+            </div>
+          )}
+
           {error && (
             <div className="mb-6 flex items-center gap-2 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
               <AlertCircle className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" />
@@ -419,102 +462,6 @@ export default function FlugstundenPage() {
               <p className="text-sm text-green-700 dark:text-green-300">{success}</p>
             </div>
           )}
-
-          {/* Import-Historie */}
-          <div className="mb-8">
-            <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
-              <History className="w-5 h-5" />
-              Import-Historie
-            </h2>
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead className="bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600">
-                    <tr>
-                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
-                        Importiert am
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
-                        Datei
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
-                        Jahr
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
-                        Erstellt
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
-                        Übersprungen
-                      </th>
-                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
-                        Fehler
-                      </th>
-                      <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
-                        Aktionen
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                    {importRuns.length === 0 ? (
-                      <tr>
-                        <td colSpan={7} className="py-6 text-center text-slate-500 dark:text-slate-400">
-                          Noch keine Imports. Import durchführen, dann erscheint der Lauf hier.
-                        </td>
-                      </tr>
-                    ) : (
-                      importRuns.map((run) => (
-                        <tr
-                          key={run.id}
-                          className={
-                            run.isDeleted
-                              ? 'bg-slate-50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500'
-                              : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'
-                          }
-                        >
-                          <td className="py-3 px-4 text-slate-900 dark:text-slate-100">
-                            {run.importedAt
-                              ? new Date(run.importedAt).toLocaleString('de-DE', {
-                                  dateStyle: 'short',
-                                  timeStyle: 'short',
-                                })
-                              : '–'}
-                          </td>
-                          <td className="py-3 px-4 text-slate-700 dark:text-slate-300 truncate max-w-[180px]">
-                            {run.fileName}
-                          </td>
-                          <td className="py-3 px-4 text-slate-600 dark:text-slate-400">
-                            {run.year ?? '–'}
-                          </td>
-                          <td className="py-3 px-4">{run.stats?.created ?? 0}</td>
-                          <td className="py-3 px-4">{run.stats?.skipped ?? 0}</td>
-                          <td className="py-3 px-4">{run.stats?.errors ?? 0}</td>
-                          <td className="py-3 px-4 text-right">
-                            {run.isDeleted ? (
-                              <span className="text-slate-400 dark:text-slate-500 text-xs">
-                                Rückgängig ({run.deletedFlightsCount ?? 0} Flüge gelöscht)
-                              </span>
-                            ) : (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setDeleteConfirm({ id: run.id, fileName: run.fileName })
-                                }
-                                className="inline-flex items-center gap-1 px-2 py-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors text-sm font-medium"
-                                title="Import rückgängig machen (alle Flüge dieses Imports löschen)"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                                Import löschen
-                              </button>
-                            )}
-                          </td>
-                        </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
 
           {/* Form */}
           {showForm || editingId !== null ? (
@@ -821,6 +768,111 @@ export default function FlugstundenPage() {
           </div>
         </div>
       </div>
+
+      {/* Modal: Import-Historie */}
+      {showImportHistory && (
+        <div
+          className="fixed inset-0 z-40 flex items-center justify-center p-4 bg-black/50"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="import-history-title"
+        >
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 max-w-4xl w-full max-h-[85vh] flex flex-col">
+            <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+              <h2 id="import-history-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <History className="w-5 h-5" />
+                Import-Historie
+              </h2>
+              <button
+                type="button"
+                onClick={() => setShowImportHistory(false)}
+                className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-400"
+                aria-label="Schließen"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto p-4">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600">
+                    <tr>
+                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                        Importiert am
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                        Datei
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                        Jahr
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                        Erstellt
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                        Übersprungen
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                        Fehler
+                      </th>
+                      <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                        Aktionen
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                    {importRuns.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="py-6 text-center text-slate-500 dark:text-slate-400">
+                          Noch keine Imports. Import durchführen, dann erscheint der Lauf hier. Gelöschte Imports werden nicht angezeigt.
+                        </td>
+                      </tr>
+                    ) : (
+                      importRuns.map((run) => (
+                        <tr
+                          key={run.id}
+                          className="hover:bg-slate-50 dark:hover:bg-slate-700/50"
+                        >
+                          <td className="py-3 px-4 text-slate-900 dark:text-slate-100">
+                            {run.importedAt
+                              ? new Date(run.importedAt).toLocaleString('de-DE', {
+                                  dateStyle: 'short',
+                                  timeStyle: 'short',
+                                })
+                              : '–'}
+                          </td>
+                          <td className="py-3 px-4 text-slate-700 dark:text-slate-300 truncate max-w-[180px]">
+                            {run.fileName}
+                          </td>
+                          <td className="py-3 px-4 text-slate-600 dark:text-slate-400">
+                            {run.year ?? '–'}
+                          </td>
+                          <td className="py-3 px-4">{run.stats?.created ?? 0}</td>
+                          <td className="py-3 px-4">{run.stats?.skipped ?? 0}</td>
+                          <td className="py-3 px-4">{run.stats?.errors ?? 0}</td>
+                          <td className="py-3 px-4 text-right">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setDeleteConfirm({ id: run.id, fileName: run.fileName })
+                              }
+                              className="inline-flex items-center gap-1 px-2 py-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors text-sm font-medium"
+                              title="Import rückgängig machen (alle Flüge dieses Imports löschen)"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                              Import löschen
+                            </button>
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Dialog: Import löschen bestätigen */}
       {deleteConfirm && (
