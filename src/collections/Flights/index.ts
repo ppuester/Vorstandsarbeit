@@ -165,6 +165,23 @@ export const Flights: CollectionConfig = {
     },
     // Felder für Import & Arbeitsstunden-Auswertung aus Flugbewegungen
     {
+      name: 'importRun',
+      type: 'relationship',
+      relationTo: 'import-runs' as any,
+      label: 'Import-Lauf',
+      admin: {
+        description: 'Referenz auf den Import-Lauf (für Rückgängig-machen)',
+      },
+    },
+    {
+      name: 'sourceFileName',
+      type: 'text',
+      label: 'Quelldatei',
+      admin: {
+        description: 'Dateiname beim Import',
+      },
+    },
+    {
       name: 'sourceYear',
       type: 'number',
       label: 'Quell-Jahr (Import)',

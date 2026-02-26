@@ -10,6 +10,7 @@ import { Aircraft } from './collections/Aircraft'
 import { CostCenters } from './collections/CostCenters'
 import { Flights } from './collections/Flights'
 import { FlightLogs } from './collections/FlightLogs'
+import { ImportRuns } from './collections/ImportRuns'
 import { FuelEntries } from './collections/FuelEntries'
 import { GeneralCosts } from './collections/GeneralCosts'
 import { Members } from './collections/Members'
@@ -108,6 +109,7 @@ export default buildConfig({
     Aircraft,
     Flights,
     FlightLogs,
+    ImportRuns,
     FuelEntries,
     GeneralCosts,
     AccessTokens,

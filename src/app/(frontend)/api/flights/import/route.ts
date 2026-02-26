@@ -194,6 +194,10 @@ function getRowValues(row: string[], headerToIndex: Record<string, number>): Par
   }
 }
 
+function computeFileHash(buffer: ArrayBuffer): string {
+  return crypto.createHash('sha1').update(Buffer.from(buffer)).digest('hex')
+}
+
 export async function POST(request: Request) {
   try {
     const formData = await request.formData()
@@ -201,6 +205,11 @@ export async function POST(request: Request) {
     if (!file) {
       return NextResponse.json({ error: 'Keine Datei hochgeladen' }, { status: 400 })
     }
+
+    const fileBuffer = await file.arrayBuffer()
+    const fileSize = fileBuffer.byteLength
+    const fileHash = computeFileHash(fileBuffer)
+    const sourceFileName = file.name || 'Unbekannt'
 
     const fileName = (file.name || '').toLowerCase()
     const isExcel =
@@ -213,7 +222,7 @@ export async function POST(request: Request) {
     let headerToIndex: Record<string, number> = {}
 
     if (isExcel) {
-      const buffer = Buffer.from(await file.arrayBuffer())
+      const buffer = Buffer.from(fileBuffer)
       const workbook = XLSX.read(buffer, { type: 'buffer' })
       const firstSheet = workbook.Sheets[workbook.SheetNames[0]]
       if (!firstSheet) {
@@ -236,7 +245,7 @@ export async function POST(request: Request) {
       headerToIndex = buildHeaderToIndex(rawHeaders)
       rows = data.slice(1)
     } else {
-      const text = await file.text()
+      const text = new TextDecoder().decode(fileBuffer)
       const normalizedText = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n')
       const lineStrings = normalizedText.split('\n').filter((l) => l.trim())
       if (lineStrings.length < 2) {
@@ -270,6 +279,26 @@ export async function POST(request: Request) {
 
     const payload = await getPayload({ config: configPromise })
 
+    const importRunDoc = await payload.create({
+      collection: 'import-runs' as CollectionSlug,
+      data: {
+        type: 'flights',
+        fileName: sourceFileName,
+        fileSize,
+        fileHash,
+        importedAt: new Date().toISOString(),
+        stats: {
+          created: 0,
+          updated: 0,
+          skipped: 0,
+          errors: 0,
+          unmatchedMembers: 0,
+        },
+      },
+      overrideAccess: true,
+    })
+    const importRunId = importRunDoc.id as string
+
     const membersRes = await payload.find({
       collection: 'members' as CollectionSlug,
       limit: 10000,
@@ -285,6 +314,7 @@ export async function POST(request: Request) {
     let unmatchedMembers = 0
     const errors: string[] = []
     const flightLogsMap = new Map<string, { starts: number; flightHours: number }>()
+    const yearCounts = new Map<number, number>()
 
     for (let i = 0; i < rows.length; i++) {
       const row = rows[i]
@@ -447,6 +477,8 @@ export async function POST(request: Request) {
             departureLocation: raw.startort || undefined,
             landingLocation: raw.landeort || undefined,
             notes: raw.bemerkung || undefined,
+            importRun: importRunId,
+            sourceFileName: sourceFileName,
             sourceYear: year,
             sourceRowHash: rowHash,
             sourceAircraftRegistration: sourceAircraftReg,
@@ -461,6 +493,7 @@ export async function POST(request: Request) {
           } as any,
         })
         created++
+        yearCounts.set(year, (yearCounts.get(year) ?? 0) + 1)
 
         if (aircraftId) {
           const key = `${aircraftId}-${year}`
@@ -529,12 +562,34 @@ export async function POST(request: Request) {
       }
     }
 
+    const derivedYear =
+      yearCounts.size > 0
+        ? [...yearCounts.entries()].sort((a, b) => b[1]! - a[1]!)[0]?.[0]
+        : undefined
+
+    await payload.update({
+      collection: 'import-runs' as CollectionSlug,
+      id: importRunId,
+      data: {
+        year: derivedYear ?? undefined,
+        stats: {
+          created,
+          updated: 0,
+          skipped,
+          errors: errors.length,
+          unmatchedMembers,
+        },
+      },
+      overrideAccess: true,
+    })
+
     return NextResponse.json({
       success: true,
       created,
       skipped,
       unmatchedMembers,
       aggregated: flightLogsMap.size,
+      importRunId,
       errors: errors.slice(0, 50),
       message:
         created > 0 || skipped > 0

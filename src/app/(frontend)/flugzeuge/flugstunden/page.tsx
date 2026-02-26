@@ -1,8 +1,20 @@
 'use client'
 
 import React, { useState, useEffect, useCallback } from 'react'
-import { Plus, Save, X, AlertCircle, CheckCircle, Edit2, Upload, Users, RefreshCw } from 'lucide-react'
+import { Plus, Save, X, AlertCircle, CheckCircle, Edit2, Upload, Users, RefreshCw, History, Trash2 } from 'lucide-react'
 import Link from 'next/link'
+
+interface ImportRunItem {
+  id: string
+  fileName: string
+  fileSize?: number
+  importedAt: string
+  year?: number
+  stats: { created?: number; skipped?: number; errors?: number; unmatchedMembers?: number }
+  isDeleted: boolean
+  deletedAt?: string
+  deletedFlightsCount?: number
+}
 
 interface Aircraft {
   id: string
@@ -39,6 +51,9 @@ export default function FlugstundenPage() {
   const [saving, setSaving] = useState(false)
   const [importing, setImporting] = useState(false)
   const [syncing, setSyncing] = useState(false)
+  const [importRuns, setImportRuns] = useState<ImportRunItem[]>([])
+  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; fileName: string } | null>(null)
+  const [deleting, setDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState<string | null>(null)
   const [showForm, setShowForm] = useState(false)
@@ -65,6 +80,18 @@ export default function FlugstundenPage() {
     fetchData()
   }, [])
 
+  const fetchImportRuns = useCallback(async () => {
+    try {
+      const res = await fetch('/api/import-runs/flights')
+      if (res.ok) {
+        const data = await res.json()
+        setImportRuns(data.docs || [])
+      }
+    } catch (_err) {
+      // optional
+    }
+  }, [])
+
   const fetchData = async () => {
     try {
       setLoading(true)
@@ -82,6 +109,7 @@ export default function FlugstundenPage() {
         const data = await flightLogsRes.json()
         setFlightLogs(data.docs || [])
       }
+      await fetchImportRuns()
     } catch (error) {
       console.error('Fehler beim Laden:', error)
       setError('Fehler beim Laden der Daten')
@@ -216,7 +244,9 @@ export default function FlugstundenPage() {
       }
 
       setSuccess(
-        `Import erfolgreich: ${result.created} Flüge importiert, ${result.aggregated} Flugbücher aktualisiert, ${result.skipped} übersprungen`
+        result.importRunId
+          ? `Import gespeichert (#${String(result.importRunId).slice(-6)}): ${result.created} Flüge importiert, ${result.aggregated} Flugbücher aktualisiert, ${result.skipped} übersprungen. Siehe Import-Historie unten.`
+          : `Import erfolgreich: ${result.created} Flüge importiert, ${result.aggregated} Flugbücher aktualisiert, ${result.skipped} übersprungen`
       )
 
       if (result.errors && result.errors.length > 0) {
@@ -251,6 +281,28 @@ export default function FlugstundenPage() {
       setError(err instanceof Error ? err.message : 'Fehler beim Aktualisieren der Flugbücher')
     } finally {
       setSyncing(false)
+    }
+  }
+
+  const handleDeleteImport = async () => {
+    if (!deleteConfirm) return
+    try {
+      setDeleting(true)
+      setError(null)
+      setSuccess(null)
+      const res = await fetch(
+        `/api/import-runs/flights/${deleteConfirm.id}?confirm=true`,
+        { method: 'DELETE' }
+      )
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Löschen fehlgeschlagen')
+      setSuccess(`${data.deletedFlights} Flüge aus Import "${deleteConfirm.fileName}" gelöscht.`)
+      setDeleteConfirm(null)
+      await fetchData()
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Fehler beim Löschen des Imports')
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -367,6 +419,102 @@ export default function FlugstundenPage() {
               <p className="text-sm text-green-700 dark:text-green-300">{success}</p>
             </div>
           )}
+
+          {/* Import-Historie */}
+          <div className="mb-8">
+            <h2 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-4 flex items-center gap-2">
+              <History className="w-5 h-5" />
+              Import-Historie
+            </h2>
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
+              <div className="overflow-x-auto">
+                <table className="w-full text-sm">
+                  <thead className="bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600">
+                    <tr>
+                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                        Importiert am
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                        Datei
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                        Jahr
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                        Erstellt
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                        Übersprungen
+                      </th>
+                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                        Fehler
+                      </th>
+                      <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                        Aktionen
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                    {importRuns.length === 0 ? (
+                      <tr>
+                        <td colSpan={7} className="py-6 text-center text-slate-500 dark:text-slate-400">
+                          Noch keine Imports. Import durchführen, dann erscheint der Lauf hier.
+                        </td>
+                      </tr>
+                    ) : (
+                      importRuns.map((run) => (
+                        <tr
+                          key={run.id}
+                          className={
+                            run.isDeleted
+                              ? 'bg-slate-50 dark:bg-slate-800/50 text-slate-400 dark:text-slate-500'
+                              : 'hover:bg-slate-50 dark:hover:bg-slate-700/50'
+                          }
+                        >
+                          <td className="py-3 px-4 text-slate-900 dark:text-slate-100">
+                            {run.importedAt
+                              ? new Date(run.importedAt).toLocaleString('de-DE', {
+                                  dateStyle: 'short',
+                                  timeStyle: 'short',
+                                })
+                              : '–'}
+                          </td>
+                          <td className="py-3 px-4 text-slate-700 dark:text-slate-300 truncate max-w-[180px]">
+                            {run.fileName}
+                          </td>
+                          <td className="py-3 px-4 text-slate-600 dark:text-slate-400">
+                            {run.year ?? '–'}
+                          </td>
+                          <td className="py-3 px-4">{run.stats?.created ?? 0}</td>
+                          <td className="py-3 px-4">{run.stats?.skipped ?? 0}</td>
+                          <td className="py-3 px-4">{run.stats?.errors ?? 0}</td>
+                          <td className="py-3 px-4 text-right">
+                            {run.isDeleted ? (
+                              <span className="text-slate-400 dark:text-slate-500 text-xs">
+                                Rückgängig ({run.deletedFlightsCount ?? 0} Flüge gelöscht)
+                              </span>
+                            ) : (
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setDeleteConfirm({ id: run.id, fileName: run.fileName })
+                                }
+                                className="inline-flex items-center gap-1 px-2 py-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors text-sm font-medium"
+                                title="Import rückgängig machen (alle Flüge dieses Imports löschen)"
+                              >
+                                <Trash2 className="w-4 h-4" />
+                                Import löschen
+                              </button>
+                            )}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
 
           {/* Form */}
           {showForm || editingId !== null ? (
@@ -673,6 +821,55 @@ export default function FlugstundenPage() {
           </div>
         </div>
       </div>
+
+      {/* Dialog: Import löschen bestätigen */}
+      {deleteConfirm && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="delete-import-title"
+        >
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-xl border border-slate-200 dark:border-slate-700 max-w-md w-full p-6">
+            <h2 id="delete-import-title" className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-2">
+              Import rückgängig machen
+            </h2>
+            <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
+              Dieser Vorgang löscht <strong>alle Flüge</strong> des Imports &quot;{deleteConfirm.fileName}&quot; unwiderruflich.
+              Die Flugbucheinträge (Starts/Flugstunden pro Flugzeug) werden nicht automatisch angepasst – ggf. danach
+              &quot;Flugbücher aktualisieren&quot; ausführen.
+            </p>
+            <div className="flex justify-end gap-3">
+              <button
+                type="button"
+                onClick={() => setDeleteConfirm(null)}
+                disabled={deleting}
+                className="px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg font-medium transition-colors"
+              >
+                Abbrechen
+              </button>
+              <button
+                type="button"
+                onClick={handleDeleteImport}
+                disabled={deleting}
+                className="px-4 py-2 bg-red-600 text-white hover:bg-red-700 rounded-lg font-medium transition-colors disabled:opacity-50 flex items-center gap-2"
+              >
+                {deleting ? (
+                  <>
+                    <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Wird gelöscht...
+                  </>
+                ) : (
+                  <>
+                    <Trash2 className="w-4 h-4" />
+                    Import löschen
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

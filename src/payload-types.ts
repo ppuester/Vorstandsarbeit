@@ -75,6 +75,7 @@ export interface Config {
     aircraft: Aircraft;
     flights: Flight;
     'flight-logs': FlightLog;
+    'import-runs': ImportRun;
     'fuel-entries': FuelEntry;
     'general-costs': GeneralCost;
     'access-tokens': AccessToken;
@@ -104,6 +105,7 @@ export interface Config {
     aircraft: AircraftSelect<false> | AircraftSelect<true>;
     flights: FlightsSelect<false> | FlightsSelect<true>;
     'flight-logs': FlightLogsSelect<false> | FlightLogsSelect<true>;
+    'import-runs': ImportRunsSelect<false> | ImportRunsSelect<true>;
     'fuel-entries': FuelEntriesSelect<false> | FuelEntriesSelect<true>;
     'general-costs': GeneralCostsSelect<false> | GeneralCostsSelect<true>;
     'access-tokens': AccessTokensSelect<false> | AccessTokensSelect<true>;
@@ -623,6 +625,14 @@ export interface Flight {
    */
   notes?: string | null;
   /**
+   * Referenz auf den Import-Lauf (für Rückgängig-machen)
+   */
+  importRun?: (string | null) | ImportRun;
+  /**
+   * Dateiname beim Import
+   */
+  sourceFileName?: string | null;
+  /**
    * Jahr aus Import-Datum
    */
   sourceYear?: number | null;
@@ -721,6 +731,43 @@ export interface Member {
    * Herkunft des letzten Imports
    */
   sourceSystem?: string | null;
+  updatedAt: string;
+  createdAt: string;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "import-runs".
+ */
+export interface ImportRun {
+  id: string;
+  type: 'flights';
+  fileName: string;
+  fileSize?: number | null;
+  /**
+   * SHA1 über Datei-Inhalt zur Identifikation
+   */
+  fileHash?: string | null;
+  importedAt: string;
+  importedBy?: (string | null) | User;
+  /**
+   * Abgeleitetes Jahr aus den importierten Daten
+   */
+  year?: number | null;
+  stats?: {
+    created?: number | null;
+    updated?: number | null;
+    skipped?: number | null;
+    errors?: number | null;
+    unmatchedMembers?: number | null;
+  };
+  notes?: string | null;
+  /**
+   * Import wurde rückgängig gemacht (zugehörige Flüge gelöscht)
+   */
+  isDeleted?: boolean | null;
+  deletedAt?: string | null;
+  deletedBy?: (string | null) | User;
+  deletedFlightsCount?: number | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -1192,6 +1239,10 @@ export interface PayloadLockedDocument {
         value: string | FlightLog;
       } | null)
     | ({
+        relationTo: 'import-runs';
+        value: string | ImportRun;
+      } | null)
+    | ({
         relationTo: 'fuel-entries';
         value: string | FuelEntry;
       } | null)
@@ -1500,6 +1551,8 @@ export interface FlightsSelect<T extends boolean = true> {
   landings?: T;
   flightType?: T;
   notes?: T;
+  importRun?: T;
+  sourceFileName?: T;
   sourceYear?: T;
   sourceImportId?: T;
   sourceRowHash?: T;
@@ -1530,6 +1583,35 @@ export interface FlightLogsSelect<T extends boolean = true> {
   starts?: T;
   flightHours?: T;
   notes?: T;
+  updatedAt?: T;
+  createdAt?: T;
+}
+/**
+ * This interface was referenced by `Config`'s JSON-Schema
+ * via the `definition` "import-runs_select".
+ */
+export interface ImportRunsSelect<T extends boolean = true> {
+  type?: T;
+  fileName?: T;
+  fileSize?: T;
+  fileHash?: T;
+  importedAt?: T;
+  importedBy?: T;
+  year?: T;
+  stats?:
+    | T
+    | {
+        created?: T;
+        updated?: T;
+        skipped?: T;
+        errors?: T;
+        unmatchedMembers?: T;
+      };
+  notes?: T;
+  isDeleted?: T;
+  deletedAt?: T;
+  deletedBy?: T;
+  deletedFlightsCount?: T;
   updatedAt?: T;
   createdAt?: T;
 }
