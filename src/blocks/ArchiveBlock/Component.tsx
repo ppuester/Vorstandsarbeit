@@ -1,11 +1,23 @@
-import type { Post, ArchiveBlock as ArchiveBlockProps } from '@/payload-types'
-
+import type { DefaultTypedEditorState } from '@payloadcms/richtext-lexical'
 import configPromise from '@payload-config'
 import { getPayload } from 'payload'
 import React from 'react'
 import RichText from '@/components/RichText'
 
 import { CollectionArchive } from '@/components/CollectionArchive'
+
+/** Lokale Typen (posts/ArchiveBlock sind ggf. nicht in payload-types) */
+type Post = Record<string, unknown>
+type ArchiveBlockProps = {
+  id?: string
+  blockType?: 'archiveBlock'
+  introContent?: unknown
+  populateBy?: 'collection' | 'selection'
+  relationTo?: 'posts'
+  categories?: unknown[]
+  limit?: number
+  selectedDocs?: Array<{ value: Post | string }>
+}
 
 export const ArchiveBlock: React.FC<
   ArchiveBlockProps & {
@@ -23,12 +35,12 @@ export const ArchiveBlock: React.FC<
       const payload = await getPayload({ config: configPromise })
 
       const flattenedCategories = categories?.map((category) => {
-        if (typeof category === 'object') return category.id
-        else return category
+        if (category != null && typeof category === 'object') return (category as { id?: string }).id
+        return category
       })
 
       const fetchedPosts = await payload.find({
-        collection: 'posts',
+        collection: 'posts' as import('payload').CollectionSlug,
         depth: 1,
         limit,
         ...(flattenedCategories && flattenedCategories.length > 0
@@ -42,7 +54,7 @@ export const ArchiveBlock: React.FC<
           : {}),
       })
 
-      posts = fetchedPosts.docs
+      posts = fetchedPosts.docs as unknown as Post[]
     } catch (error) {
       // If database is not available, use empty posts
       console.warn('Could not fetch posts for ArchiveBlock:', error)
@@ -59,13 +71,13 @@ export const ArchiveBlock: React.FC<
 
   return (
     <div className="my-16" id={`block-${id}`}>
-      {introContent && (
+      {introContent ? (
         <div className="container mb-16">
           <div className="max-w-3xl">
-            <RichText data={introContent} enableGutter={false} />
+            <RichText data={introContent as DefaultTypedEditorState} enableGutter={false} />
           </div>
         </div>
-      )}
+      ) : null}
       <div className="container">
         <CollectionArchive posts={posts} />
       </div>

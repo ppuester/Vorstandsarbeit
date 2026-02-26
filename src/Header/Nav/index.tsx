@@ -4,13 +4,19 @@ import React, { useState, useEffect, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import { usePathname } from 'next/navigation'
 import Link from 'next/link'
-import type { Header as HeaderType } from '@/payload-types'
 import { Logo } from '@/components/Logo/Logo'
 import { Menu, X, ChevronDown, ChevronRight } from 'lucide-react'
 
-// Types für Nav Items
-type NavItemChild = NonNullable<NonNullable<HeaderType['navItems']>[number]['children']>[number]
-type NavItemLink = NonNullable<HeaderType['navItems']>[number]['link']
+/** Lokaler Typ für Header-Nav (payload-types hat ggf. keine Header-Definition) */
+type HeaderNavItem = {
+  type?: 'link' | 'dropdown'
+  label?: string
+  link?: { type?: string; url?: string; newTab?: boolean; reference?: unknown; label?: string }
+  children?: HeaderNavItem[]
+}
+type HeaderType = { navItems?: HeaderNavItem[] }
+type NavItemChild = HeaderNavItem
+type NavItemLink = HeaderNavItem['link']
 
 // Styles als Konstanten außerhalb der Komponente
 const overlayStyles = {
@@ -62,15 +68,16 @@ const homeLink = {
 }
 
 interface HeaderNavProps {
-  data: HeaderType
+  data: { navItems?: unknown[] }
   isDark?: boolean
 }
 
 // Helper um URL aus Link zu extrahieren
 const getLinkUrl = (link: NavItemLink | NavItemChild['link']): string => {
-  if (link?.type === 'reference' && link?.reference?.value) {
-    return typeof link.reference.value === 'object' 
-      ? `/${link.reference.value.slug}`
+  const ref = link?.reference as { value?: { slug?: string } | string } | undefined
+  if (link?.type === 'reference' && ref?.value) {
+    return typeof ref.value === 'object' && ref.value !== null
+      ? `/${ref.value.slug ?? ''}`
       : '/'
   }
   return link?.url || '/'
@@ -231,7 +238,7 @@ const MobileAccordion: React.FC<{
 }
 
 export const HeaderNav: React.FC<HeaderNavProps> = ({ data, isDark = false }) => {
-  const navItems = data?.navItems || []
+  const navItems = (data?.navItems || []) as HeaderNavItem[]
   const [isOpen, setIsOpen] = useState(false)
   const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null)
   const pathname = usePathname()
@@ -286,7 +293,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({ data, isDark = false }) =>
             return (
               <DesktopDropdown
                 key={i}
-                label={item.label}
+                label={item.label ?? ''}
                 items={item.children}
                 isDark={isDark}
                 pathname={pathname}
@@ -385,7 +392,7 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({ data, isDark = false }) =>
                   return (
                     <MobileAccordion
                       key={i}
-                      label={item.label}
+                      label={item.label ?? ''}
                       items={item.children}
                       pathname={pathname}
                       onLinkClick={close}

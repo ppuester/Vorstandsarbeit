@@ -3,12 +3,17 @@ import { useHeaderTheme } from '@/providers/HeaderTheme'
 import React, { useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 
-import type { Page } from '@/payload-types'
-
 import { CMSLink } from '@/components/Link'
 import RichText from '@/components/RichText'
 
-export const VideoHero: React.FC<Page['hero']> = ({ links, richText, videoUrl, videoPoster }) => {
+type VideoHeroProps = {
+  links?: Array<{ link?: unknown }>
+  richText?: unknown
+  videoUrl?: string
+  videoPoster?: unknown
+}
+
+export const VideoHero: React.FC<VideoHeroProps> = ({ links, richText, videoUrl: _videoUrl, videoPoster }) => {
   const { setHeaderTheme } = useHeaderTheme()
   const videoRef = useRef<HTMLVideoElement>(null)
   const [isVideoLoaded, setIsVideoLoaded] = useState(false)
@@ -60,7 +65,7 @@ export const VideoHero: React.FC<Page['hero']> = ({ links, richText, videoUrl, v
                 {richText ? (
                   <RichText
                     className="[&_h1]:hidden [&_h2]:hidden [&_h3]:hidden [&_p]:text-base [&_p]:md:text-lg [&_p]:text-muted-foreground [&_p]:leading-relaxed"
-                    data={richText}
+                    data={richText as import('@payloadcms/richtext-lexical').DefaultTypedEditorState}
                     enableGutter={false}
                   />
                 ) : (
@@ -84,7 +89,7 @@ export const VideoHero: React.FC<Page['hero']> = ({ links, richText, videoUrl, v
               loop
               muted
               playsInline
-              poster={videoPoster || undefined}
+              poster={typeof videoPoster === 'string' ? videoPoster : undefined}
               onLoadedData={() => setIsVideoLoaded(true)}
               className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-1000 ${isVideoLoaded ? 'opacity-100' : 'opacity-0'}`}
             >
@@ -112,17 +117,17 @@ export const VideoHero: React.FC<Page['hero']> = ({ links, richText, videoUrl, v
                 <div className="flex flex-wrap gap-3">
                   {links.map(({ link }, i) => {
                     const isPrimary = i === 0
-                    return (
+                    return link && typeof link === 'object' ? (
                       <CMSLink
                         key={i}
-                        {...link}
+                        {...(link as Record<string, unknown>)}
                         className={`inline-flex items-center justify-center rounded-full px-5 md:px-6 py-2.5 md:py-3 text-sm md:text-base font-medium transition-all duration-300 hover:scale-105 ${
                           isPrimary
                             ? 'bg-secondary text-white hover:bg-secondary/90 shadow-lg'
                             : 'bg-white text-foreground hover:bg-white/90 shadow-md'
                         }`}
                       />
-                    )
+                    ) : null
                   })}
                 </div>
               ) : (

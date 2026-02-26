@@ -2,9 +2,16 @@ import { cn } from '@/utilities/ui'
 import React from 'react'
 import RichText from '@/components/RichText'
 
-import type { ContentBlock as ContentBlockProps } from '@/payload-types'
-
 import { CMSLink } from '../../components/Link'
+
+type ContentBlockProps = {
+  columns?: Array<{
+    size?: 'full' | 'half' | 'oneThird' | 'twoThirds'
+    richText?: unknown
+    enableLink?: boolean
+    link?: Record<string, unknown>
+  }>
+}
 
 export const ContentBlock: React.FC<ContentBlockProps> = (props) => {
   const { columns } = props
@@ -31,9 +38,9 @@ export const ContentBlock: React.FC<ContentBlockProps> = (props) => {
                 })}
                 key={index}
               >
-                {richText && <RichText data={richText} enableGutter={false} />}
+                {richText ? <RichText data={richText as import('@payloadcms/richtext-lexical').DefaultTypedEditorState} enableGutter={false} /> : null}
 
-                {enableLink && <CMSLink {...link} />}
+                {enableLink && link ? <CMSLink {...(link as Record<string, unknown>)} /> : null}
               </div>
             )
           })}

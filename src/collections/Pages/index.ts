@@ -1,4 +1,4 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, CollectionSlug } from 'payload'
 
 import { authenticated } from '../../access/authenticated'
 import { authenticatedOrPublished } from '../../access/authenticatedOrPublished'
@@ -21,7 +21,7 @@ import {
   PreviewField,
 } from '@payloadcms/plugin-seo/fields'
 
-export const Pages: CollectionConfig<'pages'> = {
+export const Pages: CollectionConfig = {
   slug: 'pages',
   labels: {
     singular: 'Seite',
@@ -46,14 +46,14 @@ export const Pages: CollectionConfig<'pages'> = {
       url: ({ data, req }) =>
         generatePreviewPath({
           slug: data?.slug,
-          collection: 'pages',
+          collection: 'pages' as CollectionSlug,
           req,
         }),
     },
     preview: (data, { req }) =>
       generatePreviewPath({
         slug: data?.slug as string,
-        collection: 'pages',
+        collection: 'pages' as CollectionSlug,
         req,
       }),
     useAsTitle: 'title',

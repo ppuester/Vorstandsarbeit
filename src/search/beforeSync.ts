@@ -1,3 +1,4 @@
+import type { CollectionSlug } from 'payload'
 import { BeforeSync, DocToSync } from '@payloadcms/plugin-search/types'
 
 export const beforeSyncWithSearch: BeforeSync = async ({ req, originalDoc, searchDoc }) => {
@@ -34,7 +35,7 @@ export const beforeSyncWithSearch: BeforeSync = async ({ req, originalDoc, searc
       // overrideAccess: false verwenden, um Access Control durchzusetzen, wenn ein Benutzer vorhanden ist
       // Dies stellt sicher, dass Benutzer nur Kategorien synchronisieren können, auf die sie Zugriff haben
       const doc = await req.payload.findByID({
-        collection: 'categories',
+        collection: 'categories' as CollectionSlug,
         id: category,
         disableErrors: true,
         depth: 0,
@@ -44,7 +45,7 @@ export const beforeSyncWithSearch: BeforeSync = async ({ req, originalDoc, searc
       })
 
       if (doc !== null) {
-        populatedCategories.push(doc)
+        populatedCategories.push(doc as { id: string | number; title: string })
       } else {
         console.error(
           `Failed. Category not found when syncing collection '${collection}' with id: '${id}' to search.`,
@@ -53,7 +54,7 @@ export const beforeSyncWithSearch: BeforeSync = async ({ req, originalDoc, searc
     }
 
     modifiedDoc.categories = populatedCategories.map((each) => ({
-      relationTo: 'categories',
+      relationTo: 'categories' as CollectionSlug,
       categoryID: String(each.id),
       title: each.title,
     }))

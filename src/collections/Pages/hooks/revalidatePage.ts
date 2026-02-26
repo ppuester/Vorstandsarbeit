@@ -2,7 +2,8 @@ import type { CollectionAfterChangeHook, CollectionAfterDeleteHook } from 'paylo
 
 import { revalidatePath, revalidateTag } from 'next/cache'
 
-import type { Page } from '../../../payload-types'
+/** Lokaler Typ (Page ist ggf. nicht in payload-types) */
+type Page = { id: string; slug?: string; _status?: string }
 
 export const revalidatePage: CollectionAfterChangeHook<Page> = ({
   doc,

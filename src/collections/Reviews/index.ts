@@ -1,4 +1,4 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, CollectionSlug } from 'payload'
 
 import { authenticated } from '@/access/authenticated'
 
@@ -23,7 +23,7 @@ export const Reviews: CollectionConfig = {
     {
       name: 'drivingSchool',
       type: 'relationship',
-      relationTo: 'driving-schools',
+      relationTo: 'driving-schools' as CollectionSlug,
       required: true,
       label: 'Fahrschule',
     },

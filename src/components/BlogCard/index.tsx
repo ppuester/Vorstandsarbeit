@@ -2,14 +2,16 @@ import React from 'react'
 import Link from 'next/link'
 import { Media } from '@/components/Media'
 import { formatDateTime } from '@/utilities/formatDateTime'
-import type { Post, Category, Media as MediaType } from '@/payload-types'
+import type { Media as MediaType } from '@/payload-types'
+
+type CategoryRef = { id: number; title?: string }
 
 // Partielle Post-Daten für die Card-Ansicht
 export type BlogCardPost = {
   id: number
   title: string
   slug: string
-  categories?: (number | Category)[] | null
+  categories?: (number | CategoryRef)[] | null
   meta?: {
     title?: string | null
     image?: number | MediaType | null
@@ -19,7 +21,7 @@ export type BlogCardPost = {
 }
 
 export const BlogCard: React.FC<{
-  post: BlogCardPost | Post
+  post: BlogCardPost
 }> = ({ post }) => {
   const { slug, title, meta, categories, publishedAt } = post
 

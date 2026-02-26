@@ -4,11 +4,10 @@ import useClickableCard from '@/utilities/useClickableCard'
 import Link from 'next/link'
 import React, { Fragment } from 'react'
 
-import type { Post } from '@/payload-types'
-
 import { Media } from '@/components/Media'
 
-export type CardPostData = Pick<Post, 'slug' | 'categories' | 'meta' | 'title'>
+/** Lokaler Typ (Post ist ggf. nicht in payload-types) */
+export type CardPostData = { slug?: string; categories?: unknown; meta?: unknown; title?: string }
 
 export const Card: React.FC<{
   alignItems?: 'center'
@@ -22,9 +21,11 @@ export const Card: React.FC<{
   const { className, doc, relationTo, showCategories, title: titleFromProps } = props
 
   const { slug, categories, meta, title } = doc || {}
-  const { description, image: metaImage } = meta || {}
+  const metaObj = (meta ?? {}) as { description?: string; image?: unknown }
+  const { description, image: metaImage } = metaObj
 
-  const hasCategories = categories && Array.isArray(categories) && categories.length > 0
+  const categoriesList = Array.isArray(categories) ? categories : []
+  const hasCategories = categoriesList.length > 0
   const titleToUse = titleFromProps || title
   const sanitizedDescription = description?.replace(/\s/g, ' ') // replace non-breaking space with white space
   const href = `/${relationTo}/${slug}`
@@ -39,20 +40,21 @@ export const Card: React.FC<{
     >
       <div className="relative w-full ">
         {!metaImage && <div className="">No image</div>}
-        {metaImage && typeof metaImage !== 'string' && <Media resource={metaImage} size="33vw" />}
+        {metaImage && typeof metaImage !== 'string' ? (
+          <Media resource={metaImage as import('@/payload-types').Media} size="33vw" />
+        ) : null}
       </div>
       <div className="p-4">
         {showCategories && hasCategories && (
           <div className="uppercase text-sm mb-4">
             {showCategories && hasCategories && (
               <div>
-                {categories?.map((category, index) => {
+                {categoriesList.map((category, index) => {
                   if (typeof category === 'object') {
-                    const { title: titleFromCategory } = category
+                    const cat = category as { title?: string }
+                    const categoryTitle = cat.title || 'Untitled category'
 
-                    const categoryTitle = titleFromCategory || 'Untitled category'
-
-                    const isLast = index === categories.length - 1
+                    const isLast = index === categoriesList.length - 1
 
                     return (
                       <Fragment key={index}>

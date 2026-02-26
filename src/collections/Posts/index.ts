@@ -1,4 +1,4 @@
-import type { CollectionConfig } from 'payload'
+import type { CollectionConfig, CollectionSlug } from 'payload'
 
 import {
   BlocksFeature,
@@ -27,7 +27,7 @@ import {
 } from '@payloadcms/plugin-seo/fields'
 import { slugField } from 'payload'
 
-export const Posts: CollectionConfig<'posts'> = {
+export const Posts: CollectionConfig = {
   slug: 'posts',
   labels: {
     singular: 'Beitrag',
@@ -57,14 +57,14 @@ export const Posts: CollectionConfig<'posts'> = {
       url: ({ data, req }) =>
         generatePreviewPath({
           slug: data?.slug,
-          collection: 'posts',
+          collection: 'posts' as CollectionSlug,
           req,
         }),
     },
     preview: (data, { req }) =>
       generatePreviewPath({
         slug: data?.slug as string,
-        collection: 'posts',
+        collection: 'posts' as CollectionSlug,
         req,
       }),
     useAsTitle: 'title',
@@ -125,7 +125,7 @@ export const Posts: CollectionConfig<'posts'> = {
                 }
               },
               hasMany: true,
-              relationTo: 'posts',
+              relationTo: 'posts' as CollectionSlug,
             },
             {
               name: 'categories',
@@ -135,7 +135,7 @@ export const Posts: CollectionConfig<'posts'> = {
                 position: 'sidebar',
               },
               hasMany: true,
-              relationTo: 'categories',
+              relationTo: 'categories' as CollectionSlug,
             },
           ],
           label: 'Metadaten',

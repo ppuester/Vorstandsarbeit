@@ -1,7 +1,5 @@
-import type { RequiredDataFromCollectionSlug } from 'payload'
-
 // Wird für vorab gesäte Inhalte verwendet, damit die Startseite nicht leer ist
-export const homeStatic: RequiredDataFromCollectionSlug<'pages'> = {
+export const homeStatic = {
   slug: 'home',
   _status: 'published',
   hero: {

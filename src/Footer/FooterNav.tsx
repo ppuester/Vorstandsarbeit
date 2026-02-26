@@ -4,17 +4,14 @@ import React from 'react'
 import { CMSLink } from '@/components/Link'
 import { openCookieBanner } from '@/components/CookieBanner'
 
-interface FooterNavItem {
+export interface FooterNavItem {
   category?: 'navigation' | 'legal' | null
-  link: {
-    type?: 'reference' | 'custom' | null
+  link?: {
+    type?: string
     newTab?: boolean | null
-    reference?: {
-      relationTo: 'pages' | 'posts'
-      value: any
-    } | null
+    reference?: unknown
     url?: string | null
-    label: string
+    label?: string
   }
 }
 
@@ -26,13 +23,15 @@ interface FooterNavProps {
 export const FooterNav: React.FC<FooterNavProps> = ({ items, showCookieButton = false }) => {
   return (
     <nav className="flex flex-col gap-2">
-      {items.map(({ link }, i) => (
-        <CMSLink
-          key={i}
-          {...link}
-          className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-        />
-      ))}
+      {items.map(({ link }, i) =>
+        link ? (
+          <CMSLink
+            key={i}
+            {...(link as React.ComponentProps<typeof CMSLink>)}
+            className="text-sm text-muted-foreground hover:text-foreground transition-colors"
+          />
+        ) : null,
+      )}
       {showCookieButton && (
         <button
           onClick={openCookieBanner}

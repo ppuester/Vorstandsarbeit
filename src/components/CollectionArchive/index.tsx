@@ -2,10 +2,8 @@ import { cn } from '@/utilities/ui'
 import React from 'react'
 import { BlogCard, BlogCardPost } from '@/components/BlogCard'
 
-import type { Post } from '@/payload-types'
-
 export type Props = {
-  posts: (Post | BlogCardPost)[]
+  posts: (Record<string, unknown> | BlogCardPost)[]
 }
 
 export const CollectionArchive: React.FC<Props> = (props) => {
@@ -16,7 +14,9 @@ export const CollectionArchive: React.FC<Props> = (props) => {
       <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
         {posts?.map((post, index) => {
           if (typeof post === 'object' && post !== null) {
-            return <BlogCard key={post.id || index} post={post} />
+            return (
+              <BlogCard key={index} post={post as import('@/components/BlogCard').BlogCardPost} />
+            )
           }
           return null
         })}

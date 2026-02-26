@@ -13,11 +13,10 @@ import {
 
 import { CodeBlock, CodeBlockProps } from '@/blocks/Code/Component'
 
-import type {
-  BannerBlock as BannerBlockProps,
-  CallToActionBlock as CTABlockProps,
-  MediaBlock as MediaBlockProps,
-} from '@/payload-types'
+/** Lokale Block-Typen (payload-types hat ggf. keine Block-Definitionen) */
+type BannerBlockProps = Record<string, unknown>
+type CTABlockProps = Record<string, unknown>
+type MediaBlockProps = Record<string, unknown>
 import { BannerBlock } from '@/blocks/Banner/Component'
 import { CallToActionBlock } from '@/blocks/CallToAction/Component'
 import { cn } from '@/utilities/ui'
@@ -39,8 +38,10 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
   ...defaultConverters,
   ...LinkJSXConverter({ internalDocToHref }),
   blocks: {
-    banner: ({ node }) => <BannerBlock className="col-start-2 mb-4" {...node.fields} />,
-    mediaBlock: ({ node }) => (
+    banner: ({ node }: { node: { fields: BannerBlockProps } }) => (
+      <BannerBlock className="col-start-2 mb-4" {...node.fields} />
+    ),
+    mediaBlock: ({ node }: { node: { fields: MediaBlockProps } }) => (
       <MediaBlock
         className="col-start-1 col-span-3"
         imgClassName="m-0"
@@ -50,8 +51,12 @@ const jsxConverters: JSXConvertersFunction<NodeTypes> = ({ defaultConverters }) 
         disableInnerContainer={true}
       />
     ),
-    code: ({ node }) => <CodeBlock className="col-start-2" {...node.fields} />,
-    cta: ({ node }) => <CallToActionBlock {...node.fields} />,
+    code: ({ node }: { node: { fields: CodeBlockProps } }) => (
+      <CodeBlock className="col-start-2" {...node.fields} />
+    ),
+    cta: ({ node }: { node: { fields: CTABlockProps } }) => (
+      <CallToActionBlock {...node.fields} />
+    ),
   },
 })
 

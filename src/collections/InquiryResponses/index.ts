@@ -40,7 +40,7 @@ export const InquiryResponses: CollectionConfig = {
             
             // Zähle alle Antworten für diese Anfrage
             const responseCount = await req.payload.count({
-              collection: 'inquiry-responses',
+              collection: 'inquiry-responses' as import('payload').CollectionSlug,
               where: {
                 inquiry: { equals: inquiryId },
               },
@@ -48,12 +48,12 @@ export const InquiryResponses: CollectionConfig = {
             
             // Aktualisiere die Anfrage
             await req.payload.update({
-              collection: 'inquiries',
+              collection: 'inquiries' as import('payload').CollectionSlug,
               id: inquiryId,
               data: {
                 responseCount: responseCount.totalDocs,
                 status: 'responded',
-              },
+              } as Record<string, unknown>,
               req,
             })
           } catch (error) {
@@ -76,7 +76,7 @@ export const InquiryResponses: CollectionConfig = {
     {
       name: 'inquiry',
       type: 'relationship',
-      relationTo: 'inquiries',
+      relationTo: 'inquiries' as import('payload').CollectionSlug,
       required: true,
       label: 'Anfrage',
       admin: {
@@ -86,7 +86,7 @@ export const InquiryResponses: CollectionConfig = {
     {
       name: 'drivingSchool',
       type: 'relationship',
-      relationTo: 'driving-schools',
+      relationTo: 'driving-schools' as import('payload').CollectionSlug,
       required: true,
       label: 'Fahrschule',
       admin: {

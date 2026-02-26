@@ -10,7 +10,7 @@ import { post1 } from './post-1'
 import { post2 } from './post-2'
 import { post3 } from './post-3'
 
-const collections: CollectionSlug[] = [
+const collections = [
   'categories',
   'media',
   'pages',
@@ -18,9 +18,9 @@ const collections: CollectionSlug[] = [
   'forms',
   'form-submissions',
   'search',
-]
+] as CollectionSlug[]
 
-const globals: GlobalSlug[] = ['header', 'footer']
+const globals = ['header', 'footer'] as GlobalSlug[]
 
 const categories = ['Technology', 'News', 'Finance', 'Design', 'Software', 'Engineering']
 
@@ -50,7 +50,7 @@ export const seed = async ({
         slug: global,
         data: {
           navItems: [],
-        },
+        } as unknown as Parameters<Payload['updateGlobal']>[0]['data'],
         depth: 0,
         context: {
           disableRevalidate: true,
@@ -129,11 +129,11 @@ export const seed = async ({
     }),
     categories.map((category) =>
       payload.create({
-        collection: 'categories',
+        collection: 'categories' as CollectionSlug,
         data: {
           title: category,
           slug: category,
-        },
+        } as Record<string, unknown>,
       }),
     ),
   ])
@@ -143,7 +143,7 @@ export const seed = async ({
   // Do not create posts with `Promise.all` because we want the posts to be created in order
   // This way we can sort them by `createdAt` or `publishedAt` and they will be in the expected order
   const post1Doc = await payload.create({
-    collection: 'posts',
+    collection: 'posts' as CollectionSlug,
     depth: 0,
     context: {
       disableRevalidate: true,
@@ -152,7 +152,7 @@ export const seed = async ({
   })
 
   const post2Doc = await payload.create({
-    collection: 'posts',
+    collection: 'posts' as CollectionSlug,
     depth: 0,
     context: {
       disableRevalidate: true,
@@ -161,7 +161,7 @@ export const seed = async ({
   })
 
   const post3Doc = await payload.create({
-    collection: 'posts',
+    collection: 'posts' as CollectionSlug,
     depth: 0,
     context: {
       disableRevalidate: true,
@@ -172,24 +172,24 @@ export const seed = async ({
   // update each post with related posts
   await payload.update({
     id: post1Doc.id,
-    collection: 'posts',
+    collection: 'posts' as CollectionSlug,
     data: {
       relatedPosts: [post2Doc.id, post3Doc.id],
-    },
+    } as Record<string, unknown>,
   })
   await payload.update({
     id: post2Doc.id,
-    collection: 'posts',
+    collection: 'posts' as CollectionSlug,
     data: {
       relatedPosts: [post1Doc.id, post3Doc.id],
-    },
+    } as Record<string, unknown>,
   })
   await payload.update({
     id: post3Doc.id,
-    collection: 'posts',
+    collection: 'posts' as CollectionSlug,
     data: {
       relatedPosts: [post1Doc.id, post2Doc.id],
-    },
+    } as Record<string, unknown>,
   })
 
   payload.logger.info(`— Seeding contact form...`)
@@ -204,12 +204,12 @@ export const seed = async ({
 
   const [_, contactPage] = await Promise.all([
     payload.create({
-      collection: 'pages',
+      collection: 'pages' as CollectionSlug,
       depth: 0,
       data: home({ heroImage: imageHomeDoc, metaImage: image2Doc }),
     }),
     payload.create({
-      collection: 'pages',
+      collection: 'pages' as CollectionSlug,
       depth: 0,
       data: contactPageData({ contactForm: contactForm }),
     }),
@@ -219,7 +219,7 @@ export const seed = async ({
 
   await Promise.all([
     payload.updateGlobal({
-      slug: 'header',
+      slug: 'header' as GlobalSlug,
       data: {
         navItems: [
           {
@@ -242,10 +242,10 @@ export const seed = async ({
             },
           },
         ],
-      },
+      } as unknown as Parameters<Payload['updateGlobal']>[0]['data'],
     }),
     payload.updateGlobal({
-      slug: 'footer',
+      slug: 'footer' as GlobalSlug,
       data: {
         navItems: [
           {
@@ -272,7 +272,7 @@ export const seed = async ({
             },
           },
         ],
-      },
+      } as unknown as Parameters<Payload['updateGlobal']>[0]['data'],
     }),
   ])
 

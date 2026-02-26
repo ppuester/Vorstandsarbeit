@@ -4,10 +4,11 @@ import Link from 'next/link'
 import React, { useState } from 'react'
 import { Menu, X, Search, Car } from 'lucide-react'
 
-import type { Header } from '@/payload-types'
-
 import { HeaderNav } from './Nav'
 import { useHeaderTheme } from '@/providers/HeaderTheme'
+
+/** Lokaler Typ für Header-Global (payload-types hat ggf. keine Header-Definition) */
+export type Header = { navItems?: unknown[] }
 
 interface HeaderClientProps {
   data: Header | null

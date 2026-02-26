@@ -1,4 +1,4 @@
-import type { Block } from 'payload'
+import type { Block, CollectionSlug } from 'payload'
 
 import {
   FixedToolbarFeature,
@@ -65,7 +65,7 @@ export const Archive: Block = {
       },
       hasMany: true,
       label: 'Anzuzeigende Kategorien',
-      relationTo: 'categories',
+      relationTo: 'categories' as CollectionSlug,
     },
     {
       name: 'limit',
@@ -85,7 +85,7 @@ export const Archive: Block = {
       },
       hasMany: true,
       label: 'Auswahl',
-      relationTo: ['posts'],
+      relationTo: ['posts'] as unknown as CollectionSlug[],
     },
   ],
   labels: {

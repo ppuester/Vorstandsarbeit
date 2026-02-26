@@ -228,7 +228,7 @@ export const Inquiries: CollectionConfig = {
             {
               name: 'drivingSchools',
               type: 'relationship',
-              relationTo: 'driving-schools',
+              relationTo: 'driving-schools' as import('payload').CollectionSlug,
               hasMany: true,
               required: true,
               label: 'Angefragte Fahrschulen',

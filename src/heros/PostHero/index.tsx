@@ -1,18 +1,26 @@
 import { formatDateTime } from 'src/utilities/formatDateTime'
 import React from 'react'
 
-import type { Post } from '@/payload-types'
-
 import { Media } from '@/components/Media'
 import { formatAuthors } from '@/utilities/formatAuthors'
 
+type PostHeroPost = {
+  categories?: Array<{ title?: string } | string>
+  heroImage?: unknown
+  populatedAuthors?: unknown
+  publishedAt?: string
+  title?: string
+}
+
 export const PostHero: React.FC<{
-  post: Post
+  post: PostHeroPost
 }> = ({ post }) => {
   const { categories, heroImage, populatedAuthors, publishedAt, title } = post
 
   const hasAuthors =
-    populatedAuthors && populatedAuthors.length > 0 && formatAuthors(populatedAuthors) !== ''
+    Array.isArray(populatedAuthors) &&
+    populatedAuthors.length > 0 &&
+    formatAuthors(populatedAuthors) !== ''
 
   return (
     <div className="relative">
@@ -35,32 +43,41 @@ export const PostHero: React.FC<{
         <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-background" />
 
         {/* Hero Image als Overlay */}
-        {heroImage && typeof heroImage !== 'string' && (
+        {(heroImage && typeof heroImage !== 'string' ? (
           <div className="absolute inset-0 -z-10 opacity-10">
-            <Media fill priority imgClassName="object-cover" resource={heroImage} />
+            <Media
+              fill
+              priority
+              imgClassName="object-cover"
+              resource={heroImage as import('@/payload-types').Media}
+            />
           </div>
-        )}
+        ) : null) as React.ReactNode}
       </div>
 
-      <div className="container relative py-20">
-        <div className="max-w-4xl">
+      {((): React.ReactNode => (
+        <>
+        <div className="container relative py-20">
+          <div className="max-w-4xl">
           {/* Categories */}
           <div className="uppercase text-sm font-medium text-primary mb-4">
-            {categories?.map((category, index) => {
+            <>
+              {(Array.isArray(categories) ? categories : []).map((category, index, arr): React.ReactNode => {
               if (typeof category === 'object' && category !== null) {
-                const { title: categoryTitle } = category
-                const titleToUse = categoryTitle || 'Untitled category'
-                const isLast = index === categories.length - 1
+                const cat = category as { title?: string }
+                const titleToUse = cat.title || 'Untitled category'
+                const isLast = index === arr.length - 1
 
                 return (
                   <React.Fragment key={index}>
                     {titleToUse}
-                    {!isLast && <React.Fragment>, &nbsp;</React.Fragment>}
+                    {!isLast ? <React.Fragment>, &nbsp;</React.Fragment> : null}
                   </React.Fragment>
                 )
               }
               return null
-            })}
+              })}
+            </>
           </div>
 
           {/* Title */}
@@ -70,12 +87,12 @@ export const PostHero: React.FC<{
 
           {/* Meta Info */}
           <div className="flex flex-wrap gap-8 text-muted-foreground">
-            {hasAuthors && (
+            {hasAuthors ? (
               <div className="flex flex-col gap-1">
                 <p className="text-sm font-medium text-foreground">Autor</p>
-                <p>{formatAuthors(populatedAuthors)}</p>
+                <p>{formatAuthors(populatedAuthors as Array<{ name?: string }>)}</p>
               </div>
-            )}
+            ) : null}
             {publishedAt && (
               <div className="flex flex-col gap-1">
                 <p className="text-sm font-medium text-foreground">Veröffentlicht</p>
@@ -87,13 +104,20 @@ export const PostHero: React.FC<{
       </div>
 
       {/* Hero Image Below (if exists) - außerhalb des overflow-hidden */}
-      {heroImage && typeof heroImage !== 'string' && (
+      {heroImage && typeof heroImage !== 'string' ? (
         <div className="container relative pb-16">
           <div className="relative h-[400px] md:h-[500px] rounded-2xl md:rounded-3xl overflow-hidden shadow-2xl">
-            <Media fill imgClassName="object-cover" resource={heroImage} />
+            <Media
+              fill
+              imgClassName="object-cover"
+              resource={heroImage as import('@/payload-types').Media}
+            />
           </div>
         </div>
-      )}
+      ) : null}
+        </>
+      ))()}
     </div>
   )
 }
+

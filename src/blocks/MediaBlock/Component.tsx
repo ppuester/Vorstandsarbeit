@@ -4,9 +4,9 @@ import { cn } from '@/utilities/ui'
 import React from 'react'
 import RichText from '@/components/RichText'
 
-import type { MediaBlock as MediaBlockProps } from '@/payload-types'
-
 import { Media } from '../../components/Media'
+
+type MediaBlockProps = { media?: unknown; caption?: unknown }
 
 type Props = MediaBlockProps & {
   breakout?: boolean
@@ -29,8 +29,8 @@ export const MediaBlock: React.FC<Props> = (props) => {
     disableInnerContainer,
   } = props
 
-  let caption
-  if (media && typeof media === 'object') caption = media.caption
+  let caption: unknown
+  if (media && typeof media === 'object') caption = (media as { caption?: unknown }).caption
 
   return (
     <div
@@ -45,11 +45,11 @@ export const MediaBlock: React.FC<Props> = (props) => {
       {(media || staticImage) && (
         <Media
           imgClassName={cn('border border-border rounded-[0.8rem]', imgClassName)}
-          resource={media}
+          resource={media as string | number | null | undefined}
           src={staticImage}
         />
       )}
-      {caption && (
+      {caption ? (
         <div
           className={cn(
             'mt-6',
@@ -59,9 +59,9 @@ export const MediaBlock: React.FC<Props> = (props) => {
             captionClassName,
           )}
         >
-          <RichText data={caption} enableGutter={false} />
+          <RichText data={caption as import('@payloadcms/richtext-lexical').DefaultTypedEditorState} enableGutter={false} />
         </div>
-      )}
+      ) : null}
     </div>
   )
 }

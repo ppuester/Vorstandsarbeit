@@ -2,9 +2,17 @@ import { getCachedGlobal } from '@/utilities/getGlobals'
 import Link from 'next/link'
 import React from 'react'
 import { Car, MapPin, Mail } from 'lucide-react'
-import type { Footer as FooterType } from '@/payload-types'
 
 import { FooterNav } from './FooterNav'
+
+/** Lokaler Typ für Footer-Global (payload-types hat ggf. keine Footer-Definition) */
+interface FooterType {
+  navItems?: Array<{
+    category?: 'navigation' | 'legal' | null
+    link?: { type?: string; newTab?: boolean; reference?: unknown; url?: string; label?: string }
+  }>
+  socialLinks?: Array<{ platform?: string; url?: string }>
+}
 
 // Social Media Icons als SVG Komponenten
 const FacebookIcon = () => (

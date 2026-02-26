@@ -1,4 +1,4 @@
-import type { Field, GroupField } from 'payload'
+import type { CollectionSlug, Field, GroupField } from 'payload'
 
 import deepMerge from '@/utilities/deepMerge'
 
@@ -76,7 +76,7 @@ export const link: LinkType = ({ appearances, disableLabel = false, overrides = 
         condition: (_, siblingData) => siblingData?.type === 'reference',
       },
       label: 'Zu verlinkende Seite',
-      relationTo: ['pages', 'posts'],
+      relationTo: ['pages', 'posts'] as unknown as CollectionSlug[],
       required: true,
     },
     {
