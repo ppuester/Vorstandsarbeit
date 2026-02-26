@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
-import { Plus, Edit2, Save, X, AlertCircle, CheckCircle } from 'lucide-react'
+import { Plus, Edit2, Save, X, AlertCircle, CheckCircle, Trash2 } from 'lucide-react'
 import Link from 'next/link'
 
 interface GeneralCost {
@@ -91,6 +91,30 @@ export default function AllgemeineKostenPage() {
     setExpandedIds((prev) =>
       prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id],
     )
+  }
+
+  const handleDelete = async (item: GeneralCost) => {
+    const hasChildren = generalCosts.some((gc) => gc.parent === item.id)
+    const message = hasChildren
+      ? 'Dieser Eintrag hat untergeordnete Kostengruppen. Zuerst die Untergruppen löschen oder verschieben. Trotzdem löschen?'
+      : 'Möchten Sie diese Kostengruppe wirklich löschen?'
+    if (!confirm(message)) return
+
+    try {
+      setError(null)
+      const response = await fetch(`/api/general-costs/${item.id}`, {
+        method: 'DELETE',
+      })
+      if (response.ok) {
+        setSuccess('Allgemeine Kosten gelöscht')
+        await fetchData()
+      } else {
+        const data = await response.json()
+        setError(data.error || 'Fehler beim Löschen')
+      }
+    } catch {
+      setError('Fehler beim Löschen')
+    }
   }
 
   const buildTree = () => {
@@ -511,6 +535,13 @@ export default function AllgemeineKostenPage() {
                               title="Bearbeiten"
                             >
                               <Edit2 className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={() => handleDelete(item)}
+                              className="p-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                              title="Löschen"
+                            >
+                              <Trash2 className="w-4 h-4" />
                             </button>
                             <Link
                               href={`/admin/collections/general-costs/${item.id}`}
