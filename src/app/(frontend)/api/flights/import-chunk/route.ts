@@ -296,6 +296,8 @@ export async function POST(request: Request) {
 
     let created = 0
     let skipped = 0
+    let skippedNonClub = 0
+    let skippedUnknownAircraft = 0
     const errors: ChunkImportError[] = []
     const flightLogsMap = new Map<string, { starts: number; flightHours: number }>()
     const CHUNK_SIZE = 500
@@ -317,6 +319,18 @@ export async function POST(request: Request) {
       }
 
       try {
+        const clubFlag = (raw.vereinsLfz ?? '').trim().toLowerCase()
+        if (clubFlag !== '' && clubFlag !== 'ja') {
+          skippedNonClub++
+          continue
+        }
+
+        const aircraftForRow = findAircraftByRegistration(raw.lfz)
+        if (!aircraftForRow) {
+          skippedUnknownAircraft++
+          continue
+        }
+
         if (!raw.datum || !raw.lfz || !raw.pilot) {
           errors.push({
             rowIndexGlobal,
@@ -405,9 +419,6 @@ export async function POST(request: Request) {
           continue
         }
 
-        const vereinsLfz = (raw.vereinsLfz ?? '').trim().toLowerCase()
-        const isVereinsLfz = vereinsLfz === 'ja'
-        const aircraftForRow = isVereinsLfz ? findAircraftByRegistration(raw.lfz) : null
         const towReg = (raw.schleppLfz ?? '').trim()
         const towAircraft = towReg ? findAircraftByRegistration(towReg) : null
         const towAircraftExists = towAircraft !== null
@@ -444,7 +455,7 @@ export async function POST(request: Request) {
           .slice(0, 5)
           .map((name) => ({ name }))
 
-        const aircraftId = aircraftForRow?.id ?? undefined
+        const aircraftId = aircraftForRow.id
         const copilotName = (raw.begleiterFi ?? '').trim() || undefined
         const sourceAircraftReg = (raw.lfz ?? '').trim().toUpperCase() || undefined
         const sourceTowReg = towReg ? towReg.toUpperCase() : undefined
@@ -593,6 +604,8 @@ export async function POST(request: Request) {
       importRunId,
       created,
       skipped,
+      skippedNonClub,
+      skippedUnknownAircraft,
       errors,
       chunkIndex,
       totalChunks,

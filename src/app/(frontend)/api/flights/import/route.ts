@@ -323,6 +323,8 @@ export async function POST(request: Request) {
 
     let created = 0
     let skipped = 0
+    let skippedNonClub = 0
+    let skippedUnknownAircraft = 0
     let unmatchedMembers = 0
     const errors: string[] = []
     const flightLogsMap = new Map<string, { starts: number; flightHours: number }>()
@@ -333,6 +335,18 @@ export async function POST(request: Request) {
       if (!row || row.length === 0) continue
 
       const raw = getRowValues(row, headerToIndex)
+
+      const clubFlag = (raw.vereinsLfz ?? '').trim().toLowerCase()
+      if (clubFlag !== '' && clubFlag !== 'ja') {
+        skippedNonClub++
+        continue
+      }
+
+      const aircraftForRow = await findAircraftByRegistration(payload, raw.lfz)
+      if (!aircraftForRow) {
+        skippedUnknownAircraft++
+        continue
+      }
 
       if (!raw.datum || !raw.lfz || !raw.pilot) {
         skipped++
@@ -408,12 +422,6 @@ export async function POST(request: Request) {
         continue
       }
 
-      const vereinsLfz = (raw.vereinsLfz ?? '').trim().toLowerCase()
-      const isVereinsLfz = vereinsLfz === 'ja'
-
-      const aircraftForRow = isVereinsLfz
-        ? await findAircraftByRegistration(payload, raw.lfz)
-        : null
       const towReg = (raw.schleppLfz ?? '').trim()
       const towAircraft = towReg ? await findAircraftByRegistration(payload, towReg) : null
       const towAircraftExists = towAircraft !== null
@@ -450,7 +458,7 @@ export async function POST(request: Request) {
             : 'unmatched'
       const memberMatchCandidates = (matchResult.candidates || []).slice(0, 5).map((name) => ({ name }))
 
-      const aircraftId = aircraftForRow?.id ?? undefined
+      const aircraftId = aircraftForRow.id
       const copilotName = (raw.begleiterFi ?? '').trim() || undefined
       const sourceAircraftReg = (raw.lfz ?? '').trim().toUpperCase() || undefined
       const sourceTowReg = towReg ? towReg.toUpperCase() : undefined
@@ -599,13 +607,15 @@ export async function POST(request: Request) {
       success: true,
       created,
       skipped,
+      skippedNonClub,
+      skippedUnknownAircraft,
       unmatchedMembers,
       aggregated: flightLogsMap.size,
       importRunId,
       errors: errors.slice(0, 50),
       message:
-        created > 0 || skipped > 0
-          ? `Import abgeschlossen: ${created} neue Flüge angelegt, ${skipped} Zeilen übersprungen (bereits vorhanden oder ungültig). Es werden nur neue Flüge importiert (Delta).`
+        created > 0 || skipped > 0 || skippedNonClub > 0 || skippedUnknownAircraft > 0
+          ? `Import abgeschlossen: ${created} neue Flüge angelegt, ${skipped} übersprungen (bereits vorhanden/ungültig), ${skippedNonClub} Nicht-Vereinsflugzeuge, ${skippedUnknownAircraft} unbekannte Lfz. ignoriert. Es werden nur neue Flüge importiert (Delta).`
           : undefined,
     })
   } catch (error) {

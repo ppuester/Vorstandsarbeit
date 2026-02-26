@@ -311,6 +311,8 @@ export default function FlugstundenPage() {
         let importRunId: string | undefined
         let totalCreated = 0
         let totalSkipped = 0
+        let totalSkippedNonClub = 0
+        let totalSkippedUnknownAircraft = 0
         const allErrors: ChunkImportError[] = []
 
         for (let chunkIndex = 0; chunkIndex < totalChunks; chunkIndex++) {
@@ -350,6 +352,8 @@ export default function FlugstundenPage() {
           importRunId = data.importRunId ?? importRunId
           totalCreated += data.created ?? 0
           totalSkipped += data.skipped ?? 0
+          totalSkippedNonClub += data.skippedNonClub ?? 0
+          totalSkippedUnknownAircraft += data.skippedUnknownAircraft ?? 0
           if (Array.isArray(data.errors)) allErrors.push(...data.errors)
         }
 
@@ -369,8 +373,12 @@ export default function FlugstundenPage() {
           importRunId,
         })
         setImportChunkErrors(allErrors)
+        const chunkExtra =
+          totalSkippedNonClub > 0 || totalSkippedUnknownAircraft > 0
+            ? `, ${totalSkippedNonClub} Nicht-Vereinsflugzeuge, ${totalSkippedUnknownAircraft} unbek. Lfz. ignoriert`
+            : ''
         setSuccess(
-          `Chunk-Import abgeschlossen: ${totalCreated} Flüge importiert, ${totalSkipped} übersprungen${allErrors.length > 0 ? `, ${allErrors.length} Fehler.` : '.'} Siehe „Import-Historie“.`
+          `Chunk-Import abgeschlossen: ${totalCreated} Flüge importiert, ${totalSkipped} übersprungen${chunkExtra}${allErrors.length > 0 ? `, ${allErrors.length} Fehler.` : '.'} Siehe „Import-Historie“.`
         )
         if (allErrors.length > 0) {
           setShowImportErrors(true)
@@ -394,10 +402,14 @@ export default function FlugstundenPage() {
           return
         }
 
+        const singleExtra =
+          (result.skippedNonClub ?? 0) > 0 || (result.skippedUnknownAircraft ?? 0) > 0
+            ? `, ${result.skippedNonClub ?? 0} Nicht-Vereinsflugzeuge, ${result.skippedUnknownAircraft ?? 0} unbek. Lfz. ignoriert`
+            : ''
         setSuccess(
           result.importRunId
-            ? `Import gespeichert (#${String(result.importRunId).slice(-6)}): ${result.created} Flüge importiert, ${result.aggregated} Flugbücher aktualisiert, ${result.skipped} übersprungen. Siehe „Import-Historie“.`
-            : `Import erfolgreich: ${result.created} Flüge importiert, ${result.aggregated} Flugbücher aktualisiert, ${result.skipped} übersprungen`
+            ? `Import gespeichert (#${String(result.importRunId).slice(-6)}): ${result.created} Flüge importiert, ${result.aggregated} Flugbücher aktualisiert, ${result.skipped} übersprungen${singleExtra}. Siehe „Import-Historie“.`
+            : `Import erfolgreich: ${result.created} Flüge importiert, ${result.aggregated} Flugbücher aktualisiert, ${result.skipped} übersprungen${singleExtra}`
         )
         if (result.errors?.length > 0) {
           setImportChunkErrors(
@@ -552,7 +564,7 @@ export default function FlugstundenPage() {
                 Erfassen Sie jährliche Starts und Flugstunden pro Flugzeug
               </p>
               <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
-                Import erwartet Hauptflugbuch-Format (CSV/TSV oder XLSX/XLS) mit Spalten: Vereins-LFZ | Datum | Lfz. | Pilot | Begleiter/FI | Start | Zeit | Schleppzeit | Schlepp-LFZ | Startort | S.-Art | Flugart | Abr. | Bemerkung | Landung | Landeort
+                Import erwartet Hauptflugbuch-Format (CSV/TSV oder XLSX/XLS) mit Spalten: Vereins-LFZ | Datum | Lfz. | Pilot | Begleiter/FI | Start | Zeit | Schleppzeit | Schlepp-LFZ | Startort | S.-Art | Flugart | Abr. | Bemerkung | Landung | Landeort. Nicht-Vereinsflugzeuge werden automatisch ignoriert.
               </p>
             </div>
             <div className="flex gap-3 flex-wrap">
