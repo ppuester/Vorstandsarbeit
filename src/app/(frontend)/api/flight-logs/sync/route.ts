@@ -57,6 +57,7 @@ export async function POST() {
 
     let created = 0
     let updated = 0
+    const syncErrors: string[] = []
 
     for (const [, stats] of byKey.entries()) {
       try {
@@ -97,8 +98,10 @@ export async function POST() {
           })
           created++
         }
-      } catch (_err) {
-        // skip single failure
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err)
+        console.error('Flight-logs sync single entry failed:', msg)
+        syncErrors.push(`${stats.aircraftId}/${stats.year}: ${msg}`)
       }
     }
 
@@ -107,6 +110,7 @@ export async function POST() {
       synced: byKey.size,
       created,
       updated,
+      errors: syncErrors.length > 0 ? syncErrors.slice(0, 10) : undefined,
     })
   } catch (error) {
     console.error('Flight-logs sync error:', error)

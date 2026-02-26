@@ -11,6 +11,7 @@ export async function GET() {
       depth: 2,
       sort: '-year',
       limit: 1000,
+      overrideAccess: true,
     })
 
     return NextResponse.json(result)

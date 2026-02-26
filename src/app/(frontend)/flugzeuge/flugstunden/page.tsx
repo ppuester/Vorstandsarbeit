@@ -245,6 +245,7 @@ export default function FlugstundenPage() {
       setSuccess(
         `Flugbücher aktualisiert: ${data.created} neu, ${data.updated} aktualisiert (${data.synced} Einträge aus Flügen).`
       )
+      if (data.errors?.length) setError(data.errors.join('; '))
       await fetchData()
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Fehler beim Aktualisieren der Flugbücher')
