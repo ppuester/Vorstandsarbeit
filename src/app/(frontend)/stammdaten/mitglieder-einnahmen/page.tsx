@@ -264,6 +264,26 @@ export default function MitgliederEinnahmenPage() {
     return gc?.name || '–'
   }
 
+  const getStatKey = (stat: MembershipFeeStat) => {
+    const feeId = typeof stat.feeType === 'object' && stat.feeType != null ? stat.feeType.id : stat.feeType
+    const costId =
+      stat.generalCost && typeof stat.generalCost === 'object'
+        ? stat.generalCost.id
+        : (stat.generalCost as string) || ''
+    return `${feeId}|${costId}`
+  }
+
+  const pctChange = (current: number, previous: number): number | null => {
+    if (previous === 0 || !Number.isFinite(previous)) return null
+    return ((current - previous) / previous) * 100
+  }
+
+  const formatPct = (delta: number | null): string => {
+    if (delta == null) return '–'
+    const sign = delta >= 0 ? '+' : ''
+    return `${sign}${delta.toFixed(1).replace('.', ',')} %`
+  }
+
   const yearsInData = Array.from(new Set(stats.map((s) => s.year))).sort((a, b) => b - a)
 
   // Pro-Jahr-Summen für den visuellen Vergleich
@@ -373,6 +393,9 @@ export default function MitgliederEinnahmenPage() {
                     <th className="text-right py-3 px-6 font-semibold text-slate-700 dark:text-slate-300">
                       Gesamt
                     </th>
+                    <th className="text-right py-3 px-6 font-semibold text-slate-700 dark:text-slate-300">
+                      Verlauf
+                    </th>
                     <th className="text-left py-3 px-6 font-semibold text-slate-700 dark:text-slate-300">
                       Stichtag
                     </th>
@@ -385,7 +408,7 @@ export default function MitgliederEinnahmenPage() {
                   {stats.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={8}
+                        colSpan={9}
                         className="py-10 text-center text-slate-500 dark:text-slate-400"
                       >
                         Noch keine Einträge vorhanden. Legen Sie den ersten Mitgliederbestand
@@ -409,41 +432,39 @@ export default function MitgliederEinnahmenPage() {
 
                       return (
                         <React.Fragment key={year}>
+                          {/* Abstand zwischen Jahr-Blöcken */}
                           {yearIndex > 0 && (
-                            <tr>
-                              <td colSpan={8} className="h-2" />
+                            <tr className="bg-slate-100/50 dark:bg-slate-800/50">
+                              <td colSpan={9} className="py-1.5" />
                             </tr>
                           )}
-                          <tr className="bg-slate-50/80 dark:bg-slate-900/40">
-                            <td className="py-3 px-6 text-slate-900 dark:text-slate-100 font-semibold">
-                              {year}
+                          {/* Jahres-Kopfzeile */}
+                          <tr className="bg-slate-100 dark:bg-slate-700/70 border-y border-slate-200 dark:border-slate-600">
+                            <td
+                              colSpan={9}
+                              className="py-2.5 px-6 text-base font-bold text-slate-900 dark:text-slate-100"
+                            >
+                              Jahr {year}
                             </td>
-                            <td className="py-3 px-6 text-slate-700 dark:text-slate-200 font-semibold">
-                              Summe
-                            </td>
-                            <td className="py-3 px-6 text-slate-500 dark:text-slate-400 text-sm">
-                              alle
-                            </td>
-                            <td className="py-3 px-6 text-right text-slate-900 dark:text-slate-100 font-semibold">
-                              {totalMembers}
-                            </td>
-                            <td className="py-3 px-6 text-right text-slate-500 dark:text-slate-400 text-sm">
-                              –
-                            </td>
-                            <td className="py-3 px-6 text-right text-emerald-700 dark:text-emerald-400 font-semibold">
-                              {totalIncome.toFixed(2)} €
-                            </td>
-                            <td className="py-3 px-6 text-slate-500 dark:text-slate-400 text-sm">
-                              –
-                            </td>
-                            <td className="py-3 px-6" />
                           </tr>
-                          {yearStats.map((stat) => (
+                          {/* Detailzeilen für dieses Jahr */}
+                          {yearStats.map((stat) => {
+                            const prevYearStats = yearIndex < yearsInData.length - 1
+                              ? stats.filter((s) => s.year === yearsInData[yearIndex + 1])
+                              : []
+                            const prevStat = prevYearStats.find((s) => getStatKey(s) === getStatKey(stat))
+                            const statTotal = stat.totalIncome ?? stat.memberCount * stat.amountPerMember
+                            const prevTotal = prevStat
+                              ? (prevStat.totalIncome ?? prevStat.memberCount * prevStat.amountPerMember)
+                              : 0
+                            const pctMembers = prevStat ? pctChange(stat.memberCount, prevStat.memberCount) : null
+                            const pctGesamt = prevStat ? pctChange(statTotal, prevTotal) : null
+                            return (
                             <tr
                               key={stat.id}
                               className="hover:bg-slate-50 dark:hover:bg-slate-700/70"
                             >
-                              <td className="py-3 px-6 text-slate-900 dark:text-slate-100 font-medium">
+                              <td className="py-3 px-6 text-slate-500 dark:text-slate-400 text-sm">
                                 {stat.year}
                               </td>
                               <td className="py-3 px-6 text-slate-900 dark:text-slate-100">
@@ -452,20 +473,39 @@ export default function MitgliederEinnahmenPage() {
                               <td className="py-3 px-6 text-slate-600 dark:text-slate-300">
                                 {getGeneralCostName(stat)}
                               </td>
-                              <td className="py-3 px-6 text-right text-slate-900 dark:text-slate-100">
+                              <td className="py-3 px-6 text-right text-slate-900 dark:text-slate-100 tabular-nums">
                                 {stat.memberCount}
                               </td>
-                              <td className="py-3 px-6 text-right text-slate-900 dark:text-slate-100">
+                              <td className="py-3 px-6 text-right text-slate-900 dark:text-slate-100 tabular-nums">
                                 {stat.amountPerMember.toFixed(2)} €
                               </td>
-                              <td className="py-3 px-6 text-right text-emerald-600 dark:text-emerald-400 font-semibold">
+                              <td className="py-3 px-6 text-right text-emerald-600 dark:text-emerald-400 font-semibold tabular-nums">
                                 {(
                                   stat.totalIncome ??
                                   stat.memberCount * stat.amountPerMember
                                 ).toFixed(2)}{' '}
                                 €
                               </td>
-                              <td className="py-3 px-6 text-slate-600 dark:text-slate-300">
+                              <td className="py-3 px-6 text-right text-xs tabular-nums">
+                                {pctMembers != null || pctGesamt != null ? (
+                                  <span className="text-slate-500 dark:text-slate-400">
+                                    {pctMembers != null && (
+                                      <span className={pctMembers >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}>
+                                        {formatPct(pctMembers)} Mitgl.
+                                      </span>
+                                    )}
+                                    {pctMembers != null && pctGesamt != null && ' · '}
+                                    {pctGesamt != null && (
+                                      <span className={pctGesamt >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}>
+                                        {formatPct(pctGesamt)} Gesamt
+                                      </span>
+                                    )}
+                                  </span>
+                                ) : (
+                                  '–'
+                                )}
+                              </td>
+                              <td className="py-3 px-6 text-slate-600 dark:text-slate-300 text-sm">
                                 {stat.snapshotDate
                                   ? new Date(stat.snapshotDate).toLocaleDateString('de-DE')
                                   : '–'}
@@ -489,7 +529,59 @@ export default function MitgliederEinnahmenPage() {
                                 </div>
                               </td>
                             </tr>
-                          ))}
+                            )
+                          })}
+                          {/* Summenzeile am Ende des Jahr-Blocks */}
+                          {(() => {
+                            const prevSummary = yearSummaries[yearIndex + 1]
+                            const pctMembersTotal = prevSummary ? pctChange(totalMembers, prevSummary.totalMembers) : null
+                            const pctIncomeTotal = prevSummary ? pctChange(totalIncome, prevSummary.totalIncome) : null
+                            return (
+                          <tr className="bg-slate-50 dark:bg-slate-800/80 border-t-2 border-slate-200 dark:border-slate-600">
+                            <td className="py-3 px-6 text-slate-500 dark:text-slate-400 text-sm">
+                              {year}
+                            </td>
+                            <td className="py-3 px-6 text-slate-700 dark:text-slate-200 font-semibold">
+                              Summe
+                            </td>
+                            <td className="py-3 px-6 text-slate-500 dark:text-slate-400 text-sm">
+                              alle
+                            </td>
+                            <td className="py-3 px-6 text-right text-slate-900 dark:text-slate-100 font-semibold tabular-nums">
+                              {totalMembers}
+                            </td>
+                            <td className="py-3 px-6 text-right text-slate-500 dark:text-slate-400 text-sm">
+                              –
+                            </td>
+                            <td className="py-3 px-6 text-right text-emerald-700 dark:text-emerald-400 font-bold tabular-nums">
+                              {totalIncome.toFixed(2)} €
+                            </td>
+                            <td className="py-3 px-6 text-right text-xs tabular-nums">
+                              {pctMembersTotal != null || pctIncomeTotal != null ? (
+                                <span className="text-slate-600 dark:text-slate-300 font-medium">
+                                  {pctMembersTotal != null && (
+                                    <span className={pctMembersTotal >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}>
+                                      {formatPct(pctMembersTotal)} Mitgl.
+                                    </span>
+                                  )}
+                                  {pctMembersTotal != null && pctIncomeTotal != null && ' · '}
+                                  {pctIncomeTotal != null && (
+                                    <span className={pctIncomeTotal >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}>
+                                      {formatPct(pctIncomeTotal)} Gesamt
+                                    </span>
+                                  )}
+                                </span>
+                              ) : (
+                                '–'
+                              )}
+                            </td>
+                            <td className="py-3 px-6 text-slate-500 dark:text-slate-400 text-sm">
+                              –
+                            </td>
+                            <td className="py-3 px-6" />
+                          </tr>
+                            )
+                          })()}
                         </React.Fragment>
                       )
                     })
@@ -510,22 +602,41 @@ export default function MitgliederEinnahmenPage() {
                 Mitglieder und Fix-Einnahmen im Vergleich über die Jahre
               </p>
               <div className="space-y-6">
-                {yearSummaries.map(({ year, totalMembers, totalIncome }) => {
+                {yearSummaries.map(({ year, totalMembers, totalIncome }, idx) => {
                   const widthPercent = maxIncome > 0 ? (totalIncome / maxIncome) * 100 : 0
                   const barWidth = Math.max(widthPercent, 4)
+                  const prevSummary = yearSummaries[idx + 1]
+                  const pctMembers = prevSummary ? pctChange(totalMembers, prevSummary.totalMembers) : null
+                  const pctIncome = prevSummary ? pctChange(totalIncome, prevSummary.totalIncome) : null
                   return (
                     <div key={year}>
                       <div className="flex items-center justify-between mb-2">
                         <span className="font-semibold text-slate-900 dark:text-slate-100">
                           {year}
                         </span>
-                        <div className="flex gap-4 text-sm">
+                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm">
                           <span className="text-slate-600 dark:text-slate-300">
                             {totalMembers} Mitglieder
                           </span>
                           <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                             {totalIncome.toFixed(2)} € Fix-Einnahmen
                           </span>
+                          {(pctMembers != null || pctIncome != null) && (
+                            <span className="text-xs text-slate-500 dark:text-slate-400">
+                              gegenüber Vorjahr:
+                              {pctMembers != null && (
+                                <span className={pctMembers >= 0 ? 'text-emerald-600 dark:text-emerald-400 ml-1' : 'text-red-600 dark:text-red-400 ml-1'}>
+                                  {formatPct(pctMembers)} Mitgl.
+                                </span>
+                              )}
+                              {pctMembers != null && pctIncome != null && ' · '}
+                              {pctIncome != null && (
+                                <span className={pctIncome >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}>
+                                  {formatPct(pctIncome)} Gesamt
+                                </span>
+                              )}
+                            </span>
+                          )}
                         </div>
                       </div>
                       <div className="relative h-8 bg-slate-100 dark:bg-slate-700 rounded-lg overflow-hidden">
