@@ -529,6 +529,9 @@ export default function ArbeitsstundenPage() {
                       <th className="text-left py-3 px-6 font-semibold text-slate-700 dark:text-slate-300">
                         Wert (aktuell)
                       </th>
+                      <th className="text-right py-3 px-6 font-semibold text-slate-700 dark:text-slate-300">
+                        Aktionen
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
@@ -629,6 +632,40 @@ export default function ArbeitsstundenPage() {
                               {currentHourRate > 0 && value > 0
                                 ? `${value.toFixed(2).replace('.', ',')} €`
                                 : '–'}
+                            </td>
+                            <td className="py-3 px-6 text-right">
+                              {(row.memberId || (includeUnmatched && !row.matched)) && (
+                                <button
+                                  type="button"
+                                  onClick={async () => {
+                                    const baseUrl = '/api/working-hours/flight-based/member-export'
+                                    const params = new URLSearchParams({
+                                      year: String(flightSummaryYear),
+                                    })
+                                    if (row.memberId) {
+                                      params.append('memberId', row.memberId)
+                                    } else {
+                                      params.append('pilotName', row.memberName)
+                                    }
+                                    const url = `${baseUrl}?${params.toString()}`
+                                    const res = await fetch(url)
+                                    if (!res.ok) return
+                                    const blob = await res.blob()
+                                    const safeName = row.memberName
+                                      .replace(/[^a-zA-Z0-9_-]+/g, '-')
+                                      .replace(/-+/g, '-')
+                                    const a = document.createElement('a')
+                                    a.href = URL.createObjectURL(blob)
+                                    a.download = `arbeitsstunden_details_${flightSummaryYear}_${safeName}.xlsx`
+                                    a.click()
+                                    URL.revokeObjectURL(a.href)
+                                  }}
+                                  className="inline-flex items-center gap-1 px-3 py-1 rounded-md border border-slate-300 dark:border-slate-600 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 text-xs font-medium"
+                                >
+                                  <Download className="w-4 h-4" />
+                                  Export
+                                </button>
+                              )}
                             </td>
                           </tr>
                         )
