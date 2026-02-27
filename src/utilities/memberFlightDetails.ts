@@ -90,12 +90,19 @@ export async function getMemberFlightDetails(
     const gliderMin = Math.max(0, Number(d.workingMinutesGlider) || 0)
     const motorMin = Math.max(0, Number(d.workingMinutesMotor) || 0)
     const towMin = Math.max(0, Number(d.workingMinutesTow) || 0)
-    const baseTotalMin = gliderMin + motorMin + towMin
     const factor =
       aircraft && typeof aircraft.workingHourFactor === 'number'
         ? aircraft.workingHourFactor || 1
         : 1
-    const adjustedMinutes = Math.round(baseTotalMin * factor)
+    const baseForCategory =
+      category === 'glider'
+        ? gliderMin
+        : category === 'motor'
+          ? motorMin
+          : category === 'tow'
+            ? towMin
+            : gliderMin + motorMin + towMin
+    const adjustedMinutes = Math.round(baseForCategory * factor)
     return {
       id: d.id,
       date: d.date ?? '',
