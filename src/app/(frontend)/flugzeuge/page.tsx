@@ -35,8 +35,8 @@ interface Aircraft {
   fuelConsumption?: number
   fuelPrice?: number
   maintenanceCostPerHour?: number
-  engineHoursTotal?: number
-  flightHoursTotal?: number
+  engineHours?: number
+  totalFlightHours?: number
 }
 
 const aircraftGroupLabels: Record<string, string> = {
@@ -178,6 +178,16 @@ export default function FlugzeugePage() {
     )
   }
 
+  const totalFixedCostsAll = aircraft.reduce((sum, ac) => sum + getTotalFixedCosts(ac), 0)
+  const totalFlightHoursAll = aircraft.reduce(
+    (sum, ac) => sum + (ac.totalFlightHours ?? 0),
+    0,
+  )
+  const totalEngineHoursAll = aircraft.reduce(
+    (sum, ac) => sum + (ac.engineHours ?? 0),
+    0,
+  )
+
   if (loading) {
     return (
       <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
@@ -267,6 +277,28 @@ export default function FlugzeugePage() {
               </p>
             </div>
           </div>
+          {(totalFlightHoursAll > 0 || totalEngineHoursAll > 0 || totalFixedCostsAll > 0) && (
+            <p className="text-xs text-slate-500 dark:text-slate-400 mb-8">
+              Summe aller Daten:{' '}
+              {totalFlightHoursAll > 0 && (
+                <span>
+                  {totalFlightHoursAll.toFixed(1)} h Flugzeit
+                  {(totalEngineHoursAll > 0 || totalFixedCostsAll > 0) && ' · '}
+                </span>
+              )}
+              {totalEngineHoursAll > 0 && (
+                <span>
+                  {totalEngineHoursAll.toFixed(1)} h Motorzeit
+                  {totalFixedCostsAll > 0 && ' · '}
+                </span>
+              )}
+              {totalFixedCostsAll > 0 && (
+                <span>
+                  {totalFixedCostsAll.toFixed(0)} € Fixkosten p.a.
+                </span>
+              )}
+            </p>
+          )}
 
           {/* Filters */}
           <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 p-6 mb-6">
@@ -383,11 +415,11 @@ export default function FlugzeugePage() {
 
                             {/* Quick Stats */}
                             <div className="space-y-2 mb-4">
-                              {ac.flightHoursTotal !== undefined && (
+                              {ac.totalFlightHours !== undefined && (
                                 <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                                   <Clock className="w-4 h-4" />
                                   <span>
-                                    {ac.flightHoursTotal.toFixed(1)} h Gesamt
+                                    {ac.totalFlightHours.toFixed(1)} h Gesamt
                                   </span>
                                 </div>
                               )}
