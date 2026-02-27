@@ -180,43 +180,43 @@ export default function FlugzeugePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-fuchsia-50 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
         <div className="text-center">
-          <div className="w-16 h-16 border-4 border-violet-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-slate-600">Lade Flugzeugflotte...</p>
+          <div className="w-16 h-16 border-4 border-slate-900 dark:border-slate-100 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-slate-600 dark:text-slate-400">Lade Flugzeugflotte...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-violet-50 via-white to-fuchsia-50">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
+      <div className="container mx-auto px-4 py-8 md:py-12">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8">
             <div className="flex items-center gap-3 mb-4">
-              <div className="p-2 bg-gradient-to-br from-violet-500 to-fuchsia-500 rounded-xl shadow-lg">
-                <Plane className="w-6 h-6 text-white" />
+              <div className="p-3 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 shadow-sm">
+                <Plane className="w-6 h-6" />
               </div>
               <div>
-                <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-violet-600 to-fuchsia-600 bg-clip-text text-transparent">
+                <h1 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-slate-100">
                   Flugzeugflotte
                 </h1>
-                <p className="text-slate-600 mt-1">Verwalten Sie Ihre Flugzeugstammdaten</p>
+                <p className="text-slate-500 dark:text-slate-400 mt-1">Verwalten Sie Ihre Flugzeugstammdaten</p>
               </div>
             </div>
             <div className="flex flex-wrap gap-3">
               <button
                 onClick={() => setShowCreateModal(true)}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-xl hover:shadow-lg transition-all hover:scale-105 font-semibold"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-xl hover:shadow-md hover:bg-slate-800 dark:hover:bg-slate-200 transition-all font-semibold"
               >
                 <Plus className="w-5 h-5" />
                 Neues Flugzeug anlegen
               </button>
               <Link
                 href="/flugzeuge/kostenermittlung"
-                className="inline-flex items-center gap-2 px-6 py-3 bg-white text-violet-600 border-2 border-violet-600 rounded-xl hover:bg-violet-50 transition-all font-semibold"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 border border-slate-200/70 dark:border-slate-700/70 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all font-semibold"
               >
                 <TrendingUp className="w-5 h-5" />
                 Kostenermittlung
@@ -226,37 +226,37 @@ export default function FlugzeugePage() {
 
           {/* Stats Overview */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">Gesamt Flugzeuge</span>
-                <Plane className="w-5 h-5 text-violet-600" />
+                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Gesamt Flugzeuge</span>
+                <Plane className="w-5 h-5 text-slate-700 dark:text-slate-300" />
               </div>
-              <p className="text-3xl font-bold text-slate-900">{aircraft.length}</p>
+              <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">{aircraft.length}</p>
             </div>
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">Aktive</span>
-                <CheckCircle className="w-5 h-5 text-emerald-600" />
+                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Aktive</span>
+                <CheckCircle className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
               </div>
-              <p className="text-3xl font-bold text-emerald-600">
+              <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
                 {aircraft.filter((ac) => ac.active).length}
               </p>
             </div>
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">Inaktiv</span>
-                <XCircle className="w-5 h-5 text-slate-400" />
+                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Inaktiv</span>
+                <XCircle className="w-5 h-5 text-slate-400 dark:text-slate-500" />
               </div>
-              <p className="text-3xl font-bold text-slate-400">
+              <p className="text-3xl font-bold text-slate-500 dark:text-slate-400">
                 {aircraft.filter((ac) => !ac.active).length}
               </p>
             </div>
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 p-6">
               <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-slate-600">Ø Fixkosten p.a.</span>
-                <DollarSign className="w-5 h-5 text-blue-600" />
+                <span className="text-sm font-medium text-slate-600 dark:text-slate-400">Ø Fixkosten p.a.</span>
+                <DollarSign className="w-5 h-5 text-slate-600 dark:text-slate-400" />
               </div>
-              <p className="text-3xl font-bold text-blue-600">
+              <p className="text-3xl font-bold text-slate-900 dark:text-slate-100">
                 {aircraft.length > 0
                   ? (
                       aircraft.reduce((sum, ac) => sum + getTotalFixedCosts(ac), 0) /
@@ -269,7 +269,7 @@ export default function FlugzeugePage() {
           </div>
 
           {/* Filters */}
-          <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-6 mb-6">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 p-6 mb-6">
             <div className="flex flex-col md:flex-row gap-4">
               <div className="flex-1 relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500 dark:text-slate-400" />
@@ -312,12 +312,12 @@ export default function FlugzeugePage() {
 
           {/* Aircraft Fleet - Card Layout */}
           {Object.keys(groupedAircraft).length === 0 ? (
-            <div className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 p-12 text-center">
-              <Plane className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold text-slate-900 mb-2">
+            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 p-12 text-center">
+              <Plane className="w-16 h-16 text-slate-400 dark:text-slate-500 mx-auto mb-4" />
+              <h3 className="text-xl font-semibold text-slate-900 dark:text-slate-100 mb-2">
                 Keine Flugzeuge gefunden
               </h3>
-              <p className="text-slate-600 mb-6">
+              <p className="text-slate-600 dark:text-slate-400 mb-6">
                 {searchTerm || filterGroup !== 'all' || filterActive !== 'all'
                   ? 'Keine Flugzeuge entsprechen den Filterkriterien.'
                   : 'Erstellen Sie Ihr erstes Flugzeug, um zu beginnen.'}
@@ -325,7 +325,7 @@ export default function FlugzeugePage() {
               {!searchTerm && filterGroup === 'all' && filterActive === 'all' && (
                 <button
                   onClick={() => setShowCreateModal(true)}
-                  className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-xl hover:shadow-lg transition-all font-semibold"
+                  className="inline-flex items-center gap-2 px-6 py-3 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-xl hover:shadow-md transition-all font-semibold"
                 >
                   <Plus className="w-5 h-5" />
                   Erstes Flugzeug erstellen
@@ -339,12 +339,12 @@ export default function FlugzeugePage() {
                 .map(([group, aircraftList]) => (
                   <div
                     key={group}
-                    className="bg-white/80 backdrop-blur-sm rounded-2xl shadow-lg border border-slate-200/60 overflow-hidden"
+                    className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 overflow-hidden"
                   >
-                    <div className="bg-gradient-to-r from-violet-500 to-fuchsia-500 px-6 py-4">
+                    <div className="bg-slate-900 dark:bg-slate-700 px-6 py-4">
                       <div className="flex items-center justify-between">
                         <div className="flex items-center gap-3">
-                          <h2 className="text-xl font-bold text-white">
+                          <h2 className="text-xl font-bold text-white dark:text-slate-100">
                             {aircraftGroupLabels[group]} ({aircraftList.length})
                           </h2>
                         </div>
@@ -355,26 +355,26 @@ export default function FlugzeugePage() {
                         {aircraftList.map((ac) => (
                           <div
                             key={ac.id}
-                            className="bg-white rounded-xl border-2 border-slate-200 hover:border-violet-400 hover:shadow-lg transition-all p-6 group"
+                            className="bg-slate-50 dark:bg-slate-700/50 rounded-xl border border-slate-200 dark:border-slate-600 hover:border-slate-400 dark:hover:border-slate-500 hover:shadow-md transition-all p-6 group"
                           >
                             <div className="flex items-start justify-between mb-4">
                               <div className="flex-1">
                                 <div className="flex items-center gap-2 mb-2">
-                                  <Plane className="w-5 h-5 text-violet-600" />
-                                  <h3 className="text-xl font-bold text-slate-900">
+                                  <Plane className="w-5 h-5 text-slate-700 dark:text-slate-300" />
+                                  <h3 className="text-xl font-bold text-slate-900 dark:text-slate-100">
                                     {ac.registration}
                                   </h3>
                                   {!ac.active && (
-                                    <span className="px-2 py-1 bg-slate-100 text-slate-600 rounded text-xs font-medium">
+                                    <span className="px-2 py-1 bg-slate-200 dark:bg-slate-600 text-slate-600 dark:text-slate-300 rounded text-xs font-medium">
                                       Inaktiv
                                     </span>
                                   )}
                                 </div>
                                 {ac.name && (
-                                  <p className="text-sm text-slate-600 mb-2">{ac.name}</p>
+                                  <p className="text-sm text-slate-600 dark:text-slate-400 mb-2">{ac.name}</p>
                                 )}
                                 {(ac.manufacturer || ac.model) && (
-                                  <p className="text-xs text-slate-500">
+                                  <p className="text-xs text-slate-500 dark:text-slate-500">
                                     {ac.manufacturer} {ac.model}
                                   </p>
                                 )}
@@ -384,7 +384,7 @@ export default function FlugzeugePage() {
                             {/* Quick Stats */}
                             <div className="space-y-2 mb-4">
                               {ac.flightHoursTotal !== undefined && (
-                                <div className="flex items-center gap-2 text-sm text-slate-600">
+                                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                                   <Clock className="w-4 h-4" />
                                   <span>
                                     {ac.flightHoursTotal.toFixed(1)} h Gesamt
@@ -392,13 +392,13 @@ export default function FlugzeugePage() {
                                 </div>
                               )}
                               {getTotalFixedCosts(ac) > 0 && (
-                                <div className="flex items-center gap-2 text-sm text-slate-600">
+                                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                                   <DollarSign className="w-4 h-4" />
                                   <span>{getTotalFixedCosts(ac).toFixed(0)} € Fixkosten p.a.</span>
                                 </div>
                               )}
                               {ac.fuelConsumption && (
-                                <div className="flex items-center gap-2 text-sm text-slate-600">
+                                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
                                   <Fuel className="w-4 h-4" />
                                   <span>{ac.fuelConsumption} l/h</span>
                                 </div>
@@ -409,7 +409,7 @@ export default function FlugzeugePage() {
                             <div className="flex gap-2 pt-4 border-t border-slate-200 dark:border-slate-600">
                               <Link
                                 href={`/flugzeuge/${ac.id}`}
-                                className="flex-1 px-4 py-2 bg-violet-600 text-white rounded-lg hover:bg-violet-700 transition-colors text-sm font-medium text-center"
+                                className="flex-1 px-4 py-2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-lg hover:bg-slate-800 dark:hover:bg-slate-200 transition-colors text-sm font-medium text-center"
                               >
                                 Details
                               </Link>
@@ -435,13 +435,13 @@ export default function FlugzeugePage() {
 
       {/* Create Aircraft Modal */}
       {showCreateModal && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-2xl shadow-xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
-            <div className="p-6 border-b border-slate-200">
+        <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-slate-200 dark:border-slate-700">
               <div className="flex items-center justify-between">
                 <div>
-                  <h2 className="text-2xl font-bold text-slate-900">Neues Flugzeug anlegen</h2>
-                  <p className="text-sm text-slate-600 mt-1">
+                  <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100">Neues Flugzeug anlegen</h2>
+                  <p className="text-sm text-slate-600 dark:text-slate-400 mt-1">
                     Erfassen Sie die Stammdaten des Flugzeugs
                   </p>
                 </div>
@@ -458,9 +458,9 @@ export default function FlugzeugePage() {
                     })
                     setFormErrors({})
                   }}
-                  className="p-2 hover:bg-slate-100 rounded-lg transition-colors"
+                  className="p-2 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                 >
-                  <X className="w-5 h-5 text-slate-600" />
+                  <X className="w-5 h-5 text-slate-600 dark:text-slate-400" />
                 </button>
               </div>
             </div>
@@ -468,10 +468,10 @@ export default function FlugzeugePage() {
             <div className="p-6 space-y-6">
               {/* Basic Information */}
               <div>
-                <h3 className="text-lg font-semibold text-slate-900 mb-4">Grunddaten</h3>
+                <h3 className="text-lg font-semibold text-slate-900 dark:text-slate-100 mb-4">Grunddaten</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                       Kennzeichen <span className="text-red-500">*</span>
                     </label>
                     <input
@@ -481,8 +481,8 @@ export default function FlugzeugePage() {
                         setFormData({ ...formData, registration: e.target.value.toUpperCase() })
                       }
                       placeholder="z.B. D-ABCD"
-                      className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 ${
-                        formErrors.registration ? 'border-red-500' : 'border-slate-300'
+                      className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 ${
+                        formErrors.registration ? 'border-red-500' : 'border-slate-300 dark:border-slate-600'
                       }`}
                     />
                     {formErrors.registration && (
@@ -491,7 +491,7 @@ export default function FlugzeugePage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                       Name/Bezeichnung
                     </label>
                     <input
@@ -499,12 +499,12 @@ export default function FlugzeugePage() {
                       value={formData.name || ''}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       placeholder="Optional"
-                      className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                      className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                       Flugzeugtyp <span className="text-red-500">*</span>
                     </label>
                     <select
@@ -515,8 +515,8 @@ export default function FlugzeugePage() {
                           aircraftGroup: e.target.value as Aircraft['aircraftGroup'],
                         })
                       }
-                      className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500 ${
-                        formErrors.aircraftGroup ? 'border-red-500' : 'border-slate-300'
+                      className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100 ${
+                        formErrors.aircraftGroup ? 'border-red-500' : 'border-slate-300 dark:border-slate-600'
                       }`}
                     >
                       {Object.entries(aircraftGroupLabels).map(([value, label]) => (
@@ -531,13 +531,13 @@ export default function FlugzeugePage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Status</label>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Status</label>
                     <select
                       value={formData.active ? 'active' : 'inactive'}
                       onChange={(e) =>
                         setFormData({ ...formData, active: e.target.value === 'active' })
                       }
-                      className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                      className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
                     >
                       <option value="active">Aktiv</option>
                       <option value="inactive">Inaktiv</option>
@@ -545,7 +545,7 @@ export default function FlugzeugePage() {
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                       Hersteller
                     </label>
                     <input
@@ -555,25 +555,25 @@ export default function FlugzeugePage() {
                         setFormData({ ...formData, manufacturer: e.target.value })
                       }
                       placeholder="z.B. Cessna, Piper"
-                      className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                      className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm font-medium text-slate-700 mb-2">Modell</label>
+                    <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">Modell</label>
                     <input
                       type="text"
                       value={formData.model || ''}
                       onChange={(e) => setFormData({ ...formData, model: e.target.value })}
                       placeholder="z.B. C172, PA-28"
-                      className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-violet-500"
+                      className="w-full px-4 py-2 border border-slate-300 dark:border-slate-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-100 bg-white dark:bg-slate-700 text-slate-900 dark:text-slate-100"
                     />
                   </div>
                 </div>
               </div>
 
-              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                <p className="text-sm text-blue-800">
+              <div className="bg-slate-100 dark:bg-slate-700/50 border border-slate-200 dark:border-slate-600 rounded-lg p-4">
+                <p className="text-sm text-slate-700 dark:text-slate-300">
                   <strong>Hinweis:</strong> Weitere Details wie Fixkosten, Betriebsdaten und
                   Kaufinformationen können Sie später in der Detailansicht oder im Admin-Bereich
                   bearbeiten.
@@ -581,7 +581,7 @@ export default function FlugzeugePage() {
               </div>
             </div>
 
-            <div className="p-6 border-t border-slate-200 flex justify-end gap-3">
+            <div className="p-6 border-t border-slate-200 dark:border-slate-700 flex justify-end gap-3">
               <button
                 onClick={() => {
                   setShowCreateModal(false)
@@ -595,14 +595,14 @@ export default function FlugzeugePage() {
                   })
                   setFormErrors({})
                 }}
-                className="px-4 py-2 text-slate-700 hover:bg-slate-100 rounded-lg transition-colors"
+                className="px-4 py-2 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
               >
                 Abbrechen
               </button>
               <button
                 onClick={handleCreateAircraft}
                 disabled={saving}
-                className="px-6 py-2 bg-gradient-to-r from-violet-600 to-fuchsia-600 text-white rounded-lg hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+                className="px-6 py-2 bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 rounded-lg hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
               >
                 {saving ? (
                   <>

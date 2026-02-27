@@ -443,7 +443,7 @@ function KraftstofferfassungContent() {
   // Prüfe ob Feature aktiviert ist oder Token vorhanden
   if (!accessToken && !isFeatureEnabled('fuelTracking')) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
         <div className="bg-slate-50 dark:bg-slate-800 rounded-xl shadow-lg p-8 max-w-md text-center">
           <AlertCircle className="w-16 h-16 text-slate-400 dark:text-slate-500 mx-auto mb-4" />
           <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-100 mb-2">Nicht verfügbar</h2>
@@ -457,7 +457,7 @@ function KraftstofferfassungContent() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
         <div className="text-slate-600 dark:text-slate-400">Lade...</div>
       </div>
     )
@@ -466,7 +466,7 @@ function KraftstofferfassungContent() {
   const activeAircraft = aircraft.filter((ac) => ac.active !== false)
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-900">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-7xl mx-auto">
           {/* Header */}
@@ -1056,7 +1056,7 @@ function KraftstofferfassungContent() {
 export default function KraftstofferfassungPage() {
   return (
     <Suspense fallback={
-      <div className="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 flex items-center justify-center">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-900 flex items-center justify-center">
         <div className="text-slate-600 dark:text-slate-400">Lade...</div>
       </div>
     }>
