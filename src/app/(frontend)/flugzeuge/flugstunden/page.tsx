@@ -851,49 +851,73 @@ export default function FlugstundenPage() {
                 </div>
               </div>
             )}
-            {showMemberStats && memberStats.length > 0 && (
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead className="bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600">
-                    <tr>
-                      <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
-                        Mitglied
-                      </th>
-                      <th className="text-center py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
-                        Flüge
-                      </th>
-                      <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
-                        Starts
-                      </th>
-                      <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
-                        Flugstunden
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
-                    {memberStats.map((stat) => (
-                      <tr
-                        key={stat.memberId}
-                        className="hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
-                      >
-                        <td className="py-3 px-4 font-medium text-slate-900 dark:text-slate-100">
-                          {stat.memberName}
-                        </td>
-                        <td className="py-3 px-4 text-center text-slate-900 dark:text-slate-100">
-                          {stat.flights}
-                        </td>
-                        <td className="py-3 px-4 text-right text-slate-900 dark:text-slate-100">
-                          {stat.starts.toLocaleString('de-DE')}
-                        </td>
-                        <td className="py-3 px-4 text-right text-slate-900 dark:text-slate-100">
-                          {stat.flightHours.toFixed(2).replace('.', ',')}
-                        </td>
+            {showMemberStats && memberStats.length > 0 && (() => {
+              const totalFlights = memberStats.reduce((s, m) => s + m.flights, 0)
+              const totalStarts = memberStats.reduce((s, m) => s + m.starts, 0)
+              const totalHours = memberStats.reduce((s, m) => s + m.flightHours, 0)
+              const pct = (v: number, t: number) => (t > 0 ? (v / t) * 100 : 0)
+              return (
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead className="bg-slate-50 dark:bg-slate-700 border-b border-slate-200 dark:border-slate-600">
+                      <tr>
+                        <th className="text-left py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                          Mitglied
+                        </th>
+                        <th className="text-center py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                          Flüge
+                        </th>
+                        <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                          %
+                        </th>
+                        <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                          Starts
+                        </th>
+                        <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                          %
+                        </th>
+                        <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                          Flugstunden
+                        </th>
+                        <th className="text-right py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
+                          %
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
+                    </thead>
+                    <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
+                      {memberStats.map((stat) => (
+                        <tr
+                          key={stat.memberId}
+                          className="hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                        >
+                          <td className="py-3 px-4 font-medium text-slate-900 dark:text-slate-100">
+                            {stat.memberName}
+                          </td>
+                          <td className="py-3 px-4 text-center text-slate-900 dark:text-slate-100">
+                            {stat.flights}
+                          </td>
+                          <td className="py-3 px-4 text-right text-slate-600 dark:text-slate-400 tabular-nums">
+                            {totalFlights > 0 ? `${pct(stat.flights, totalFlights).toFixed(1).replace('.', ',')} %` : '–'}
+                          </td>
+                          <td className="py-3 px-4 text-right text-slate-900 dark:text-slate-100">
+                            {stat.starts.toLocaleString('de-DE')}
+                          </td>
+                          <td className="py-3 px-4 text-right text-slate-600 dark:text-slate-400 tabular-nums">
+                            {totalStarts > 0 ? `${pct(stat.starts, totalStarts).toFixed(1).replace('.', ',')} %` : '–'}
+                          </td>
+                          <td className="py-3 px-4 text-right text-slate-900 dark:text-slate-100">
+                            {stat.flightHours.toFixed(2).replace('.', ',')}
+                          </td>
+                          <td className="py-3 px-4 text-right text-slate-600 dark:text-slate-400 tabular-nums">
+                            {totalHours > 0 ? `${pct(stat.flightHours, totalHours).toFixed(1).replace('.', ',')} %` : '–'}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )
+            })()}
             {showMemberStats && memberStats.length === 0 && (selectedAircraft || selectedYear) && (
               <p className="text-center text-slate-500 dark:text-slate-400 py-4">
                 Keine Daten für die ausgewählten Filter gefunden.
