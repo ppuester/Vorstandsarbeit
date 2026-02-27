@@ -722,48 +722,6 @@ export default function ArbeitsstundenPage() {
               </table>
             </div>
           </div>
-
-          {/* Summary Cards */}
-          <div className="mt-8 grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-              <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">
-                Berechnung der Arbeitsstunden
-              </h3>
-              <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                {workingHours.reduce((sum, item) => sum + item.hours, 0).toFixed(1)}h
-              </p>
-            </div>
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-              <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">
-                Pflicht Arbeitsstunden
-              </h3>
-              <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">–</p>
-            </div>
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-              <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">
-                Ergebnis Segelflug
-              </h3>
-              <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                {workingHours
-                  .filter((item) => item.type === 'glider')
-                  .reduce((sum, item) => sum + item.hours, 0)
-                  .toFixed(1)}
-                h
-              </p>
-            </div>
-            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
-              <h3 className="text-sm font-medium text-slate-600 dark:text-slate-400 mb-2">
-                Ergebnis Motorflug
-              </h3>
-              <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">
-                {workingHours
-                  .filter((item) => item.type === 'motor')
-                  .reduce((sum, item) => sum + item.hours, 0)
-                  .toFixed(1)}
-                h
-              </p>
-            </div>
-          </div>
         </div>
       </div>
 
