@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { Plus, Edit2, Save, X, AlertCircle, CheckCircle, Trash2, Clock, Download } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 
 interface Member {
   id: string
@@ -428,6 +429,86 @@ export default function ArbeitsstundenPage() {
                 </button>
               </div>
             </div>
+
+            {/* Summary cards for Aus Flugbewegungen */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-4">
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardDescription>Mitglieder</CardDescription>
+                  <CardTitle className="text-3xl">
+                    {flightSummaryList.length}
+                  </CardTitle>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardDescription>Segelflug</CardDescription>
+                  <CardTitle className="text-2xl">
+                    {(() => {
+                      const totalMin = flightSummaryList.reduce(
+                        (sum, row) => sum + (row.totals.gliderMin || 0),
+                        0
+                      )
+                      const hours = (totalMin / 60).toFixed(2)
+                      return `${totalMin} min (${hours} h)`
+                    })()}
+                  </CardTitle>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardDescription>Motorflug</CardDescription>
+                  <CardTitle className="text-2xl">
+                    {(() => {
+                      const totalMin = flightSummaryList.reduce(
+                        (sum, row) => sum + (row.totals.motorMin || 0),
+                        0
+                      )
+                      const hours = (totalMin / 60).toFixed(2)
+                      return `${totalMin} min (${hours} h)`
+                    })()}
+                  </CardTitle>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardDescription>Schlepp</CardDescription>
+                  <CardTitle className="text-2xl">
+                    {(() => {
+                      const totalMin = flightSummaryList.reduce(
+                        (sum, row) => sum + (row.totals.towMin || 0),
+                        0
+                      )
+                      const hours = (totalMin / 60).toFixed(2)
+                      return `${totalMin} min (${hours} h)`
+                    })()}
+                  </CardTitle>
+                </CardHeader>
+              </Card>
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardDescription>Gesamtwert (aktuell)</CardDescription>
+                  <CardTitle className="text-2xl">
+                    {(() => {
+                      const adjTotals = flightSummaryList.map((row) => {
+                        const adj = row.adjustedTotals || row.totals
+                        return (
+                          (adj.gliderMin || 0) +
+                          (adj.motorMin || 0) +
+                          (adj.towMin || 0)
+                        )
+                      })
+                      const totalAdjMin = adjTotals.reduce((sum, v) => sum + v, 0)
+                      if (!currentHourRate || totalAdjMin <= 0) return '-'
+                      const totalHours = totalAdjMin / 60
+                      const amount = totalHours * currentHourRate
+                      return `${amount.toFixed(2).replace('.', ',')} €`
+                    })()}
+                  </CardTitle>
+                </CardHeader>
+              </Card>
+            </div>
+
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
