@@ -457,7 +457,6 @@ export default function MitgliederEinnahmenPage() {
                             const prevTotal = prevStat
                               ? (prevStat.totalIncome ?? prevStat.memberCount * prevStat.amountPerMember)
                               : 0
-                            const pctMembers = prevStat ? pctChange(stat.memberCount, prevStat.memberCount) : null
                             const pctGesamt = prevStat ? pctChange(statTotal, prevTotal) : null
                             return (
                             <tr
@@ -465,7 +464,7 @@ export default function MitgliederEinnahmenPage() {
                               className="hover:bg-slate-50 dark:hover:bg-slate-700/70"
                             >
                               <td className="py-3 px-6 text-slate-500 dark:text-slate-400 text-sm">
-                                {stat.year}
+                                {/* Jahr nur in der Gruppenüberschrift */}
                               </td>
                               <td className="py-3 px-6 text-slate-900 dark:text-slate-100">
                                 {getFeeTypeName(stat)}
@@ -487,19 +486,9 @@ export default function MitgliederEinnahmenPage() {
                                 €
                               </td>
                               <td className="py-3 px-6 text-right text-xs tabular-nums">
-                                {pctMembers != null || pctGesamt != null ? (
-                                  <span className="text-slate-500 dark:text-slate-400">
-                                    {pctMembers != null && (
-                                      <span className={pctMembers >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}>
-                                        {formatPct(pctMembers)} Mitgl.
-                                      </span>
-                                    )}
-                                    {pctMembers != null && pctGesamt != null && ' · '}
-                                    {pctGesamt != null && (
-                                      <span className={pctGesamt >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}>
-                                        {formatPct(pctGesamt)} Gesamt
-                                      </span>
-                                    )}
+                                {pctGesamt != null ? (
+                                  <span className={pctGesamt >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}>
+                                    {formatPct(pctGesamt)}
                                   </span>
                                 ) : (
                                   '–'
@@ -534,12 +523,11 @@ export default function MitgliederEinnahmenPage() {
                           {/* Summenzeile am Ende des Jahr-Blocks */}
                           {(() => {
                             const prevSummary = yearSummaries[yearIndex + 1]
-                            const pctMembersTotal = prevSummary ? pctChange(totalMembers, prevSummary.totalMembers) : null
                             const pctIncomeTotal = prevSummary ? pctChange(totalIncome, prevSummary.totalIncome) : null
                             return (
                           <tr className="bg-slate-50 dark:bg-slate-800/80 border-t-2 border-slate-200 dark:border-slate-600">
                             <td className="py-3 px-6 text-slate-500 dark:text-slate-400 text-sm">
-                              {year}
+                              {/* Jahr nur in der Gruppenüberschrift */}
                             </td>
                             <td className="py-3 px-6 text-slate-700 dark:text-slate-200 font-semibold">
                               Summe
@@ -557,19 +545,9 @@ export default function MitgliederEinnahmenPage() {
                               {totalIncome.toFixed(2)} €
                             </td>
                             <td className="py-3 px-6 text-right text-xs tabular-nums">
-                              {pctMembersTotal != null || pctIncomeTotal != null ? (
-                                <span className="text-slate-600 dark:text-slate-300 font-medium">
-                                  {pctMembersTotal != null && (
-                                    <span className={pctMembersTotal >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}>
-                                      {formatPct(pctMembersTotal)} Mitgl.
-                                    </span>
-                                  )}
-                                  {pctMembersTotal != null && pctIncomeTotal != null && ' · '}
-                                  {pctIncomeTotal != null && (
-                                    <span className={pctIncomeTotal >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}>
-                                      {formatPct(pctIncomeTotal)} Gesamt
-                                    </span>
-                                  )}
+                              {pctIncomeTotal != null ? (
+                                <span className={`font-medium ${pctIncomeTotal >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
+                                  {formatPct(pctIncomeTotal)}
                                 </span>
                               ) : (
                                 '–'
