@@ -526,25 +526,25 @@ export default function MitgliederEinnahmenPage() {
                             const pctIncomeTotal = prevSummary ? pctChange(totalIncome, prevSummary.totalIncome) : null
                             return (
                           <tr className="bg-slate-50 dark:bg-slate-800/80 border-t-2 border-slate-200 dark:border-slate-600">
-                            <td className="py-3 px-6 text-slate-500 dark:text-slate-400 text-sm">
+                            <td className="py-4 px-6 text-slate-500 dark:text-slate-400 text-sm">
                               {/* Jahr nur in der Gruppenüberschrift */}
                             </td>
-                            <td className="py-3 px-6 text-slate-700 dark:text-slate-200 font-semibold">
+                            <td className="py-4 pl-2 pr-6 text-slate-700 dark:text-slate-200 font-semibold">
                               Summe
                             </td>
-                            <td className="py-3 px-6 text-slate-500 dark:text-slate-400 text-sm">
+                            <td className="py-4 px-6 text-slate-500 dark:text-slate-400 text-sm">
                               alle
                             </td>
-                            <td className="py-3 px-6 text-right text-slate-900 dark:text-slate-100 font-semibold tabular-nums">
+                            <td className="py-4 px-6 text-right text-slate-900 dark:text-slate-100 font-semibold tabular-nums">
                               {totalMembers}
                             </td>
-                            <td className="py-3 px-6 text-right text-slate-500 dark:text-slate-400 text-sm">
+                            <td className="py-4 px-6 text-right text-slate-500 dark:text-slate-400 text-sm">
                               –
                             </td>
-                            <td className="py-3 px-6 text-right text-emerald-700 dark:text-emerald-400 font-bold tabular-nums">
+                            <td className="py-4 px-6 text-right text-emerald-700 dark:text-emerald-400 font-bold tabular-nums">
                               {totalIncome.toFixed(2)} €
                             </td>
-                            <td className="py-3 px-6 text-right text-xs tabular-nums">
+                            <td className="py-4 px-6 text-right text-xs tabular-nums">
                               {pctIncomeTotal != null ? (
                                 <span className={`font-medium ${pctIncomeTotal >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-600 dark:text-red-400'}`}>
                                   {formatPct(pctIncomeTotal)}
@@ -553,10 +553,10 @@ export default function MitgliederEinnahmenPage() {
                                 '–'
                               )}
                             </td>
-                            <td className="py-3 px-6 text-slate-500 dark:text-slate-400 text-sm">
+                            <td className="py-4 px-6 text-slate-500 dark:text-slate-400 text-sm">
                               –
                             </td>
-                            <td className="py-3 px-6" />
+                            <td className="py-4 px-6" />
                           </tr>
                             )
                           })()}
