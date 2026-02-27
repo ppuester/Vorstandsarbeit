@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useEffect, useState } from 'react'
-import { Plus, Edit2, Save, X, AlertCircle, CheckCircle, Trash2, Clock } from 'lucide-react'
+import { Plus, Edit2, Save, X, AlertCircle, CheckCircle, Trash2, Clock, Download } from 'lucide-react'
 
 interface Member {
   id: string
@@ -386,6 +386,25 @@ export default function ArbeitsstundenPage() {
                     </option>
                   ))}
                 </select>
+                <button
+                  type="button"
+                  onClick={async () => {
+                    const url = `/api/working-hours/flight-based/export?year=${flightSummaryYear}&includeUnmatched=${includeUnmatched}`
+                    const res = await fetch(url)
+                    if (!res.ok) return
+                    const blob = await res.blob()
+                    const a = document.createElement('a')
+                    a.href = URL.createObjectURL(blob)
+                    a.download = `arbeitsstunden_${flightSummaryYear}.xlsx`
+                    a.click()
+                    URL.revokeObjectURL(a.href)
+                  }}
+                  disabled={!flightSummaryYear}
+                  className="inline-flex items-center gap-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm font-medium hover:bg-slate-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                >
+                  <Download className="w-4 h-4" />
+                  Export (XLSX)
+                </button>
               </div>
             </div>
             <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
