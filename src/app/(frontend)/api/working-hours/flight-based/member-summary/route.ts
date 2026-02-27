@@ -1,12 +1,22 @@
 import { NextResponse } from 'next/server'
 import { getPayload, type CollectionSlug } from 'payload'
 import configPromise from '@payload-config'
+import { aggregateWorkingHoursByMember } from '@/utilities/aggregateWorkingHoursByMember'
 
 export interface MemberSummaryItem {
   memberId: string | null
   memberName: string
   matched: boolean
   totals: {
+    gliderMin: number
+    motorMin: number
+    towMin: number
+    gliderHours: number
+    motorHours: number
+    towHours: number
+  }
+  /** Minuten bereits je Flugzeug mit Faktor bewertete Arbeitsstunden */
+  adjustedTotals: {
     gliderMin: number
     motorMin: number
     towMin: number
@@ -133,24 +143,58 @@ export async function GET(request: Request) {
       }
     }
 
-    const list: MemberSummaryItem[] = Array.from(byMember.values()).map((v) => ({
-      memberId: v.memberId,
-      memberName: v.memberName,
-      matched: v.matched,
-      totals: {
+    const adjustedRows = await aggregateWorkingHoursByMember(
+      payload as any,
+      year,
+      includeUnmatched,
+      exemptMemberIds
+    )
+    const adjustedByKey = new Map<
+      string,
+      { gliderMin: number; motorMin: number; towMin: number }
+    >()
+    for (const r of adjustedRows) {
+      const key = r.memberId ?? `name:${r.memberName}`
+      adjustedByKey.set(key, {
+        gliderMin: r.adjusted.gliderMin,
+        motorMin: r.adjusted.motorMin,
+        towMin: r.adjusted.towMin,
+      })
+    }
+
+    const list: MemberSummaryItem[] = Array.from(byMember.entries()).map(([key, v]) => {
+      const adj = adjustedByKey.get(key) ?? {
         gliderMin: v.gliderMin,
         motorMin: v.motorMin,
         towMin: v.towMin,
-        gliderHours: roundHours(v.gliderMin),
-        motorHours: roundHours(v.motorMin),
-        towHours: roundHours(v.towMin),
-      },
-      detailsCount: {
-        glider: v.gliderCount,
-        motor: v.motorCount,
-        tow: v.towCount,
-      },
-    }))
+      }
+      return {
+        memberId: v.memberId,
+        memberName: v.memberName,
+        matched: v.matched,
+        totals: {
+          gliderMin: v.gliderMin,
+          motorMin: v.motorMin,
+          towMin: v.towMin,
+          gliderHours: roundHours(v.gliderMin),
+          motorHours: roundHours(v.motorMin),
+          towHours: roundHours(v.towMin),
+        },
+        adjustedTotals: {
+          gliderMin: adj.gliderMin,
+          motorMin: adj.motorMin,
+          towMin: adj.towMin,
+          gliderHours: roundHours(adj.gliderMin),
+          motorHours: roundHours(adj.motorMin),
+          towHours: roundHours(adj.towMin),
+        },
+        detailsCount: {
+          glider: v.gliderCount,
+          motor: v.motorCount,
+          tow: v.towCount,
+        },
+      }
+    })
 
     list.sort((a, b) => {
       const aName = a.memberName.toLowerCase()

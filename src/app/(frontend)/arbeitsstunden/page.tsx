@@ -31,6 +31,14 @@ interface MemberSummaryItem {
     motorHours: number
     towHours: number
   }
+  adjustedTotals: {
+    gliderMin: number
+    motorMin: number
+    towMin: number
+    gliderHours: number
+    motorHours: number
+    towHours: number
+  }
   detailsCount: { glider: number; motor: number; tow: number }
 }
 
@@ -90,6 +98,7 @@ export default function ArbeitsstundenPage() {
   const [flightSummaryYear, setFlightSummaryYear] = useState(currentYear)
   const [flightSummaryList, setFlightSummaryList] = useState<MemberSummaryItem[]>([])
   const [includeUnmatched, setIncludeUnmatched] = useState(true)
+  const [currentHourRate, setCurrentHourRate] = useState<number>(0)
   const [drilldown, setDrilldown] = useState<{
     memberId: string | null
     pilotName: string
@@ -386,6 +395,17 @@ export default function ArbeitsstundenPage() {
                     </option>
                   ))}
                 </select>
+                <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-400">
+                  <span>aktueller Wert je Stunde (€)</span>
+                  <input
+                    type="number"
+                    min={0}
+                    step={0.01}
+                    value={currentHourRate || ''}
+                    onChange={(e) => setCurrentHourRate(Number.parseFloat(e.target.value) || 0)}
+                    className="w-24 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-2 py-1 text-sm"
+                  />
+                </div>
                 <button
                   type="button"
                   onClick={async () => {
@@ -424,96 +444,113 @@ export default function ArbeitsstundenPage() {
                       <th className="text-left py-3 px-6 font-semibold text-slate-700 dark:text-slate-300">
                         Schlepp
                       </th>
+                      <th className="text-left py-3 px-6 font-semibold text-slate-700 dark:text-slate-300">
+                        Wert (aktuell)
+                      </th>
                     </tr>
                   </thead>
                   <tbody className="divide-y divide-slate-200 dark:divide-slate-700">
                     {flightSummaryList.length === 0 ? (
                       <tr>
                         <td
-                          colSpan={4}
+                          colSpan={5}
                           className="py-8 text-center text-slate-500 dark:text-slate-400"
                         >
                           Keine Daten für {flightSummaryYear}. Bitte zuerst Flugbewegungen unter Flugstunden &amp; Starts importieren.
                         </td>
                       </tr>
                     ) : (
-                      flightSummaryList.map((row) => (
-                        <tr
-                          key={row.memberId ?? `name:${row.memberName}`}
-                          className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
-                        >
-                          <td className="py-3 px-6">
-                            <span className="font-medium text-slate-900 dark:text-slate-100">
-                              {row.memberName}
-                            </span>
-                            {!row.matched && (
-                              <span className="ml-2 text-xs text-amber-600 dark:text-amber-400">
-                                (nicht zugeordnet)
+                      flightSummaryList.map((row) => {
+                        const adj = row.adjustedTotals || row.totals
+                        const totalAdjustedMin =
+                          adj.gliderMin + adj.motorMin + adj.towMin
+                        const value =
+                          currentHourRate > 0 && totalAdjustedMin > 0
+                            ? (totalAdjustedMin / 60) * currentHourRate
+                            : 0
+                        return (
+                          <tr
+                            key={row.memberId ?? `name:${row.memberName}`}
+                            className="hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors"
+                          >
+                            <td className="py-3 px-6">
+                              <span className="font-medium text-slate-900 dark:text-slate-100">
+                                {row.memberName}
                               </span>
-                            )}
-                          </td>
-                          <td className="py-3 px-6">
-                            {row.totals.gliderMin > 0 || row.detailsCount.glider > 0 ? (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  openDrilldown(
-                                    row.memberId,
-                                    row.memberName,
-                                    'glider',
-                                    'Segelflug'
-                                  )
-                                }
-                                className="text-left text-violet-600 dark:text-violet-400 hover:underline font-medium"
-                              >
-                                {formatMinHours(row.totals.gliderMin)}
-                              </button>
-                            ) : (
-                              <span className="text-slate-400 dark:text-slate-500">–</span>
-                            )}
-                          </td>
-                          <td className="py-3 px-6">
-                            {row.totals.motorMin > 0 || row.detailsCount.motor > 0 ? (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  openDrilldown(
-                                    row.memberId,
-                                    row.memberName,
-                                    'motor',
-                                    'Motorflug'
-                                  )
-                                }
-                                className="text-left text-violet-600 dark:text-violet-400 hover:underline font-medium"
-                              >
-                                {formatMinHours(row.totals.motorMin)}
-                              </button>
-                            ) : (
-                              <span className="text-slate-400 dark:text-slate-500">–</span>
-                            )}
-                          </td>
-                          <td className="py-3 px-6">
-                            {row.totals.towMin > 0 || row.detailsCount.tow > 0 ? (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  openDrilldown(
-                                    row.memberId,
-                                    row.memberName,
-                                    'tow',
-                                    'Schlepp'
-                                  )
-                                }
-                                className="text-left text-violet-600 dark:text-violet-400 hover:underline font-medium"
-                              >
-                                {formatMinHours(row.totals.towMin)}
-                              </button>
-                            ) : (
-                              <span className="text-slate-400 dark:text-slate-500">–</span>
-                            )}
-                          </td>
-                        </tr>
-                      ))
+                              {!row.matched && (
+                                <span className="ml-2 text-xs text-amber-600 dark:text-amber-400">
+                                  (nicht zugeordnet)
+                                </span>
+                              )}
+                            </td>
+                            <td className="py-3 px-6">
+                              {row.totals.gliderMin > 0 || row.detailsCount.glider > 0 ? (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    openDrilldown(
+                                      row.memberId,
+                                      row.memberName,
+                                      'glider',
+                                      'Segelflug'
+                                    )
+                                  }
+                                  className="text-left text-violet-600 dark:text-violet-400 hover:underline font-medium"
+                                >
+                                  {formatMinHours(row.totals.gliderMin)}
+                                </button>
+                              ) : (
+                                <span className="text-slate-400 dark:text-slate-500">–</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-6">
+                              {row.totals.motorMin > 0 || row.detailsCount.motor > 0 ? (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    openDrilldown(
+                                      row.memberId,
+                                      row.memberName,
+                                      'motor',
+                                      'Motorflug'
+                                    )
+                                  }
+                                  className="text-left text-violet-600 dark:text-violet-400 hover:underline font-medium"
+                                >
+                                  {formatMinHours(row.totals.motorMin)}
+                                </button>
+                              ) : (
+                                <span className="text-slate-400 dark:text-slate-500">–</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-6">
+                              {row.totals.towMin > 0 || row.detailsCount.tow > 0 ? (
+                                <button
+                                  type="button"
+                                  onClick={() =>
+                                    openDrilldown(
+                                      row.memberId,
+                                      row.memberName,
+                                      'tow',
+                                      'Schlepp'
+                                    )
+                                  }
+                                  className="text-left text-violet-600 dark:text-violet-400 hover:underline font-medium"
+                                >
+                                  {formatMinHours(row.totals.towMin)}
+                                </button>
+                              ) : (
+                                <span className="text-slate-400 dark:text-slate-500">–</span>
+                              )}
+                            </td>
+                            <td className="py-3 px-6 text-slate-900 dark:text-slate-100">
+                              {currentHourRate > 0 && value > 0
+                                ? `${value.toFixed(2).replace('.', ',')} €`
+                                : '–'}
+                            </td>
+                          </tr>
+                        )
+                      })
                     )}
                   </tbody>
                 </table>
