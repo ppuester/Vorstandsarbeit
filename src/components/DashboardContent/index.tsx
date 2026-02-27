@@ -119,54 +119,6 @@ export function DashboardContent() {
       {stats.length > 0 && (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6 mb-8 md:mb-12">
           {stats.map((stat, index) => {
-            // Spezielle Kachel für Arbeitsstunden
-            if (stat.title === 'Arbeitsstunden') {
-              return (
-                <div
-                  key={index}
-                  className="group relative bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200/60 dark:border-slate-700/60 p-6 hover:shadow-xl hover:border-slate-400 dark:hover:border-slate-500 transition-all duration-300"
-                >
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="p-3 rounded-xl bg-slate-900 text-white shadow-lg">
-                      <stat.icon className="w-6 h-6 text-white" />
-                    </div>
-                    <Link
-                      href={stat.href}
-                      className="p-1 text-slate-400 dark:text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 transition-colors"
-                      title="Arbeitsstunden öffnen"
-                    >
-                      <ArrowRight className="w-5 h-5" />
-                    </Link>
-                  </div>
-                  <h3 className="text-base font-semibold text-slate-700 dark:text-slate-200 mb-4">
-                    {stat.title}
-                  </h3>
-                  
-                  {/* Arbeitsstunden Bereiche */}
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between py-2 border-b border-slate-200 dark:border-slate-700">
-                      <span className="text-sm text-slate-600 dark:text-slate-400">Berechnung der Arbeitsstunden</span>
-                      <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">–</span>
-                    </div>
-                    <div className="flex items-center justify-between py-2 border-b border-slate-200 dark:border-slate-700">
-                      <span className="text-sm text-slate-600 dark:text-slate-400">Pflicht Arbeitsstunden</span>
-                      <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">–</span>
-                    </div>
-                    <div className="flex items-center justify-between py-2 border-b border-slate-200 dark:border-slate-700">
-                      <span className="text-sm text-slate-600 dark:text-slate-400">Ergebnis Segelflug</span>
-                      <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">–</span>
-                    </div>
-                    <div className="flex items-center justify-between py-2">
-                      <span className="text-sm text-slate-600 dark:text-slate-400">Ergebnis Motorflug</span>
-                      <span className="text-sm font-semibold text-slate-900 dark:text-slate-100">–</span>
-                    </div>
-                  </div>
-                  
-                  <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-violet-500/0 to-fuchsia-500/0 group-hover:from-violet-500/5 dark:group-hover:from-violet-500/10 group-hover:to-fuchsia-500/5 dark:group-hover:to-fuchsia-500/10 transition-all duration-300 pointer-events-none" />
-                </div>
-              )
-            }
-
             if (stat.title === 'Mitglieder') {
               const verlaufYears = memberSummary.slice(0, 6)
 
