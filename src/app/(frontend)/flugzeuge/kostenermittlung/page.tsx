@@ -100,6 +100,13 @@ type AircraftFinancialData = {
   profit: number
 }
 
+function getYearFromDate(dateStr: string | null | undefined): number | null {
+  if (dateStr == null) return null
+  const d = new Date(dateStr)
+  const y = d.getFullYear()
+  return Number.isFinite(y) ? y : null
+}
+
 export default function KostenermittlungPage() {
   const [aircraft, setAircraft] = useState<Aircraft[]>([])
   const [flightLogs, setFlightLogs] = useState<FlightLog[]>([])
@@ -151,7 +158,7 @@ export default function KostenermittlungPage() {
               amount: t.amount,
               type: t.type,
               date: t.date,
-              year: new Date(t.date).getFullYear(),
+              year: getYearFromDate(t.date),
               allocations: t.costAllocations?.map((alloc: any) => ({
                 allocationType: alloc.allocationType,
                 aircraft: typeof alloc.aircraft === 'object' ? alloc.aircraft?.id || alloc.aircraft?.registration : alloc.aircraft,
@@ -178,10 +185,12 @@ export default function KostenermittlungPage() {
     const years = Array.from(
       new Set([
         ...flightLogs.map((log: FlightLog) => log.year),
-        ...transactions.map((t: TransactionData) => new Date(t.date).getFullYear()),
-        ...fuelEntries.map((fe: FuelEntry) => new Date(fe.date).getFullYear()),
+        ...transactions.map((t: TransactionData) => getYearFromDate(t.date)).filter((y): y is number => y != null),
+        ...fuelEntries.map((fe: FuelEntry) => getYearFromDate(fe.date)).filter((y): y is number => y != null),
       ])
-    ).sort((a: number, b: number) => b - a)
+    )
+      .filter((y) => Number.isFinite(y))
+      .sort((a: number, b: number) => b - a)
 
     if (years.length === 0) return
 
@@ -195,22 +204,25 @@ export default function KostenermittlungPage() {
     }
   }, [flightLogs, transactions, fuelEntries])
 
-  // Get available years
+  // Get available years (only valid, finite years)
   const availableYears = Array.from(
     new Set([
       ...flightLogs.map((log: FlightLog) => log.year),
-      ...transactions.map((t: TransactionData) => new Date(t.date).getFullYear()),
-      ...fuelEntries.map((fe: FuelEntry) => new Date(fe.date).getFullYear()),
+      ...transactions.map((t: TransactionData) => getYearFromDate(t.date)).filter((y): y is number => y != null),
+      ...fuelEntries.map((fe: FuelEntry) => getYearFromDate(fe.date)).filter((y): y is number => y != null),
     ])
-  ).sort((a: number, b: number) => b - a)
+  )
+    .filter((y) => Number.isFinite(y))
+    .sort((a: number, b: number) => b - a)
 
   // Calculate financial data for each aircraft
   const calculateAircraftFinancials = (): AircraftFinancialData[] => {
     const financials: AircraftFinancialData[] = []
+    const yearsToUse = selectedYears.filter((y) => Number.isFinite(y))
 
     console.log('=== BERECHNUNG START ===')
     console.log('Flugzeuge:', aircraft.map((ac: Aircraft) => ({ id: ac.id, registration: ac.registration })))
-    console.log('Ausgewählte Jahre:', selectedYears)
+    console.log('Ausgewählte Jahre:', yearsToUse)
     console.log('Geladene Transaktionen:', transactions.length)
 
     aircraft.forEach((ac: Aircraft) => {
@@ -218,7 +230,7 @@ export default function KostenermittlungPage() {
 
       console.log(`\n--- Berechne für Flugzeug: ${ac.registration} (ID: ${ac.id}) ---`)
 
-      selectedYears.forEach((year: number) => {
+      yearsToUse.forEach((year: number) => {
         console.log(`  Jahr: ${year}`)
         // Get flight log for this year
         const flightLog = flightLogs.find(
@@ -236,9 +248,9 @@ export default function KostenermittlungPage() {
 
         // Get fuel entries for this aircraft and year
         const aircraftFuelEntries = fuelEntries.filter((fe: FuelEntry) => {
-          const aircraftId = typeof fe.aircraft === 'object' ? fe.aircraft.id : fe.aircraft
-          const entryYear = new Date(fe.date).getFullYear()
-          return aircraftId === ac.id && entryYear === year
+          const aircraftId = typeof fe.aircraft === 'object' ? fe.aircraft?.id : fe.aircraft
+          const entryYear = getYearFromDate(fe.date)
+          return aircraftId === ac.id && entryYear != null && entryYear === year
         })
 
         // Calculate fuel costs from actual fuel entries
@@ -277,16 +289,20 @@ export default function KostenermittlungPage() {
         // Get revenues from transactions
         const revenueTransactions = transactions.filter((t: TransactionData) => {
           if (t.type !== 'income') return false
-          const transactionYear = new Date(t.date).getFullYear()
-          if (transactionYear !== year) return false
+          const transactionYear = getYearFromDate(t.date)
+          if (transactionYear == null || transactionYear !== year) return false
 
           // Check if transaction has cost allocations for this aircraft
           if (t.costAllocations && Array.isArray(t.costAllocations)) {
             return t.costAllocations.some((allocation) => {
-              const allocationType = allocation.allocationType || (allocation.aircraft ? 'aircraft' : 'generalCost')
+              const allocationType = allocation?.allocationType ?? (allocation?.aircraft != null ? 'aircraft' : 'generalCost')
               if (allocationType !== 'aircraft') return false
               const aircraftId =
-                typeof allocation.aircraft === 'object' ? allocation.aircraft.id : allocation.aircraft
+                allocation?.aircraft != null && typeof allocation.aircraft === 'object'
+                  ? (allocation.aircraft as { id?: string }).id
+                  : typeof allocation?.aircraft === 'string'
+                    ? allocation.aircraft
+                    : null
               return aircraftId === ac.id
             })
           }
@@ -303,48 +319,53 @@ export default function KostenermittlungPage() {
         const totalRevenue = revenueTransactions.reduce((sum: number, t: TransactionData) => {
           if (t.costAllocations && Array.isArray(t.costAllocations)) {
             const allocation = t.costAllocations.find((alloc) => {
-              const allocationType = alloc.allocationType || (alloc.aircraft ? 'aircraft' : 'generalCost')
+              const allocationType = alloc?.allocationType ?? (alloc?.aircraft != null ? 'aircraft' : 'generalCost')
               if (allocationType !== 'aircraft') return false
               const aircraftId =
-                typeof alloc.aircraft === 'object' ? alloc.aircraft.id : alloc.aircraft
+                alloc?.aircraft != null && typeof alloc.aircraft === 'object'
+                  ? (alloc.aircraft as { id?: string }).id
+                  : typeof alloc?.aircraft === 'string'
+                    ? alloc.aircraft
+                    : null
               return aircraftId === ac.id
             })
-            if (allocation) {
-              return sum + (t.amount * allocation.weight) / 100
+            if (allocation != null) {
+              const weight = Number(allocation.weight) || 100
+              return sum + ((t.amount ?? 0) * weight) / 100
             }
           }
-          return sum + t.amount
+          return sum + (t.amount ?? 0)
         }, 0)
 
         // Get costs from transactions
         const costTransactions = transactions.filter((t: TransactionData) => {
           if (t.type !== 'expense') return false
-          const transactionYear = new Date(t.date).getFullYear()
-          if (transactionYear !== year) return false
+          const transactionYear = getYearFromDate(t.date)
+          if (transactionYear == null || transactionYear !== year) return false
 
           // Check if transaction has cost allocations for this aircraft
           if (t.costAllocations && Array.isArray(t.costAllocations) && t.costAllocations.length > 0) {
             const hasAllocation = t.costAllocations.some((allocation) => {
-              const allocationType = allocation.allocationType || (allocation.aircraft ? 'aircraft' : 'generalCost')
+              const allocationType = allocation?.allocationType ?? (allocation?.aircraft != null ? 'aircraft' : 'generalCost')
               if (allocationType !== 'aircraft') return false
               
               // Handle both string ID and populated object
               let aircraftId: string | null = null
-              if (typeof allocation.aircraft === 'string') {
-                aircraftId = allocation.aircraft
-              } else if (allocation.aircraft && typeof allocation.aircraft === 'object' && 'id' in allocation.aircraft) {
-                aircraftId = allocation.aircraft.id
-              } else if (allocation.aircraft && typeof allocation.aircraft === 'object' && 'registration' in allocation.aircraft) {
-                // Fallback: Prüfe auch über Registration
-                const allocAircraft = allocation.aircraft as any
+              const a = allocation?.aircraft
+              if (typeof a === 'string') {
+                aircraftId = a
+              } else if (a != null && typeof a === 'object' && 'id' in a) {
+                aircraftId = (a as { id: string }).id
+              } else if (a != null && typeof a === 'object' && 'registration' in a) {
+                const allocAircraft = a as { registration?: string; id?: string }
                 if (allocAircraft.registration === ac.registration) {
-                  aircraftId = allocAircraft.id
+                  aircraftId = allocAircraft.id ?? null
                 }
               }
               
               const matches = aircraftId === ac.id
               if (matches) {
-                console.log(`    ✓ Transaktion gefunden: ${t.description} (${t.amount}€) - Zuordnung: ${allocation.weight}%`)
+                console.log(`    ✓ Transaktion gefunden: ${t.description} (${t.amount}€) - Zuordnung: ${allocation?.weight ?? 0}%`)
               }
               
               return matches
@@ -367,28 +388,26 @@ export default function KostenermittlungPage() {
         const costsFromTransactions = costTransactions.reduce((sum: number, t: TransactionData) => {
           if (t.costAllocations && Array.isArray(t.costAllocations) && t.costAllocations.length > 0) {
             const allocation = t.costAllocations.find((alloc) => {
-              const allocationType = alloc.allocationType || (alloc.aircraft ? 'aircraft' : 'generalCost')
+              const allocationType = alloc?.allocationType ?? (alloc?.aircraft != null ? 'aircraft' : 'generalCost')
               if (allocationType !== 'aircraft') return false
               
-              // Handle both string ID and populated object
               let aircraftId: string | null = null
-              if (typeof alloc.aircraft === 'string') {
-                aircraftId = alloc.aircraft
-              } else if (alloc.aircraft && typeof alloc.aircraft === 'object' && 'id' in alloc.aircraft) {
-                aircraftId = alloc.aircraft.id
+              const a = alloc?.aircraft
+              if (typeof a === 'string') {
+                aircraftId = a
+              } else if (a != null && typeof a === 'object' && 'id' in a) {
+                aircraftId = (a as { id: string }).id
               }
               
               return aircraftId === ac.id
             })
-            if (allocation) {
-              // Betrag ist bereits positiv (durch beforeChange Hook), daher direkt verwenden
-              const weightedAmount = (t.amount * allocation.weight) / 100
+            if (allocation != null) {
+              const weight = Number(allocation.weight) || 100
+              const weightedAmount = ((t.amount ?? 0) * weight) / 100
               return sum + weightedAmount
             }
-            // Wenn keine passende Zuordnung gefunden wurde, nicht addieren (nur zugeordnete Kosten zählen)
             return sum
           }
-          // Wenn keine costAllocations vorhanden sind, nicht addieren (nur zugeordnete Kosten zählen)
           return sum
         }, 0)
 
@@ -709,7 +728,7 @@ export default function KostenermittlungPage() {
                         {/* Expanded Details */}
                         {isExpanded && (
                           <div className="border-t border-slate-200 dark:border-slate-700 p-6">
-                            {selectedYears.map((year: number) => {
+                            {selectedYears.filter((y) => Number.isFinite(y)).map((year: number) => {
                               const yearData = aircraftFinancials.find((f: AircraftFinancialData) => f.year === year)
                               if (!yearData) return null
 
@@ -728,16 +747,16 @@ export default function KostenermittlungPage() {
                                     <div className="bg-emerald-50 dark:bg-emerald-900/20 rounded-lg p-4 mb-2">
                                       {yearData.revenues.transactions.length > 0 ? (
                                         <div className="space-y-2">
-                                          {yearData.revenues.transactions.map((t) => (
+                                          {yearData.revenues.transactions.map((t, idx) => (
                                             <div
-                                              key={t.id}
+                                              key={t.id ?? `rev-${idx}`}
                                               className="flex justify-between items-center text-sm"
                                             >
                                               <span className="text-slate-700 dark:text-slate-300">
                                                 {t.description || t.reference || 'Erlös'}
                                               </span>
                                               <span className="font-medium text-emerald-700 dark:text-emerald-300">
-                                                {t.amount.toFixed(2)} €
+                                                {(Number(t.amount) || 0).toFixed(2)} €
                                               </span>
                                             </div>
                                           ))}
@@ -827,41 +846,33 @@ export default function KostenermittlungPage() {
                                           <div className="text-xs font-medium text-slate-600 dark:text-slate-400 mb-2">
                                             Weitere Kosten aus Transaktionen:
                                           </div>
-                                          {yearData.costs.transactions.map((t) => {
-                                            // Berechne den gewichteten Betrag für diese Transaktion
+                                          {yearData.costs.transactions.map((t, idx) => {
                                             const allocation = t.costAllocations?.find((alloc) => {
-                                              const allocationType = alloc.allocationType || (alloc.aircraft ? 'aircraft' : 'generalCost')
+                                              const allocationType = alloc?.allocationType ?? (alloc?.aircraft != null ? 'aircraft' : 'generalCost')
                                               if (allocationType !== 'aircraft') return false
-                                              
-                                              // Handle both string ID and populated object
-                                              let aircraftId: string | null = null
-                                              if (typeof alloc.aircraft === 'string') {
-                                                aircraftId = alloc.aircraft
-                                              } else if (alloc.aircraft && typeof alloc.aircraft === 'object' && 'id' in alloc.aircraft) {
-                                                aircraftId = alloc.aircraft.id
-                                              }
-                                              
+                                              const a = alloc?.aircraft
+                                              const aircraftId =
+                                                typeof a === 'string' ? a : a != null && typeof a === 'object' && 'id' in a ? (a as { id: string }).id : null
                                               return aircraftId === ac.id
                                             })
-                                            const weightedAmount = allocation 
-                                              ? (t.amount * allocation.weight) / 100
-                                              : t.amount
-                                            
+                                            const weight = allocation != null ? Number(allocation.weight) || 100 : 100
+                                            const weightedAmount = allocation != null ? ((t.amount ?? 0) * weight) / 100 : (t.amount ?? 0)
+
                                             return (
                                               <div
-                                                key={t.id}
+                                                key={t.id ?? `t-${idx}`}
                                                 className="flex justify-between items-center text-sm mb-1"
                                               >
                                                 <span className="text-slate-700 dark:text-slate-300">
                                                   {t.description || t.reference || 'Kosten'}
-                                                  {allocation && allocation.weight < 100 && (
+                                                  {allocation != null && weight < 100 && (
                                                     <span className="ml-2 text-xs text-slate-500 dark:text-slate-400">
-                                                      ({allocation.weight.toFixed(0)}%)
+                                                      ({weight.toFixed(0)}%)
                                                     </span>
                                                   )}
                                                 </span>
                                                 <span className="font-medium text-red-700 dark:text-red-300">
-                                                  {weightedAmount.toFixed(2)} €
+                                                  {Number(weightedAmount).toFixed(2)} €
                                                 </span>
                                               </div>
                                             )
