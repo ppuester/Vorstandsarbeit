@@ -53,7 +53,7 @@ export function Navigation() {
       enabled: true,
     },
     {
-      label: 'Kontobewegungen',
+      label: 'Finanzen',
       href: '/kontobewegungen',
       icon: FileText,
       enabled: isFeatureEnabled('transactions'),
