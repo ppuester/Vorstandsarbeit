@@ -50,6 +50,7 @@ interface FlightDetailItem {
   workingMinutesGlider: number
   workingMinutesMotor: number
   workingMinutesTow: number
+  adjustedMinutes: number
   sourceTowAircraftRegistration?: string
   departureLocation?: string
   landingLocation?: string
@@ -873,6 +874,9 @@ export default function ArbeitsstundenPage() {
                         Min
                       </th>
                       <th className="text-left py-2 px-2 font-medium text-slate-600 dark:text-slate-400">
+                        Arb-Min (mit Faktor)
+                      </th>
+                      <th className="text-left py-2 px-2 font-medium text-slate-600 dark:text-slate-400">
                         Schlepp-LFZ
                       </th>
                       <th className="text-left py-2 px-2 font-medium text-slate-600 dark:text-slate-400">
@@ -894,6 +898,9 @@ export default function ArbeitsstundenPage() {
                           {drilldown.category === 'motor' && f.workingMinutesMotor}
                           {drilldown.category === 'tow' && f.workingMinutesTow}
                           {' min'}
+                        </td>
+                        <td className="py-2 px-2 text-slate-700 dark:text-slate-300">
+                          {f.adjustedMinutes} min
                         </td>
                         <td className="py-2 px-2 text-slate-600 dark:text-slate-400">
                           {f.sourceTowAircraftRegistration || '–'}

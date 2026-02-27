@@ -10,6 +10,7 @@ export interface FlightDetailItem {
   workingMinutesGlider: number
   workingMinutesMotor: number
   workingMinutesTow: number
+  adjustedMinutes: number
   sourceTowAircraftRegistration?: string
   departureLocation?: string
   landingLocation?: string
@@ -82,7 +83,7 @@ export async function GET(request: Request) {
       const d = doc as {
         id: string
         date: string
-        aircraft?: string | { id: string; registration?: string } | null
+        aircraft?: string | { id: string; registration?: string; workingHourFactor?: number | null } | null
         pilotName?: string | null
         workingMinutesGlider?: number | null
         workingMinutesMotor?: number | null
@@ -97,14 +98,24 @@ export async function GET(request: Request) {
           ? d.aircraft
           : null
       const aircraftRegistration = aircraft?.registration ?? ''
+      const gliderMin = Math.max(0, Number(d.workingMinutesGlider) || 0)
+      const motorMin = Math.max(0, Number(d.workingMinutesMotor) || 0)
+      const towMin = Math.max(0, Number(d.workingMinutesTow) || 0)
+      const baseTotalMin = gliderMin + motorMin + towMin
+      const factor =
+        aircraft && typeof aircraft.workingHourFactor === 'number'
+          ? aircraft.workingHourFactor || 1
+          : 1
+      const adjustedMinutes = Math.round(baseTotalMin * factor)
       return {
         id: d.id,
         date: d.date ?? '',
         aircraftRegistration,
         pilotName: d.pilotName ?? 'Unbekannt',
-        workingMinutesGlider: Math.max(0, Number(d.workingMinutesGlider) || 0),
-        workingMinutesMotor: Math.max(0, Number(d.workingMinutesMotor) || 0),
-        workingMinutesTow: Math.max(0, Number(d.workingMinutesTow) || 0),
+        workingMinutesGlider: gliderMin,
+        workingMinutesMotor: motorMin,
+        workingMinutesTow: towMin,
+        adjustedMinutes,
         sourceTowAircraftRegistration: d.sourceTowAircraftRegistration ?? undefined,
         departureLocation: d.departureLocation ?? undefined,
         landingLocation: d.landingLocation ?? undefined,
