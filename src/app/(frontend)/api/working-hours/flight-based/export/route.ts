@@ -7,14 +7,25 @@ import { aggregateWorkingHoursByMember, roundHours } from '@/utilities/aggregate
 export const runtime = 'nodejs'
 
 const HEADERS = [
+  'Mitglied',
   'Mitgliedsnummer',
-  'Name',
-  'Arbeitsstunden Segelflug in min',
-  'Arbeitsstunden Segelflug in Stunden',
-  'Arbeitsstunden Motorflug in min',
-  'Arbeitsstunden Motorflug in Stunden',
-  'Arbeitsstunden Schlepp in min',
-  'Arbeitsstunden Schlepp in Stunden',
+  'MatchStatus',
+  'Segelflug_min_base',
+  'Segelflug_h_base',
+  'Motorflug_min_base',
+  'Motorflug_h_base',
+  'Schlepp_min_base',
+  'Schlepp_h_base',
+  'Summe_min_base',
+  'Summe_h_base',
+  'Segelflug_min_adjusted',
+  'Segelflug_h_adjusted',
+  'Motorflug_min_adjusted',
+  'Motorflug_h_adjusted',
+  'Schlepp_min_adjusted',
+  'Schlepp_h_adjusted',
+  'Summe_min_adjusted',
+  'Summe_h_adjusted',
 ] as const
 
 export async function GET(request: Request) {
@@ -64,21 +75,36 @@ export async function GET(request: Request) {
       exemptMemberIds
     )
 
-    const sheetRows = rows.map((r) => ({
-      Mitgliedsnummer: r.memberId ? memberNumberById.get(r.memberId) ?? '' : '',
-      Name: r.memberName,
-      'Arbeitsstunden Segelflug in min': r.adjusted.gliderMin,
-      'Arbeitsstunden Segelflug in Stunden': roundHours(r.adjusted.gliderMin),
-      'Arbeitsstunden Motorflug in min': r.adjusted.motorMin,
-      'Arbeitsstunden Motorflug in Stunden': roundHours(r.adjusted.motorMin),
-      'Arbeitsstunden Schlepp in min': r.adjusted.towMin,
-      'Arbeitsstunden Schlepp in Stunden': roundHours(r.adjusted.towMin),
-    }))
+    const sheetRows = rows.map((r) => {
+      const sumBase = r.base.gliderMin + r.base.motorMin + r.base.towMin
+      const sumAdj = r.adjusted.gliderMin + r.adjusted.motorMin + r.adjusted.towMin
+      return {
+        Mitglied: r.memberName,
+        Mitgliedsnummer: r.memberId ? memberNumberById.get(r.memberId) ?? '' : '',
+        MatchStatus: r.matchStatus,
+        Segelflug_min_base: r.base.gliderMin,
+        Segelflug_h_base: roundHours(r.base.gliderMin),
+        Motorflug_min_base: r.base.motorMin,
+        Motorflug_h_base: roundHours(r.base.motorMin),
+        Schlepp_min_base: r.base.towMin,
+        Schlepp_h_base: roundHours(r.base.towMin),
+        Summe_min_base: sumBase,
+        Summe_h_base: roundHours(sumBase),
+        Segelflug_min_adjusted: r.adjusted.gliderMin,
+        Segelflug_h_adjusted: roundHours(r.adjusted.gliderMin),
+        Motorflug_min_adjusted: r.adjusted.motorMin,
+        Motorflug_h_adjusted: roundHours(r.adjusted.motorMin),
+        Schlepp_min_adjusted: r.adjusted.towMin,
+        Schlepp_h_adjusted: roundHours(r.adjusted.towMin),
+        Summe_min_adjusted: sumAdj,
+        Summe_h_adjusted: roundHours(sumAdj),
+      }
+    })
 
     const sheetName = `Arbeitsstunden ${year}`.slice(0, 31)
     const ws = XLSX.utils.json_to_sheet(sheetRows, { header: [...HEADERS] })
 
-    const hourColIndices = [3, 5, 7] // Spalten "in Stunden" (0-basiert: Segelflug, Motorflug, Schlepp)
+    const hourColIndices = [4, 6, 8, 10, 12, 14, 16, 18]
     const range = XLSX.utils.decode_range(ws['!ref'] ?? 'A1')
     for (let R = range.s.r + 1; R <= range.e.r; R++) {
       for (const C of hourColIndices) {

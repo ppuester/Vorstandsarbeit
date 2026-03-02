@@ -144,6 +144,29 @@ export default function KostenermittlungPage() {
       if (transactionsRes.ok) {
         const data = await transactionsRes.json()
         setTransactions(data.docs || [])
+        // Debug: Log transactions with allocations
+        const transactionsWithAllocations = (data.docs || []).filter((t: TransactionData) => 
+          t.costAllocations && Array.isArray(t.costAllocations) && t.costAllocations.length > 0
+        )
+        if (transactionsWithAllocations.length > 0) {
+          console.log('=== KOSTENERMITTLUNG DEBUG ===')
+          console.log('Transaktionen mit Zuordnungen gefunden:', transactionsWithAllocations.length)
+          transactionsWithAllocations.forEach((t: TransactionData) => {
+            console.log('Transaktion:', {
+              id: t.id,
+              description: t.description,
+              amount: t.amount,
+              type: t.type,
+              date: t.date,
+              year: getYearFromDate(t.date),
+              allocations: t.costAllocations?.map((alloc: any) => ({
+                allocationType: alloc.allocationType,
+                aircraft: typeof alloc.aircraft === 'object' ? alloc.aircraft?.id || alloc.aircraft?.registration : alloc.aircraft,
+                weight: alloc.weight
+              }))
+            })
+          })
+        }
       }
 
       if (fuelEntriesRes.ok) {
@@ -197,10 +220,18 @@ export default function KostenermittlungPage() {
     const financials: AircraftFinancialData[] = []
     const yearsToUse = selectedYears.filter((y) => Number.isFinite(y))
 
+    console.log('=== BERECHNUNG START ===')
+    console.log('Flugzeuge:', aircraft.map((ac: Aircraft) => ({ id: ac.id, registration: ac.registration })))
+    console.log('Ausgewählte Jahre:', yearsToUse)
+    console.log('Geladene Transaktionen:', transactions.length)
+
     aircraft.forEach((ac: Aircraft) => {
       if (selectedAircraft !== 'all' && ac.id !== selectedAircraft) return
 
+      console.log(`\n--- Berechne für Flugzeug: ${ac.registration} (ID: ${ac.id}) ---`)
+
       yearsToUse.forEach((year: number) => {
+        console.log(`  Jahr: ${year}`)
         // Get flight log for this year
         const flightLog = flightLogs.find(
           (log: FlightLog) =>
@@ -332,7 +363,12 @@ export default function KostenermittlungPage() {
                 }
               }
               
-              return aircraftId === ac.id
+              const matches = aircraftId === ac.id
+              if (matches) {
+                console.log(`    ✓ Transaktion gefunden: ${t.description} (${t.amount}€) - Zuordnung: ${allocation?.weight ?? 0}%`)
+              }
+              
+              return matches
             })
             
             return hasAllocation
@@ -345,6 +381,8 @@ export default function KostenermittlungPage() {
 
           return ref.includes(aircraftRef) || desc.includes(aircraftRef)
         })
+        
+        console.log(`    Gefundene Kosten-Transaktionen: ${costTransactions.length}`)
 
         // Calculate weighted costs from transactions
         const costsFromTransactions = costTransactions.reduce((sum: number, t: TransactionData) => {
@@ -375,6 +413,9 @@ export default function KostenermittlungPage() {
 
         const variableCosts = fuelCosts + maintenanceCosts
         const totalCosts = fixedCosts + variableCosts + costsFromTransactions
+
+        console.log(`    Kosten aus Transaktionen: ${costsFromTransactions.toFixed(2)}€`)
+        console.log(`    Gesamtkosten: ${totalCosts.toFixed(2)}€`)
 
         const costPerHour = flightHours > 0 ? totalCosts / flightHours : 0
         const costPerStart = starts > 0 ? totalCosts / starts : 0
