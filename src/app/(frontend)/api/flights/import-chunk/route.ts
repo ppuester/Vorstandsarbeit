@@ -297,7 +297,7 @@ export async function POST(request: Request) {
     let created = 0
     let skipped = 0
     let skippedNonClub = 0
-    let skippedUnknownAircraft = 0
+    const skippedUnknownAircraft = 0
     const errors: ChunkImportError[] = []
     const flightLogsMap = new Map<string, { starts: number; flightHours: number }>()
     const CHUNK_SIZE = 500
