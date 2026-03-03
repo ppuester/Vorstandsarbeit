@@ -1,10 +1,11 @@
 /**
  * Aggregiert Arbeitsstunden (Segelflug/Motorflug/Schlepp) pro Mitglied aus Flügen.
  * Pro Flug wird der Aircraft-Faktor angewendet: adjusted = round(min * factor).
- * Schlepp-Minuten stammen aus der Segler-Zeile → Faktor des Seglers gilt.
+ * Segelflug/Motorflug: Faktor des Flugzeugs der Zeile. Schlepp: Faktor der Schleppmaschine (bei fremdem Segler = Faktor des Schlepp-LFZ).
  */
 
 import type { Payload } from 'payload'
+import type { CollectionSlug } from 'payload'
 
 export interface MemberWorkingHoursRow {
   memberId: string | null
@@ -23,6 +24,7 @@ type FlightDoc = {
   workingMinutesMotor?: number | null
   workingMinutesTow?: number | null
   aircraft?: string | { id: string; workingHourFactor?: number | null } | null
+  sourceTowAircraftRegistration?: string | null
 }
 
 export async function aggregateWorkingHoursByMember(
@@ -31,24 +33,41 @@ export async function aggregateWorkingHoursByMember(
   includeUnmatched: boolean,
   exemptMemberIds?: Set<string>
 ): Promise<MemberWorkingHoursRow[]> {
-  const flightsRes = await payload.find({
-    collection: 'flights',
-    where: {
-      and: [
-        { sourceYear: { equals: year } },
-        {
-          or: [
-            { workingMinutesGlider: { greater_than: 0 } },
-            { workingMinutesMotor: { greater_than: 0 } },
-            { workingMinutesTow: { greater_than: 0 } },
-          ],
-        },
-      ],
-    },
-    depth: 2,
-    limit: 50000,
-    overrideAccess: true,
-  })
+  const [flightsRes, aircraftRes] = await Promise.all([
+    payload.find({
+      collection: 'flights',
+      where: {
+        and: [
+          { sourceYear: { equals: year } },
+          {
+            or: [
+              { workingMinutesGlider: { greater_than: 0 } },
+              { workingMinutesMotor: { greater_than: 0 } },
+              { workingMinutesTow: { greater_than: 0 } },
+            ],
+          },
+        ],
+      },
+      depth: 2,
+      limit: 50000,
+      overrideAccess: true,
+    }),
+    payload.find({
+      collection: 'aircraft' as CollectionSlug,
+      limit: 5000,
+      depth: 0,
+      overrideAccess: true,
+    }),
+  ])
+
+  const aircraftFactorByReg = new Map<string, number>()
+  for (const ac of aircraftRes.docs) {
+    const a = ac as { registration?: string | null; workingHourFactor?: number | null }
+    const reg = (a.registration ?? '').trim().toUpperCase()
+    if (reg) {
+      aircraftFactorByReg.set(reg, Number(a.workingHourFactor) || 1)
+    }
+  }
 
   const byMember = new Map<
     string,
@@ -84,17 +103,19 @@ export async function aggregateWorkingHoursByMember(
     if (!includeUnmatched && !matched) continue
     if (pilotId != null && exemptMemberIds?.has(pilotId)) continue
 
-    const factor =
+    const factorRow =
       d.aircraft && typeof d.aircraft === 'object' && d.aircraft != null
         ? Number((d.aircraft as { workingHourFactor?: number }).workingHourFactor) || 1
         : 1
-
     const gBase = Math.max(0, Number(d.workingMinutesGlider) || 0)
     const mBase = Math.max(0, Number(d.workingMinutesMotor) || 0)
     const tBase = Math.max(0, Number(d.workingMinutesTow) || 0)
-    const gAdj = Math.round(gBase * factor)
-    const mAdj = Math.round(mBase * factor)
-    const tAdj = Math.round(tBase * factor)
+    const towReg = (d.sourceTowAircraftRegistration ?? '').trim().toUpperCase()
+    const factorTow =
+      tBase > 0 && towReg ? (aircraftFactorByReg.get(towReg) ?? 1) : factorRow
+    const gAdj = Math.round(gBase * factorRow)
+    const mAdj = Math.round(mBase * factorRow)
+    const tAdj = Math.round(tBase * factorTow)
 
     const matchStatus =
       (d.memberMatchStatus === 'matched' || d.memberMatchStatus === 'unmatched' || d.memberMatchStatus === 'ambiguous')

@@ -338,15 +338,18 @@ export async function POST(request: Request) {
 
       const clubFlag = (raw.vereinsLfz ?? '').trim().toLowerCase()
       if (clubFlag !== '' && clubFlag !== 'ja') {
-        skippedNonClub++
-        continue
+        // Vereins-LFZ = Nein: Zeile trotzdem importieren, wenn das Schlepp-LFZ ein Vereinsflugzeug ist (Fremdes Segelflugzeug, Vereins-Schlepper).
+        const towRegCheck = (raw.schleppLfz ?? '').trim()
+        const towIsClubAircraft = towRegCheck
+          ? (await findAircraftByRegistration(payload, towRegCheck)) !== null
+          : false
+        if (!towIsClubAircraft) {
+          skippedNonClub++
+          continue
+        }
       }
 
       const aircraftForRow = await findAircraftByRegistration(payload, raw.lfz)
-      if (!aircraftForRow) {
-        skippedUnknownAircraft++
-        continue
-      }
 
       if (!raw.datum || !raw.lfz || !raw.pilot) {
         skipped++
@@ -458,7 +461,7 @@ export async function POST(request: Request) {
             : 'unmatched'
       const memberMatchCandidates = (matchResult.candidates || []).slice(0, 5).map((name) => ({ name }))
 
-      const aircraftId = aircraftForRow.id
+      const aircraftId = aircraftForRow ? aircraftForRow.id : undefined
       const copilotName = (raw.begleiterFi ?? '').trim() || undefined
       const sourceAircraftReg = (raw.lfz ?? '').trim().toUpperCase() || undefined
       const sourceTowReg = towReg ? towReg.toUpperCase() : undefined

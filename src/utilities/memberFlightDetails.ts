@@ -58,13 +58,28 @@ export async function getMemberFlightDetails(
     ;(where.and as unknown[]).push({ workingMinutesTow: { greater_than: 0 } })
   }
 
-  const flightsRes = await payload.find({
-    collection: 'flights' as CollectionSlug,
-    where: where as any,
-    depth: 2,
-    limit: 5000,
-    sort: '-date',
-  })
+  const [flightsRes, aircraftRes] = await Promise.all([
+    payload.find({
+      collection: 'flights' as CollectionSlug,
+      where: where as any,
+      depth: 2,
+      limit: 5000,
+      sort: '-date',
+    }),
+    payload.find({
+      collection: 'aircraft' as CollectionSlug,
+      limit: 5000,
+      depth: 0,
+      overrideAccess: true,
+    }),
+  ])
+
+  const aircraftFactorByReg = new Map<string, number>()
+  for (const ac of aircraftRes.docs) {
+    const a = ac as { registration?: string | null; workingHourFactor?: number | null }
+    const reg = (a.registration ?? '').trim().toUpperCase()
+    if (reg) aircraftFactorByReg.set(reg, Number(a.workingHourFactor) || 1)
+  }
 
   return flightsRes.docs.map((doc) => {
     const d = doc as {
@@ -75,6 +90,7 @@ export async function getMemberFlightDetails(
       workingMinutesGlider?: number | null
       workingMinutesMotor?: number | null
       workingMinutesTow?: number | null
+      sourceAircraftRegistration?: string | null
       sourceTowAircraftRegistration?: string | null
       departureLocation?: string | null
       landingLocation?: string | null
@@ -86,14 +102,19 @@ export async function getMemberFlightDetails(
       d.aircraft && typeof d.aircraft === 'object'
         ? d.aircraft
         : null
-    const aircraftRegistration = aircraft?.registration ?? ''
+    const aircraftRegistration = aircraft?.registration ?? (d.sourceAircraftRegistration ?? '').trim() || '–'
     const gliderMin = Math.max(0, Number(d.workingMinutesGlider) || 0)
     const motorMin = Math.max(0, Number(d.workingMinutesMotor) || 0)
     const towMin = Math.max(0, Number(d.workingMinutesTow) || 0)
-    const factor =
+    const factorRow =
       aircraft && typeof aircraft.workingHourFactor === 'number'
         ? aircraft.workingHourFactor || 1
         : 1
+    const towReg = (d.sourceTowAircraftRegistration ?? '').trim().toUpperCase()
+    const factorTow =
+      towMin > 0 && towReg ? (aircraftFactorByReg.get(towReg) ?? 1) : factorRow
+    const factor =
+      category === 'tow' ? factorTow : factorRow
     const baseForCategory =
       category === 'glider'
         ? gliderMin

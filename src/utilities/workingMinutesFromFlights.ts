@@ -4,7 +4,7 @@
  *
  * Regeln:
  * - Vereinsflugzeug = aircraftForRow gefunden (registration match).
- * - Segelflug: aircraftGroup === 'glider' -> Segelflug-Minuten = Zeit; Schlepp = Schleppzeit.
+ * - Segelflug: aircraftGroup === 'glider' -> Segelflug-Minuten = Zeit; Schlepp = Schleppzeit nur wenn Schlepp-LFZ Vereinsflugzeug (sonst 0).
  * - Motorflug: aircraftGroup in ['motor','ul','motor-glider'] (helicopter zählt als motor, TODO).
  * - Schleppflugzeug-Zeile: aircraftGroup !== glider UND Schlepp-LFZ gefüllt -> 0 Stunden für Pilot.
  * - Segler nicht Vereinsflugzeug, aber Schlepp-LFZ Vereinsflugzeug: nur Schlepp-Minuten.
@@ -75,12 +75,14 @@ export function computeWorkingMinutesFromRow(
     }
   }
 
-  // B) Vereinsflugzeug gefunden
+  // B) Vereinsflugzeug gefunden (Segler)
   if (aircraftGroup === 'glider') {
+    // Schlepp-Minuten nur, wenn das Schleppflugzeug ein Vereinsflugzeug ist (fremdes Schleppflugzeug → 0).
+    const towMin = towAircraftExists && towTime > 0 ? towTime : 0
     return {
       workingMinutesGlider: time,
       workingMinutesMotor: 0,
-      workingMinutesTow: towTime,
+      workingMinutesTow: towMin,
     }
   }
 
