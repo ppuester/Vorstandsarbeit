@@ -102,7 +102,8 @@ export async function getMemberFlightDetails(
       d.aircraft && typeof d.aircraft === 'object'
         ? d.aircraft
         : null
-    const aircraftRegistration = aircraft?.registration ?? (d.sourceAircraftRegistration ?? '').trim() || '–'
+    const aircraftRegistration =
+      (aircraft?.registration ?? (d.sourceAircraftRegistration ?? '').trim()) || '–'
     const gliderMin = Math.max(0, Number(d.workingMinutesGlider) || 0)
     const motorMin = Math.max(0, Number(d.workingMinutesMotor) || 0)
     const towMin = Math.max(0, Number(d.workingMinutesTow) || 0)
