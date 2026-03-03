@@ -75,7 +75,11 @@ export default function FlugstundenPage() {
   const [syncing, setSyncing] = useState(false)
   const [importRuns, setImportRuns] = useState<ImportRunItem[]>([])
   const [showImportHistory, setShowImportHistory] = useState(false)
-  const [deleteConfirm, setDeleteConfirm] = useState<{ id: string; fileName: string } | null>(null)
+  const [deleteConfirm, setDeleteConfirm] = useState<{
+    id: string
+    fileName: string
+    year?: number | null
+  } | null>(null)
   const [deleting, setDeleting] = useState(false)
   const [deleteConfirmLog, setDeleteConfirmLog] = useState<{
     id: string
@@ -474,7 +478,12 @@ export default function FlugstundenPage() {
       )
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || 'Löschen fehlgeschlagen')
-      setSuccess(`${data.deletedFlights} Flüge aus Import "${deleteConfirm.fileName}" gelöscht.`)
+      const parts = [
+        `${data.deletedFlights} Flüge gelöscht`,
+        data.deletedWorkingHours > 0 ? `${data.deletedWorkingHours} Arbeitsstunden-Einträge gelöscht` : null,
+        data.year != null ? `(Jahr ${data.year} vollständig entfernt)` : null,
+      ].filter(Boolean)
+      setSuccess(parts.join('. ') + '.')
       setDeleteConfirm(null)
       await fetchData()
       await fetchImportRuns()
@@ -1127,10 +1136,10 @@ export default function FlugstundenPage() {
                             <button
                               type="button"
                               onClick={() =>
-                                setDeleteConfirm({ id: run.id, fileName: run.fileName })
+                                setDeleteConfirm({ id: run.id, fileName: run.fileName, year: run.year ?? undefined })
                               }
                               className="inline-flex items-center gap-1 px-2 py-1.5 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded transition-colors text-sm font-medium"
-                              title="Import rückgängig machen (alle Flüge dieses Imports löschen)"
+                              title="Import rückgängig machen (ganzes Jahr: Flüge + Arbeitsstunden)"
                             >
                               <Trash2 className="w-4 h-4" />
                               Import löschen
@@ -1160,9 +1169,18 @@ export default function FlugstundenPage() {
               Import rückgängig machen
             </h2>
             <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-              Dieser Vorgang löscht <strong>alle Flüge</strong> des Imports &quot;{deleteConfirm.fileName}&quot; unwiderruflich.
-              Die Flugbucheinträge (Starts/Flugstunden pro Flugzeug) werden nicht automatisch angepasst – ggf. danach
-              &quot;Flugbücher aktualisieren&quot; ausführen.
+              {deleteConfirm.year != null ? (
+                <>
+                  Es werden für <strong>Jahr {deleteConfirm.year}</strong> unwiderruflich gelöscht: alle
+                  Flüge (Flugbewegungen) und alle manuell erfassten <strong>Arbeitsstunden</strong>.
+                  Die Flugbücher (Starts/Flugstunden pro Flugzeug) werden danach automatisch angepasst.
+                </>
+              ) : (
+                <>
+                  Dieser Vorgang löscht <strong>alle Flüge</strong> des Imports &quot;{deleteConfirm.fileName}&quot; unwiderruflich.
+                  Die Flugbucheinträge werden danach automatisch angepasst.
+                </>
+              )}
             </p>
             <div className="flex justify-end gap-3">
               <button

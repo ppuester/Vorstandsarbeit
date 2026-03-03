@@ -8,8 +8,8 @@ export const runtime = 'nodejs'
 const CHUNK_SIZE = 500
 
 /**
- * DELETE: Import rückgängig machen – löscht alle Flüge dieses Imports, markiert den ImportRun als gelöscht
- * und aktualisiert die Flugbücher (Starts/Flugstunden pro Flugzeug) aus den verbleibenden Flügen.
+ * DELETE: Import rückgängig machen – löscht für das Jahr des Imports alle Flüge und alle
+ * Arbeitsstunden (Stammdaten), markiert den ImportRun als gelöscht und aktualisiert die Flugbücher.
  * Query-Parameter: confirm=true erforderlich.
  */
 export async function DELETE(
@@ -41,7 +41,7 @@ export async function DELETE(
       return NextResponse.json({ error: 'Import-Lauf nicht gefunden.' }, { status: 404 })
     }
 
-    const run = importRun as { id: string; isDeleted?: boolean; type?: string }
+    const run = importRun as { id: string; isDeleted?: boolean; year?: number | null }
     if (run.isDeleted) {
       return NextResponse.json(
         { error: 'Dieser Import wurde bereits rückgängig gemacht.' },
@@ -49,31 +49,89 @@ export async function DELETE(
       )
     }
 
+    const year = run.year != null && Number.isFinite(run.year) ? run.year : null
     let deletedFlights = 0
-    let page = 1
-    let hasMore = true
+    let deletedWorkingHours = 0
 
-    while (hasMore) {
-      const chunk = await payload.find({
-        collection: 'flights' as CollectionSlug,
-        where: { importRun: { equals: id } },
-        limit: CHUNK_SIZE,
-        page,
-        depth: 0,
-        overrideAccess: true,
-      })
+    if (year != null) {
+      // Alles aus dem Jahr löschen: Flüge (sourceYear) und Arbeitsstunden (date im Jahr)
+      const yearStart = `${year}-01-01`
+      const yearEndExclusive = `${year + 1}-01-01`
 
-      for (const flight of chunk.docs) {
-        await payload.delete({
+      let page = 1
+      let hasMore = true
+      while (hasMore) {
+        const chunk = await payload.find({
           collection: 'flights' as CollectionSlug,
-          id: flight.id,
+          where: { sourceYear: { equals: year } },
+          limit: CHUNK_SIZE,
+          page,
+          depth: 0,
           overrideAccess: true,
         })
-        deletedFlights++
+        for (const flight of chunk.docs) {
+          await payload.delete({
+            collection: 'flights' as CollectionSlug,
+            id: flight.id,
+            overrideAccess: true,
+          })
+          deletedFlights++
+        }
+        hasMore = chunk.docs.length === CHUNK_SIZE
+        page++
       }
 
-      hasMore = chunk.docs.length === CHUNK_SIZE
-      page++
+      let whPage = 1
+      let whHasMore = true
+      while (whHasMore) {
+        const whChunk = await payload.find({
+          collection: 'working-hours' as CollectionSlug,
+          where: {
+            and: [
+              { date: { greater_than_equal: yearStart } },
+              { date: { less_than: yearEndExclusive } },
+            ],
+          },
+          limit: CHUNK_SIZE,
+          page: whPage,
+          depth: 0,
+          overrideAccess: true,
+        })
+        for (const wh of whChunk.docs) {
+          await payload.delete({
+            collection: 'working-hours' as CollectionSlug,
+            id: wh.id,
+            overrideAccess: true,
+          })
+          deletedWorkingHours++
+        }
+        whHasMore = whChunk.docs.length === CHUNK_SIZE
+        whPage++
+      }
+    } else {
+      // Fallback: nur Flüge dieses Imports löschen (wenn Jahr nicht gesetzt)
+      let page = 1
+      let hasMore = true
+      while (hasMore) {
+        const chunk = await payload.find({
+          collection: 'flights' as CollectionSlug,
+          where: { importRun: { equals: id } },
+          limit: CHUNK_SIZE,
+          page,
+          depth: 0,
+          overrideAccess: true,
+        })
+        for (const flight of chunk.docs) {
+          await payload.delete({
+            collection: 'flights' as CollectionSlug,
+            id: flight.id,
+            overrideAccess: true,
+          })
+          deletedFlights++
+        }
+        hasMore = chunk.docs.length === CHUNK_SIZE
+        page++
+      }
     }
 
     await payload.update({
@@ -83,7 +141,7 @@ export async function DELETE(
         isDeleted: true,
         deletedAt: new Date().toISOString(),
         deletedFlightsCount: deletedFlights,
-      } as any,
+      } as Record<string, unknown>,
       overrideAccess: true,
     })
 
@@ -92,6 +150,8 @@ export async function DELETE(
     return NextResponse.json({
       success: true,
       deletedFlights,
+      deletedWorkingHours,
+      year,
       importRunId: id,
       flightLogsUpdated: syncResult.updated,
       flightLogsZeroed: syncResult.zeroed,
