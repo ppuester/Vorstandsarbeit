@@ -17,7 +17,7 @@ const protectedRoutes = [
   '/kontobewegungen',
   '/flugzeuge',
   '/stammdaten',
-]
+]image.png
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl

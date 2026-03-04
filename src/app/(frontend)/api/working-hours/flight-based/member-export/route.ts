@@ -16,14 +16,14 @@ function sanitizeFilePart(input: string): string {
 
 function buildSheetRows(
   details: MemberFlightDetail[],
-  category: MemberFlightCategory,
-  includeAdjusted: boolean
-): { rows: any[][]; totalMinutes: number } {
-  const rows: any[][] = []
+  category: MemberFlightCategory
+): { rows: (string | number)[][]; totalFlightMinutes: number; totalAdjustedMinutes: number } {
+  const rows: (string | number)[][] = []
   const header = [
     'Datum',
     'LFZ',
-    'Minuten',
+    'Flugzeit (Min)',
+    'Arbeitsmin. (mit Faktor)',
     'Schlepp-LFZ',
     'Startort',
     'Landeort',
@@ -33,7 +33,8 @@ function buildSheetRows(
   ]
   rows.push(header)
 
-  let totalMinutes = 0
+  let totalFlightMinutes = 0
+  let totalAdjustedMinutes = 0
 
   for (const d of details) {
     const baseMinutes =
@@ -42,15 +43,17 @@ function buildSheetRows(
         : category === 'motor'
           ? d.workingMinutesMotor
           : d.workingMinutesTow
-    const minutes = includeAdjusted ? d.adjustedMinutes : baseMinutes
-    totalMinutes += minutes
+    const adjustedMinutes = d.adjustedMinutes
+    totalFlightMinutes += baseMinutes
+    totalAdjustedMinutes += adjustedMinutes
     const dateStr = d.date
       ? new Date(d.date).toLocaleDateString('de-DE')
       : ''
     rows.push([
       dateStr,
       d.aircraftRegistration || '',
-      minutes,
+      baseMinutes,
+      adjustedMinutes,
       d.sourceTowAircraftRegistration || '',
       d.departureLocation || '',
       d.landingLocation || '',
@@ -60,7 +63,7 @@ function buildSheetRows(
     ])
   }
 
-  return { rows, totalMinutes }
+  return { rows, totalFlightMinutes, totalAdjustedMinutes }
 }
 
 export async function GET(request: Request) {
@@ -110,7 +113,8 @@ export async function GET(request: Request) {
 
     const categories: MemberFlightCategory[] = ['glider', 'motor', 'tow']
     const wb = XLSX.utils.book_new()
-    let grandTotalMinutes = 0
+    let grandFlightMinutes = 0
+    let grandAdjustedMinutes = 0
 
     for (const category of categories) {
       const details = await getMemberFlightDetails(payload as any, {
@@ -120,18 +124,23 @@ export async function GET(request: Request) {
         pilotName: pilotName ?? undefined,
       })
 
-      const { rows, totalMinutes } = buildSheetRows(details, category, includeAdjusted)
-      grandTotalMinutes += totalMinutes
+      const { rows, totalFlightMinutes, totalAdjustedMinutes } = buildSheetRows(
+        details,
+        category
+      )
+      grandFlightMinutes += totalFlightMinutes
+      grandAdjustedMinutes += totalAdjustedMinutes
 
-      const sheetRows: any[][] = []
+      const sheetRows: (string | number)[][] = []
       const exportDate = new Date()
-      const totalHours = totalMinutes / 60
+      const flightHours = totalFlightMinutes / 60
+      const workingHours = totalAdjustedMinutes / 60
       sheetRows.push([
         `Mitglied: ${memberLabel || pilotName || ''}`,
         `Jahr: ${year}`,
         `Export: ${exportDate.toLocaleString('de-DE')}`,
-        `Summe Minuten: ${totalMinutes}`,
-        `Summe Stunden: ${totalHours.toFixed(2)}`,
+        `Summe Flugzeit: ${totalFlightMinutes} Min (${flightHours.toFixed(2)} h)`,
+        `Summe Arbeitsmin.: ${totalAdjustedMinutes} Min (${workingHours.toFixed(2)} Arbeitsstunden)`,
       ])
       sheetRows.push([])
       sheetRows.push(...rows)
