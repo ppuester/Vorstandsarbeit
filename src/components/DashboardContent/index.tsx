@@ -9,6 +9,7 @@ import {
   Fuel,
   Users,
   Clock,
+  ClipboardList,
 } from 'lucide-react'
 import { useOrganization } from '@/providers/Organization'
 
@@ -30,6 +31,14 @@ export function DashboardContent() {
       icon: FileText,
       description: 'Einnahmen & Ausgaben verwalten',
       href: '/kontobewegungen/uebersicht',
+      enabled: isFeatureEnabled('transactions'),
+    },
+    {
+      title: 'JHV',
+      value: 'Jahresauswertung',
+      icon: ClipboardList,
+      description: 'Jahreshauptversammlung – Finanz- und Vereinsauswertung',
+      href: '/jhv',
       enabled: isFeatureEnabled('transactions'),
     },
     {

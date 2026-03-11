@@ -61,6 +61,7 @@ export function Navigation() {
         { label: 'Import', href: '/kontobewegungen', enabled: isFeatureEnabled('transactions') },
         { label: 'Übersicht', href: '/kontobewegungen/uebersicht', enabled: isFeatureEnabled('transactions') },
         { label: 'Jahresvergleich', href: '/kontobewegungen/jahresvergleich', enabled: isFeatureEnabled('yearlyComparison') },
+        { label: 'JHV', href: '/jhv', enabled: isFeatureEnabled('transactions') },
       ],
     },
     {
