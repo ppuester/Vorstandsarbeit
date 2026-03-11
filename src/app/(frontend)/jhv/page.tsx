@@ -364,6 +364,74 @@ export default function JhvPage() {
                 </p>
               </section>
 
+              {/* Pro aktivem Mitglied */}
+              <section className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 p-6 mb-8">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">
+                  Kennzahlen pro aktivem Mitglied
+                </h2>
+                {report.activeMemberCount === 0 ? (
+                  <p className="text-slate-500 dark:text-slate-400 text-sm">
+                    Es sind aktuell keine aktiven Mitglieder im Mitgliederstamm markiert. Kennzahlen pro aktivem Mitglied können daher nicht berechnet werden.
+                  </p>
+                ) : (
+                  <>
+                    <p className="text-slate-600 dark:text-slate-400 text-sm mb-4">
+                      Grundlage sind alle als „aktiv“ gekennzeichneten Mitglieder im Mitgliederstamm (aktueller Stand).
+                    </p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="rounded-lg bg-slate-50 dark:bg-slate-700/50 p-4">
+                        <span className="text-sm text-slate-600 dark:text-slate-400">Aktive Mitglieder (Stammdaten)</span>
+                        <p className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+                          {report.activeMemberCount}
+                        </p>
+                      </div>
+                      <div className="rounded-lg bg-slate-50 dark:bg-slate-700/50 p-4">
+                        <span className="text-sm text-slate-600 dark:text-slate-400">Einnahmen pro aktivem Mitglied</span>
+                        <p className="text-xl font-bold text-green-600 dark:text-green-400 mt-1">
+                          {report.incomePerActiveMember.toFixed(2).replace('.', ',')} €
+                        </p>
+                      </div>
+                      <div className="rounded-lg bg-slate-50 dark:bg-slate-700/50 p-4">
+                        <span className="text-sm text-slate-600 dark:text-slate-400">Ausgaben pro aktivem Mitglied</span>
+                        <p className="text-xl font-bold text-red-600 dark:text-red-400 mt-1">
+                          {report.expensesPerActiveMember.toFixed(2).replace('.', ',')} €
+                        </p>
+                      </div>
+                      <div className="rounded-lg bg-slate-50 dark:bg-slate-700/50 p-4">
+                        <span className="text-sm text-slate-600 dark:text-slate-400">Jahresergebnis pro aktivem Mitglied</span>
+                        <p
+                          className={`text-xl font-bold ${
+                            report.resultPerActiveMember >= 0
+                              ? 'text-green-600 dark:text-green-400'
+                              : 'text-red-600 dark:text-red-400'
+                          } mt-1`}
+                        >
+                          {report.resultPerActiveMember.toFixed(2).replace('.', ',')} €
+                        </p>
+                      </div>
+                      <div className="rounded-lg bg-slate-50 dark:bg-slate-700/50 p-4">
+                        <span className="text-sm text-slate-600 dark:text-slate-400">Beitragseinnahmen pro aktivem Mitglied</span>
+                        <p className="text-xl font-bold text-green-600 dark:text-green-400 mt-1">
+                          {report.membershipIncomePerActiveMember.toFixed(2).replace('.', ',')} €
+                        </p>
+                      </div>
+                      <div className="rounded-lg bg-slate-50 dark:bg-slate-700/50 p-4">
+                        <span className="text-sm text-slate-600 dark:text-slate-400">Flugstunden pro aktivem Mitglied</span>
+                        <p className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+                          {report.flightHoursPerActiveMember.toFixed(2).replace('.', ',')} h
+                        </p>
+                      </div>
+                      <div className="rounded-lg bg-slate-50 dark:bg-slate-700/50 p-4">
+                        <span className="text-sm text-slate-600 dark:text-slate-400">Starts pro aktivem Mitglied</span>
+                        <p className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+                          {report.startsPerActiveMember.toFixed(1).replace('.', ',')}
+                        </p>
+                      </div>
+                    </div>
+                  </>
+                )}
+              </section>
+
               {/* Vorjahresvergleich */}
               {report.priorYear && (
                 <section className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 overflow-hidden mb-8">

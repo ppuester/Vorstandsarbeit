@@ -46,8 +46,13 @@ export async function GET(request: Request) {
     const dateFromYear = `${year}-01-01`
     const dateToYear = `${year}-12-31`
 
-    const [transactionsBeforeYear, transactionsInYear, membershipStatsRes, flightLogsRes] =
-      await Promise.all([
+    const [
+      transactionsBeforeYear,
+      transactionsInYear,
+      membershipStatsRes,
+      flightLogsRes,
+      activeMembersRes,
+    ] = await Promise.all([
         payload.find({
           collection: 'transactions' as CollectionSlug,
           where: { date: { less_than_equal: dateToPrevYear } },
@@ -78,6 +83,12 @@ export async function GET(request: Request) {
           where: { year: { equals: year } },
           depth: 0,
           limit: 500,
+        }),
+        payload.find({
+          collection: 'members' as CollectionSlug,
+          where: { active: { equals: true } },
+          depth: 0,
+          limit: 5000,
         }),
       ])
 
@@ -125,6 +136,20 @@ export async function GET(request: Request) {
       totalFlightHours += Number(doc.flightHours) || 0
     })
 
+    const activeMemberCount = activeMembersRes.totalDocs || 0
+    const incomePerActiveMember =
+      activeMemberCount > 0 ? income / activeMemberCount : 0
+    const expensesPerActiveMember =
+      activeMemberCount > 0 ? expenses / activeMemberCount : 0
+    const resultPerActiveMember =
+      activeMemberCount > 0 ? result / activeMemberCount : 0
+    const membershipIncomePerActiveMember =
+      activeMemberCount > 0 ? membershipIncome / activeMemberCount : 0
+    const flightHoursPerActiveMember =
+      activeMemberCount > 0 ? totalFlightHours / activeMemberCount : 0
+    const startsPerActiveMember =
+      activeMemberCount > 0 ? totalStarts / activeMemberCount : 0
+
     const report: JhvReport = {
       year,
       openingBalance,
@@ -139,6 +164,13 @@ export async function GET(request: Request) {
       membershipIncome,
       totalStarts,
       totalFlightHours,
+      activeMemberCount,
+      incomePerActiveMember,
+      expensesPerActiveMember,
+      resultPerActiveMember,
+      membershipIncomePerActiveMember,
+      flightHoursPerActiveMember,
+      startsPerActiveMember,
       priorYear: null,
     }
 
@@ -272,5 +304,15 @@ export interface JhvReport {
   membershipIncome: number
   totalStarts: number
   totalFlightHours: number
+   /**
+   * Aktive Mitglieder (Flag im Mitgliederstamm, aktueller Stand)
+   */
+  activeMemberCount: number
+  incomePerActiveMember: number
+  expensesPerActiveMember: number
+  resultPerActiveMember: number
+  membershipIncomePerActiveMember: number
+  flightHoursPerActiveMember: number
+  startsPerActiveMember: number
   priorYear: JhvPriorYear | null
 }
