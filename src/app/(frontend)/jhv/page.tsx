@@ -364,6 +364,36 @@ export default function JhvPage() {
                 </p>
               </section>
 
+              {/* Weitere Mitglieder-Kennzahlen */}
+              <section className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 p-6 mb-8">
+                <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">
+                  Kennzahlen Mitglieder
+                </h2>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                  <div className="rounded-lg bg-slate-50 dark:bg-slate-700/50 p-4">
+                    <span className="text-sm text-slate-600 dark:text-slate-400">Aktive Mitglieder (Stammdaten)</span>
+                    <p className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+                      {report.activeMemberCount}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-slate-50 dark:bg-slate-700/50 p-4">
+                    <span className="text-sm text-slate-600 dark:text-slate-400">Beitragspflichtige Mitglieder (Fix-Einnahmen)</span>
+                    <p className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+                      {report.memberCount}
+                    </p>
+                  </div>
+                  <div className="rounded-lg bg-slate-50 dark:bg-slate-700/50 p-4">
+                    <span className="text-sm text-slate-600 dark:text-slate-400">Differenz (aktiv, aber ohne Beitragszuordnung)</span>
+                    <p className="text-xl font-bold text-slate-900 dark:text-slate-100 mt-1">
+                      {Math.max(report.activeMemberCount - report.memberCount, 0)}
+                    </p>
+                  </div>
+                </div>
+                <p className="text-slate-500 dark:text-slate-400 text-sm mt-3">
+                  Beitragspflichtige Mitglieder stammen aus den Fix-Einnahmen; aktive Mitglieder aus dem Mitgliederstamm (Feld „Aktiv“).
+                </p>
+              </section>
+
               {/* Pro aktivem Mitglied */}
               <section className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200/70 dark:border-slate-700/70 p-6 mb-8">
                 <h2 className="text-xl font-bold text-slate-900 dark:text-slate-100 mb-4">
@@ -386,7 +416,7 @@ export default function JhvPage() {
                         </p>
                       </div>
                       <div className="rounded-lg bg-slate-50 dark:bg-slate-700/50 p-4">
-                        <span className="text-sm text-slate-600 dark:text-slate-400">Einnahmen pro aktivem Mitglied</span>
+                        <span className="text-sm text-slate-600 dark:text-slate-400">Gesamteinnahmen pro aktivem Mitglied</span>
                         <p className="text-xl font-bold text-green-600 dark:text-green-400 mt-1">
                           {report.incomePerActiveMember.toFixed(2).replace('.', ',')} €
                         </p>
@@ -413,6 +443,12 @@ export default function JhvPage() {
                         <span className="text-sm text-slate-600 dark:text-slate-400">Beitragseinnahmen pro aktivem Mitglied</span>
                         <p className="text-xl font-bold text-green-600 dark:text-green-400 mt-1">
                           {report.membershipIncomePerActiveMember.toFixed(2).replace('.', ',')} €
+                        </p>
+                      </div>
+                      <div className="rounded-lg bg-slate-50 dark:bg-slate-700/50 p-4">
+                        <span className="text-sm text-slate-600 dark:text-slate-400">Weitere Einnahmen pro aktivem Mitglied</span>
+                        <p className="text-xl font-bold text-green-600 dark:text-green-400 mt-1">
+                          {report.otherIncomePerActiveMember.toFixed(2).replace('.', ',')} €
                         </p>
                       </div>
                       <div className="rounded-lg bg-slate-50 dark:bg-slate-700/50 p-4">

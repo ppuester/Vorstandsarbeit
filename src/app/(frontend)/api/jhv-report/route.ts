@@ -137,6 +137,7 @@ export async function GET(request: Request) {
     })
 
     const activeMemberCount = activeMembersRes.totalDocs || 0
+    const otherIncome = income - membershipIncome
     const incomePerActiveMember =
       activeMemberCount > 0 ? income / activeMemberCount : 0
     const expensesPerActiveMember =
@@ -145,6 +146,8 @@ export async function GET(request: Request) {
       activeMemberCount > 0 ? result / activeMemberCount : 0
     const membershipIncomePerActiveMember =
       activeMemberCount > 0 ? membershipIncome / activeMemberCount : 0
+    const otherIncomePerActiveMember =
+      activeMemberCount > 0 ? otherIncome / activeMemberCount : 0
     const flightHoursPerActiveMember =
       activeMemberCount > 0 ? totalFlightHours / activeMemberCount : 0
     const startsPerActiveMember =
@@ -162,6 +165,7 @@ export async function GET(request: Request) {
       expensesByCategory,
       memberCount,
       membershipIncome,
+      otherIncome,
       totalStarts,
       totalFlightHours,
       activeMemberCount,
@@ -169,6 +173,7 @@ export async function GET(request: Request) {
       expensesPerActiveMember,
       resultPerActiveMember,
       membershipIncomePerActiveMember,
+      otherIncomePerActiveMember,
       flightHoursPerActiveMember,
       startsPerActiveMember,
       priorYear: null,
@@ -302,6 +307,10 @@ export interface JhvReport {
   expensesByCategory: JhvCategoryRow[]
   memberCount: number
   membershipIncome: number
+  /**
+   * Einnahmen außerhalb der Beitragsdaten (income - membershipIncome)
+   */
+  otherIncome: number
   totalStarts: number
   totalFlightHours: number
    /**
@@ -312,6 +321,7 @@ export interface JhvReport {
   expensesPerActiveMember: number
   resultPerActiveMember: number
   membershipIncomePerActiveMember: number
+  otherIncomePerActiveMember: number
   flightHoursPerActiveMember: number
   startsPerActiveMember: number
   priorYear: JhvPriorYear | null
